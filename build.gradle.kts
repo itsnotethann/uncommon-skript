@@ -2,7 +2,7 @@ plugins {
 	`maven-publish`
 }
 
-group = "com.github.hapily04.skriptminestom"
+group = "com.github.itsnotethann.uncommonskript"
 version = "1.0.0-alpha.1"
 
 repositories {
@@ -13,23 +13,16 @@ subprojects {
 	apply(plugin = "java")
 	apply(plugin = "maven-publish")
 
+	group = rootProject.group
+
 	publishing {
 		publications {
 			create<MavenPublication>("maven") {
-				groupId = "com.github.hapily04.skriptminestom"
+				groupId = rootProject.group.toString()
 				artifactId = project.name
 				version = rootProject.version.toString()
 
 				from(components["java"])
-			}
-		}
-		repositories {
-			maven {
-				url = uri("https://maven.hapily.me/snapshots")
-				credentials {
-					username = providers.gradleProperty("repoHapilyUsername").orNull
-					password = providers.gradleProperty("repoHapilyPassword").orNull
-				}
 			}
 		}
 	}
