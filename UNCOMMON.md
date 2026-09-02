@@ -19,12 +19,20 @@ The platform-free half of the Skript-on-Minestom stack. Design doc: `re/DOMAIN.m
 - `fork` → `itsnotethann/skript-minestom` — the existing fork this repo was seeded from.
 - no `origin` yet.
 
-## State at creation
+## State
 
-Seeded from branch `sckript` @ `1659db9b`, which is the commit `re/DOMAIN.md`'s ~400 file:line
-citations were verified against. That commit is **0 ahead / 82 behind `upstream/master`** — this
-repo has no fork deltas at all today, and catching up those 82 commits is a decision to make
-deliberately, because doing so invalidates the design doc's line citations.
+Seeded from branch `sckript` @ `1659db9b` (0 ahead / 82 behind `upstream/master`), the commit
+`re/DOMAIN.md` was originally verified against.
+
+**Caught up to `upstream/master` @ `68fb2a85`** — all 82 commits merged, one conflict
+(`build.gradle.kts` group/version, resolved in favour of this fork's coordinates). `sckript`
+fast-forwarded to the same commit. The design doc was re-audited against the result: of its 48
+file:line citations, 35 were unchanged, 10 renumbered, 1 relocated, and 2 turned out to have been
+wrong before the merge. See `re/DOMAIN.md` §6.4.6 for the full audit, including the counts that
+drifted (in-scope classes 261 → 300) and the one section it partly refuted (§2.15).
+
+Fork deltas against upstream are deliberately kept small and enumerable: the root
+`build.gradle.kts` coordinates, `settings.gradle.kts`, this file, and the `domain/` module.
 
 ## Consuming it
 
