@@ -1,5 +1,5 @@
 plugins {
-	java
+	`java-library`
 	`maven-publish`
 }
 
@@ -9,7 +9,8 @@ repositories {
 
 dependencies {
 	implementation(project(":common"))
-	compileOnly("net.kyori:adventure-api:5.2.0")
+	api("net.kyori:adventure-api:5.2.0")
+	api("net.kyori:adventure-nbt:5.2.0")
 	compileOnly("org.jetbrains:annotations:26.0.2")
 }
 
