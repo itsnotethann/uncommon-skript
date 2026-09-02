@@ -11,7 +11,6 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginBase;
 import org.bukkit.plugin.PluginClassLoader;
 import org.bukkit.plugin.PluginDescriptionFile;
-import org.bukkit.util.LoggerUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.LoggerFactory;
@@ -20,9 +19,7 @@ import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
-import java.util.logging.Handler;
 import java.util.logging.Level;
-import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
 public abstract class JavaPlugin extends PluginBase {
@@ -45,6 +42,7 @@ public abstract class JavaPlugin extends PluginBase {
 	public final void init(PluginDescriptionFile description, PluginClassLoader loader) {
 		this.description = description;
 		this.loader = loader;
+		configFile = new File(getDataFolder(), "config.yml");
 	}
 
 	public @Nullable InputStream getResource(@NotNull String filename) {
@@ -52,11 +50,11 @@ public abstract class JavaPlugin extends PluginBase {
 	}
 
 	public File getDataFolder() {
-		if (dataFolder == null) dataFolder = new File(getName());
+		if (dataFolder == null) dataFolder = new File(Bukkit.getServerDirectory(), getName());
 		return dataFolder;
 	}
 
-	protected File getFile() {
+	public File getFile() {
 		if (file == null) {
 			try {
 				URI path = this.getClass().getProtectionDomain().getCodeSource().getLocation().toURI();
@@ -230,17 +228,29 @@ public abstract class JavaPlugin extends PluginBase {
 		return loader;
 	}
 
+	/**
+	 * Returns the plugin that defines {@code clazz}.
+	 * Matches the class's defining {@link PluginClassLoader} when possible;
+	 * otherwise falls back to the plugin JAR that contains the class resource
+	 * (needed when the class was loaded by a shared/parent loader).
+	 */
 	public static @Nullable JavaPlugin getProvidingPlugin(Class<?> clazz) {
+		ClassLoader classLoader = clazz.getClassLoader();
+		if (classLoader instanceof PluginClassLoader) {
+			for (Plugin plugin : Bukkit.getPluginManager().getPlugins()) {
+				if (plugin instanceof JavaPlugin javaPlugin && javaPlugin.getLoader() == classLoader)
+					return javaPlugin;
+			}
+			return null;
+		}
+
+		// Class may live on a shared/parent loader (e.g. Skript on the app classpath).
+		// Use findResource so we only match the plugin's own JAR, not cross-plugin loads.
+		String resourceName = clazz.getName().replace('.', '/') + ".class";
 		for (Plugin plugin : Bukkit.getPluginManager().getPlugins()) {
-			if (!(plugin instanceof JavaPlugin))
-				continue;
-
-			JavaPlugin javaPlugin = (JavaPlugin) plugin;
-
-			try {
-				javaPlugin.getLoader().loadClass(clazz.getName());
+			if (plugin instanceof JavaPlugin javaPlugin
+				&& javaPlugin.getLoader().findResource(resourceName) != null)
 				return javaPlugin;
-			} catch (ClassNotFoundException ignored) {}
 		}
 
 		return null;

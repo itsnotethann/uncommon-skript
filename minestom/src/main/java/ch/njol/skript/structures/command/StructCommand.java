@@ -13,9 +13,15 @@ import ch.njol.skript.lang.util.SimpleEvent;
 import ch.njol.skript.registrations.EventValues;
 import ch.njol.skript.sections.SecArgument;
 import ch.njol.skript.sections.SecSubcommand;
+import ch.njol.skript.structures.command.arguments.ArgumentType;
+import ch.njol.skript.util.ComponentWrapper;
 import ch.njol.skript.variables.Variables;
+import com.github.hapily04.skriptminestom.luckperms.LuckPermsLookup;
+import net.kyori.adventure.text.Component;
 import net.minestom.server.MinecraftServer;
+import net.minestom.server.command.CommandManager;
 import net.minestom.server.command.CommandSender;
+import net.minestom.server.command.ConsoleSender;
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.command.builder.CommandContext;
 import net.minestom.server.command.builder.arguments.Argument;
@@ -26,6 +32,8 @@ import org.jetbrains.annotations.Nullable;
 import org.skriptlang.skript.lang.entry.EntryContainer;
 import org.skriptlang.skript.lang.entry.EntryValidator;
 import org.skriptlang.skript.lang.entry.KeyValueEntryData;
+import org.skriptlang.skript.lang.entry.util.ExpressionEntryData;
+import org.skriptlang.skript.lang.entry.util.ExpressionOrSectionEntryData;
 import org.skriptlang.skript.lang.structure.Structure;
 
 import java.util.*;
@@ -39,7 +47,10 @@ import java.util.stream.Stream;
 	# Rough Syntax
 	command [/]<commandname> [<arguments>]:
 		aliases: # [OPTIONAL] list of other names the command can go by (no / in front)
-		condition: # [OPTIONAL] section allowing you to return a boolean of whether the sender should have access to the command
+		permission: # [OPTIONAL] allows you to set the required permission
+		permission message: # [OPTIONAL] allows you to define what message will be sent should they not have permission
+		executable by: # [OPTIONAL] allows you to define who can run the command (player/players/consnole)
+		condition: # [OPTIONAL] section/expression allows you to return a boolean of whether the sender should have access to the command
 		subcommand [/]<commandname> [<arguments>]: # [OPTIONAL] works exactly like a command, can have argument/subcommand sections within
 		arg[ument] <argument>: # [OPTIONAL] allows you to more finely tune or scope an argument. See the Command Argument section documentation for more details
 		trigger: # [OPTIONAL] all arguments defined on the initial command line will be run inside this section
@@ -99,7 +110,10 @@ public class StructCommand extends Structure {
 				return split;
 			}
 		})
-		.addSection("condition", true)
+		.addEntry("permission", null, true)
+		.addEntryData(new ExpressionEntryData<>("permission message", null, true, ComponentWrapper.class))
+		.addEntry("executable by", null, true)
+		.addEntryData(new ExpressionOrSectionEntryData<>("condition", null, null, true, Boolean.class))
 		.addSection("trigger", true)
 		.unexpectedNodeTester(node -> {
 			String key = node.getKey();
@@ -170,7 +184,18 @@ public class StructCommand extends Structure {
 			parser.deleteCurrentEvent();
 			return false;
 		}
-		MinecraftServer.getCommandManager().register(command);
+		CommandManager commandManager = MinecraftServer.getCommandManager();
+		String commandName = command.getName();
+		if (commandManager.commandExists(commandName)) {
+			Skript.error("A command named '" + commandName + "' already exists!");
+			return false;
+		}
+		for (String alias : command.getAliases()) {
+			if (!commandManager.commandExists(alias)) continue;
+			Skript.error("A command named '" + alias + "' already exists, please choose another alias!");
+			return false;
+		}
+		commandManager.register(command);
 		refreshPlayerCommands();
 		parser.deleteCurrentEvent();
 		return true;
@@ -231,8 +256,8 @@ public class StructCommand extends Structure {
 				String name = parseName(c, chars);
 				//if (name == null) return false; // an error occurred while parsing name
 				commandName = name;
-			} else if (c == '<') {
-				Argument<?> arg = parseArg(chars);
+			} else if (c == '<' || c == '[') {
+				Argument<?> arg = parseArg(chars, c);
 				if (arg == null) return null; // an error occurred while parsing arg
 				args.add(arg);
 			} else {
@@ -245,19 +270,13 @@ public class StructCommand extends Structure {
 		String[] aliases = container.getOptional("aliases", String[].class, true);
 
 		ParserInstance parser = getParser();
-		parser.setCurrentEvent("command condition", CommandConditionEvent.class);
-		Trigger condition = getReturnableTrigger("command condition", container.getOptional("condition", SectionNode.class, false));
-		parser.setCurrentEvent("command condition", CommandTriggerEvent.class);
-		Trigger trigger = getTrigger("command /", container.getOptional("trigger", SectionNode.class, false));
-		parser.setCurrentEvent("command", ScriptCommandEvent.class);
+		parser.setCurrentEvent("command trigger", CommandTriggerEvent.class);
 		assert commandName != null; // has to be set in while loop
+		Trigger trigger = getTrigger("command /" + commandName, container.getOptional("trigger", SectionNode.class, false));
+		parser.setCurrentEvent("command", ScriptCommandEvent.class);
 		assert aliases != null; // default value of empty string array
 		Command command = new Command(commandName, aliases);
-		if (condition != null) command.setCondition((sender, commandString) -> {
-			CommandConditionEvent event = new CommandConditionEvent(sender, commandString);
-			TriggerItem.walk(condition, event);
-			return event.returnValue != null && event.returnValue;
-		});
+		if (!initCondition(command)) return null; // error initializing condition
 		if (!args.isEmpty()) command.addSyntax((sender, context) -> {
 			runCommandTrigger(trigger, sender, context, argArray);
 		}, argArray);
@@ -265,6 +284,57 @@ public class StructCommand extends Structure {
 			runCommandTrigger(trigger, sender, context);
 		});
 		return command;
+	}
+
+	private boolean initCondition(Command command) {
+		Expression<ComponentWrapper> permissionMessage = container.getOptional("permission message", Expression.class, false);
+		if (permissionMessage != null && !container.hasEntry("permission")) {
+			Skript.error("If a permission message is provided, a permission node must also be provided.");
+			return false;
+		}
+		String permission = container.getOptional("permission", String.class, false);
+
+		String executableBy = container.getOptional("executable by", String.class, false);
+		Class<? extends CommandSender> executableByClass = null;
+		if (executableBy != null) {
+			executableBy = executableBy.toLowerCase(Locale.ENGLISH);
+			switch (executableBy) {
+				case "player", "players" -> executableByClass = Player.class;
+				case "console" -> executableByClass = ConsoleSender.class;
+				default -> {
+					Skript.error("Unknown executor '" + executableBy + "' in 'executable by' entry while parsing command '" + command.getName() + "'.");
+					return false;
+				}
+			}
+		}
+		Class<? extends CommandSender> finalExecutableByClass = executableByClass;
+
+		getParser().setCurrentEvent("command condition", CommandConditionEvent.class);
+		ExpressionOrSectionEntryData.ExpressionOrSection<Boolean> conditionEntry =
+			container.getOptional("condition", ExpressionOrSectionEntryData.ExpressionOrSection.class, false);
+
+		Trigger condition = conditionEntry == null || conditionEntry.section() == null ? null
+			: getReturnableTrigger("command condition", conditionEntry.section());
+		Expression<? extends Boolean> conditionExpr = conditionEntry == null ? null : conditionEntry.expression();
+		command.setCondition((sender, commandString) -> {
+			CommandConditionEvent event = new CommandConditionEvent(sender, commandString);
+			if (condition != null) {
+				TriggerItem.walk(condition, event);
+				if (!(event.returnValue != null && event.returnValue)) return false;
+			} else if (conditionExpr != null && Boolean.FALSE.equals(conditionExpr.getSingle(event))) return false;
+
+			if (permission != null && !LuckPermsLookup.hasPermission(sender, permission)) {
+				if (commandString != null && permissionMessage != null) {
+					Component component = ComponentWrapper.getOrElse(permissionMessage, event, null);
+					if (component != null) sender.sendMessage(component);
+				}
+				return false;
+			}
+
+			if (finalExecutableByClass != null) return finalExecutableByClass.isAssignableFrom(sender.getClass());
+			return true;
+		});
+		return true;
 	}
 
 	private void runCommandTrigger(Trigger trigger, CommandSender sender, CommandContext context, Argument<?>... args) {
@@ -311,26 +381,39 @@ public class StructCommand extends Structure {
 		return name.toString();
 	}
 
-	public static Argument<?> parseArg(ArrayDeque<Character> chars) {
+	public static Argument<?> parseArg(ArrayDeque<Character> chars, char startingCharacter) {
 		StringBuilder sb = new StringBuilder();
 		String name = null;
 		String argType = null;
+
+		boolean optional = false;
+		if (startingCharacter == '[') {
+			optional = true;
+			if (chars.isEmpty() || chars.peek() != '<') {
+				Skript.error("Expected '<' after '[' while parsing an argument.");
+				return null;
+			}
+			chars.pop(); // we should have verified by here that next char is <, so pop it
+		}
 
 		while (!chars.isEmpty()) {
 			char c = chars.pop();
 			if (name != null) {
 				if (c != '>') sb.append(c);
 				else {
+					if (optional) {
+						if ((chars.isEmpty() || chars.peek() != ']')) {
+							Skript.error("Expected ending ']', but none was found while parsing command arg named '" + name + "'.");
+							return null;
+						}
+						chars.pop(); // pop last ]
+					}
 					argType = sb.toString();
 					break;
 				}
 			} else {
 				if (c == ':') {
-					if (chars.isEmpty() || chars.peek() != ' ') {
-						Skript.error("Expected a space after colon while parsing argument.");
-						return null;
-					}
-					chars.pop();
+					if (!chars.isEmpty() && chars.peek() == ' ') chars.pop(); // pop extra space
 					name = sb.toString();
 					sb.setLength(0); // reset it as we will reuse it for building arg type
 					continue;
@@ -339,7 +422,7 @@ public class StructCommand extends Structure {
 					sb.append(c);
 					continue;
 				}
-				Skript.error("Unknown character '" + c + "' was found whilst trying to parse the name of a command.");
+				Skript.error("Unknown character '" + c + "' was found whilst trying to parse the name of an argument.");
 				return null;
 			}
 		}
@@ -349,15 +432,16 @@ public class StructCommand extends Structure {
 			return null;
 		}
 
-		return buildArg(name, argType);
+		return buildArg(name, argType, optional);
 	}
 
-	private static Argument<?> buildArg(String name, String typeInput) {
+	private static Argument<?> buildArg(String name, String typeInput, boolean optional) {
 		String initialInput = typeInput.split(" ")[0];
 		for (ArgumentType type : ArgumentType.values()) {
 			if (!type.matchesInitialInput(initialInput)) continue;
 			Argument<?> arg = type.getProvider().apply(name, typeInput);
 			if (arg == null) continue;
+			if (optional) arg.setDefaultValue(() -> null);
 			return arg;
 		}
 		Skript.error("No argument type was found given '" + typeInput + "'.");

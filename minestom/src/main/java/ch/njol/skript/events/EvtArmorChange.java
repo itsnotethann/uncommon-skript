@@ -3,14 +3,12 @@ package ch.njol.skript.events;
 import ch.njol.skript.Skript;
 import ch.njol.skript.events.wrapper.EntityEquipWrapper;
 import ch.njol.skript.lang.Literal;
-import ch.njol.skript.registrations.Classes;
 import ch.njol.skript.lang.SkriptEvent;
 import ch.njol.skript.lang.SkriptParser;
+import ch.njol.skript.registrations.Classes;
 import net.minestom.server.entity.EquipmentSlot;
 import org.bukkit.event.Event;
 import org.eclipse.jdt.annotation.Nullable;
-
-import java.util.Locale;
 
 public class EvtArmorChange extends SkriptEvent {
 

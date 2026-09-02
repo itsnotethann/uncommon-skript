@@ -77,9 +77,14 @@ public class SimpleEvents {
 			.examples("""
 				on player pick block:
 					broadcast "%event-includes-data%" # whether data should be included from the picked block (ctrl + middle click)""");
-		Skript.registerEvent("Entity Equip", SimpleEvent.class, EntityEquipWrapper.class, "[entity] equip")
-			.description("Called when an equipment slot changes on an entity.")
-			.examples("on entity equip:");
+		Skript.registerEvent("Entity Velocity", SimpleEvent.class, EntityVelocityWrapper.class, "entity velocity [change]")
+			.description("""
+				Called when an entity's velocity is about to change.
+				Cancelling this keeps the entity's current velocity.""")
+			.examples("""
+				on entity velocity:
+					if event-entity is a player:
+						set event-vector to event-vector * 2 # double every push a player receives""");
 		Skript.registerEvent("Player Move", SimpleEvent.class, PlayerMoveWrapper.class, "[player] move")
 			.description("Called when a player attempts to move")
 			.examples("on player move:");

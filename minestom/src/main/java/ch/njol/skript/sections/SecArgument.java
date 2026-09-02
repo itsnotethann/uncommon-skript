@@ -40,7 +40,8 @@ import java.util.*;
 	- string -> string # can be unlimited length, just must be surrounded by quotation marks if there are spaces for this argument
 	- word -> string # singular piece of text
 	- stringarray -> strings # should eat the rest of the command (typically how bukkit commands work)
-	- gamemode -> gamemode
+	- gamemode -> gamemode # format entry supported
+	- soundcategory -> soundcategory # format entry supported
 	- particle -> particle
 	- entitytype -> entitytype
 	- block -> block # essentially paper's blockdata
@@ -55,6 +56,11 @@ import java.util.*;
 	- blockposition -> position # relative, can use ~ in arguments for example
 	- vector -> position # relative, can use ~ in arguments for example
 	- 2dvector -> vector # relative, can use ~ in arguments for example. Relative part is for sender's yaw/pitch. X and Z are the values, y is 0.
+	- attributetype -> attributetype
+	- biome -> biome
+	- damagetype -> string
+	- enchant -> enchantment
+	- sound -> string # sound id
 	
 	NOTE: Entity/player selectors (@s, @a, etc.) are supported, but the sender must have the proper permission level in order for it to show up.
 	See the 'Permission Level' expression""")
@@ -130,7 +136,11 @@ public class SecArgument extends Section {
 						SectionNode sectionNode, List<TriggerItem> triggerItems) {
 		container = ENTRY_VALIDATOR.validate(sectionNode);
 		if (container == null) return false;
-		argument = StructCommand.parseArg(StructCommand.stringToArrayDeque(parseResult.regexes.getFirst().group().replaceFirst("<", "")));
+		String group = parseResult.regexes.getFirst().group();
+		char firstCharacter = group.charAt(0);
+		if (group.startsWith("[")) group = group.replace("[", "");
+		else group = group.replace("<", "");
+		argument = StructCommand.parseArg(StructCommand.stringToArrayDeque(group), firstCharacter);
 		if (argument == null) return false; // errors already made in parseArg
 
 		String format = container.getOptional("format", String.class, false);
@@ -159,6 +169,10 @@ public class SecArgument extends Section {
 		// default expression can be unrelated to argument type rn. without reflection this may be impossible to detect
 		defaultExpression = (Expression<Object>) container.getOptional("default value", false);
 		if (defaultExpression != null) {
+			if (argument.getDefaultValue() != null) {
+				Skript.error("Argument was already marked as optional, so a default value should not be provided.");
+				return false;
+			}
 			if (LiteralUtils.hasUnparsedLiteral(defaultExpression)) defaultExpression = LiteralUtils.defendExpression(defaultExpression);
 			if (!LiteralUtils.canInitSafely(defaultExpression)) {
 				Skript.error("Invalid default value was provided.");

@@ -8,18 +8,12 @@ import ch.njol.skript.registrations.Classes;
 import ch.njol.skript.util.ExceptionUtils;
 import ch.njol.skript.util.FileUtils;
 import ch.njol.skript.util.Task;
-import ch.njol.skript.util.Utils;
 import ch.njol.skript.util.Version;
 import ch.njol.util.NotifyingReference;
+import org.bukkit.Bukkit;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
+import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -272,7 +266,8 @@ public class FlatFileStorage extends VariablesStorage {
 
 	@Override
 	protected File getFile(String fileName) {
-		return new File(fileName);
+		File file = new File(fileName);
+		return file.isAbsolute() ? file : new File(Bukkit.getServerDirectory(), fileName);
 	}
 
 	@Override
