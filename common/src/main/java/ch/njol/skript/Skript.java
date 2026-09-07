@@ -27,7 +27,6 @@ import org.bukkit.event.Event;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginDescriptionFile;
-import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.eclipse.jdt.annotation.Nullable;
 import org.jetbrains.annotations.ApiStatus;
@@ -46,9 +45,12 @@ import org.skriptlang.skript.lang.experiment.ExperimentRegistry;
 import org.skriptlang.skript.lang.script.Script;
 import org.skriptlang.skript.lang.structure.Structure;
 import org.skriptlang.skript.lang.structure.StructureInfo;
+import org.skriptlang.skript.platform.AddonHandle;
+import org.skriptlang.skript.platform.AddonRegistry;
 import org.skriptlang.skript.platform.EventBus;
 import org.skriptlang.skript.platform.PlatformEnvironment;
 import org.skriptlang.skript.platform.PlatformScheduler;
+import org.skriptlang.skript.platform.bukkit.BukkitAddonRegistry;
 import org.skriptlang.skript.platform.bukkit.BukkitEventBus;
 import org.skriptlang.skript.platform.bukkit.BukkitPlatformEnvironment;
 import org.skriptlang.skript.platform.bukkit.BukkitPlatformScheduler;
@@ -186,6 +188,16 @@ public final class Skript extends JavaPlugin implements Listener {
 		if (b == null)
 			eventBus = b = new BukkitEventBus(Bukkit.getPluginManager(), getInstance());
 		return b;
+	}
+
+	@Nullable
+	private static AddonRegistry addonRegistry;
+
+	public static AddonRegistry addonRegistry() {
+		AddonRegistry r = addonRegistry;
+		if (r == null)
+			addonRegistry = r = new BukkitAddonRegistry(Bukkit.getPluginManager());
+		return r;
 	}
 
 	@Nullable
@@ -463,15 +475,17 @@ public final class Skript extends JavaPlugin implements Listener {
 		if (logNormal())
 			info("Skript " + Language.get("skript.copyright"));
 
-		PluginManager pluginManager = Bukkit.getPluginManager();
+		AddonRegistry addonRegistry = addonRegistry();
 
 		for (File addonFile : getAddonsFolder().listFiles()) {
 			if (!addonFile.isFile() || !addonFile.getName().endsWith(".jar") || addonFile.equals(getFile()))
 				continue;
 
-			JavaPlugin plugin = pluginManager.loadPlugin(addonFile);
-			plugin.setEnabled(true);
-			plugin.onEnable();
+			AddonHandle addon = addonRegistry.load(addonFile);
+			if (addon == null)
+				continue;
+			addon.setEnabled(true);
+			addon.onEnable();
 		}
 
 		stopAcceptingRegistrations();

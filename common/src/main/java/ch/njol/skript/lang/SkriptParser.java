@@ -38,7 +38,7 @@ import ch.njol.util.coll.iterator.CheckedIterator;
 import com.google.common.base.Preconditions;
 import com.google.common.primitives.Booleans;
 import org.bukkit.event.Event;
-import org.bukkit.plugin.java.JavaPlugin;
+import org.skriptlang.skript.platform.AddonHandle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.skriptlang.skript.lang.converter.Converters;
@@ -211,10 +211,9 @@ public final class SkriptParser {
 						parseResult = parse_i(pattern);
 					} catch (MalformedPatternException e) {
 						String message = "pattern compiling exception, element class: " + info.type().getName();
-						try {
-							JavaPlugin providingPlugin = JavaPlugin.getProvidingPlugin(info.type());
-							message += " (provided by " + providingPlugin.getName() + ")";
-						} catch (IllegalArgumentException | IllegalStateException ignored) { }
+						AddonHandle providingAddon = Skript.addonRegistry().providingAddon(info.type());
+						if (providingAddon != null)
+							message += " (provided by " + providingAddon.name() + ")";
 						throw new RuntimeException(message, e);
 					} catch (StackOverflowError e) {
 						// Parsing caused a stack overflow, possibly due to too long lines
