@@ -23,8 +23,9 @@ import ch.njol.skript.config.Node;
 import ch.njol.skript.lang.parser.ParserInstance;
 import ch.njol.skript.log.LogHandler.LogResult;
 import org.bukkit.Bukkit;
-import org.bukkit.util.LoggerUtils;
 import org.eclipse.jdt.annotation.Nullable;
+import org.skriptlang.skript.platform.LogSink;
+import org.skriptlang.skript.platform.bukkit.LoggerLogSink;
 import org.slf4j.Logger;
 
 import java.util.Collection;
@@ -47,7 +48,9 @@ public abstract class SkriptLogger {
 
 	@SuppressWarnings("null")
 	public final static Logger LOGGER = Bukkit.getBetterLogger();
-	
+
+	public final static LogSink SINK = LoggerLogSink.platformDefault();
+
 	private static HandlerList getHandlers() {
 		return ParserInstance.get().getHandlers();
 	}
@@ -103,9 +106,9 @@ public abstract class SkriptLogger {
 			int i = 1;
 			while (!h.equals(handlers.remove()))
 				i++;
-			LoggerUtils.log(LOGGER, Level.SEVERE, "<skript_minestom_tag> " + i + " log handler" + (i == 1 ? " was" : "s were") + " not stopped properly!" +
+			SINK.log(Level.SEVERE, "<skript_minestom_tag> " + i + " log handler" + (i == 1 ? " was" : "s were") + " not stopped properly!" +
 				" (at " + getCaller() + ") " +
-				"[if you're a server admin and you see this message please file a bug report at https://github.com/SkriptLang/skript/issues if there is not already one]");
+				"[if you're a server admin and you see this message please file a bug report at https://github.com/SkriptLang/skript/issues if there is not already one]", null);
 		}
 	}
 	
@@ -180,7 +183,7 @@ public abstract class SkriptLogger {
 			}
 		}
 		entry.logged();
-		LoggerUtils.log(LOGGER, Level.INFO, "<skript_minestom_tag> " + entry.toFormattedString());
+		SINK.log(Level.INFO, "<skript_minestom_tag> " + entry.toFormattedString(), null);
 	}
 	
 	public static void logAll(Collection<LogEntry> entries) {

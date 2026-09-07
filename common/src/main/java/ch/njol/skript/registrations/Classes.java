@@ -41,7 +41,6 @@ import ch.njol.yggdrasil.Yggdrasil;
 import ch.njol.yggdrasil.YggdrasilInputStream;
 import ch.njol.yggdrasil.YggdrasilOutputStream;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import org.bukkit.Bukkit;
 import org.eclipse.jdt.annotation.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 import org.skriptlang.skript.lang.converter.Converter;
@@ -723,7 +722,7 @@ public abstract class Classes {
 			return null;
 		
 		// temporary
-		assert Bukkit.isPrimaryThread();
+		assert Skript.ENVIRONMENT.isPrimaryThread();
 		
 		ClassInfo<?> ci = getSuperClassInfo(o.getClass());
 		if (ci.getSerializeAs() != null) {
@@ -743,7 +742,7 @@ public abstract class Classes {
 		if (s == null) // value cannot be saved
 			return null;
 		
-		assert s.mustSyncDeserialization() ? Bukkit.isPrimaryThread() : true;
+		assert s.mustSyncDeserialization() ? Skript.ENVIRONMENT.isPrimaryThread() : true;
 		
 		try {
 			final ByteArrayOutputStream bout = new ByteArrayOutputStream();
@@ -788,7 +787,7 @@ public abstract class Classes {
 	@Nullable
 	public static Object deserialize(final ClassInfo<?> type, InputStream value) {
 		Serializer<?> s;
-		assert (s = type.getSerializer()) != null && (s.mustSyncDeserialization() ? Bukkit.isPrimaryThread() : true) : type + "; " + s + "; " + Bukkit.isPrimaryThread();
+		assert (s = type.getSerializer()) != null && (s.mustSyncDeserialization() ? Skript.ENVIRONMENT.isPrimaryThread() : true) : type + "; " + s + "; " + Skript.ENVIRONMENT.isPrimaryThread();
 		YggdrasilInputStream in = null;
 		try {
 			value = new SequenceInputStream(new ByteArrayInputStream(getYggdrasilStart(type)), value);
@@ -822,7 +821,7 @@ public abstract class Classes {
 	@Deprecated
 	@Nullable
 	public static Object deserialize(final String type, final String value) {
-		assert Bukkit.isPrimaryThread();
+		assert Skript.ENVIRONMENT.isPrimaryThread();
 		final ClassInfo<?> ci = getClassInfoNoError(type);
 		if (ci == null)
 			return null;

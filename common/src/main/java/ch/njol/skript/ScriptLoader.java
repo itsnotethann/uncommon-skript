@@ -436,7 +436,7 @@ public class ScriptLoader {
 			}
 		};
 
-		if (isAsync() && Bukkit.isPrimaryThread()) {
+		if (isAsync() && Skript.ENVIRONMENT.isPrimaryThread()) {
 			loadQueue.add(task);
 		} else {
 			task.run();

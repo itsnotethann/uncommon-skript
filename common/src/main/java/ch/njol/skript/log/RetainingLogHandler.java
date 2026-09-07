@@ -19,7 +19,6 @@
 package ch.njol.skript.log;
 
 import ch.njol.skript.Skript;
-import org.bukkit.util.LoggerUtils;
 import org.eclipse.jdt.annotation.Nullable;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
@@ -73,7 +72,7 @@ public class RetainingLogHandler extends LogHandler {
 	@Override
 	public void onStop() {
 		if (!printedErrorOrLog && Skript.testing())
-			LoggerUtils.log(SkriptLogger.LOGGER, Level.WARNING, "Retaining log wasn't instructed to print anything at " + SkriptLogger.getCaller());
+			SkriptLogger.SINK.log(Level.WARNING, "Retaining log wasn't instructed to print anything at " + SkriptLogger.getCaller(), null);
 	}
 	
 	@Override

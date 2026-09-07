@@ -17,7 +17,6 @@ import ch.njol.util.coll.iterator.EmptyIterator;
 import ch.njol.yggdrasil.Yggdrasil;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
-import org.bukkit.Bukkit;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.event.Event;
@@ -759,7 +758,7 @@ public class Variables {
 	 * @return Whether the variable was stored somewhere. Not valid while storages are loading.
 	 */
 	static boolean variableLoaded(String name, @Nullable Object value, VariablesStorage source) {
-		assert Bukkit.isPrimaryThread(); // required by serialisation
+		assert Skript.ENVIRONMENT.isPrimaryThread(); // required by serialisation
 
 		if (value == null)
 			return false;
@@ -889,7 +888,7 @@ public class Variables {
 	 * @return the serialized variable.
 	 */
 	public static SerializedVariable serialize(String name, @Nullable Object value) {
-		assert Bukkit.isPrimaryThread();
+		assert Skript.ENVIRONMENT.isPrimaryThread();
 
 		// First, serialize the variable.
 		SerializedVariable.Value var;
@@ -911,7 +910,7 @@ public class Variables {
 	 * @return the serialized value.
 	 */
 	public static SerializedVariable.@Nullable Value serialize(@Nullable Object value) {
-		assert Bukkit.isPrimaryThread();
+		assert Skript.ENVIRONMENT.isPrimaryThread();
 
 		return Classes.serialize(value);
 	}

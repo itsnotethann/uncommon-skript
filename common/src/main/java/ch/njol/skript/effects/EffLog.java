@@ -33,7 +33,6 @@ import ch.njol.skript.util.ExceptionUtils;
 import ch.njol.util.Closeable;
 import ch.njol.util.Kleenean;
 import org.bukkit.event.Event;
-import org.bukkit.util.LoggerUtils;
 import org.eclipse.jdt.annotation.Nullable;
 import org.skriptlang.skript.lang.script.Script;
 
@@ -104,7 +103,7 @@ public class EffLog extends Effect {
 					if (!logFile.endsWith(".log"))
 						logFile += ".log";
 					if (logFile.equals("server.log")) {
-						LoggerUtils.log(SkriptLogger.LOGGER, logLevel, message);
+						SkriptLogger.SINK.log(logLevel, message, null);
 						continue;
 					}
 					PrintWriter logWriter = writers.get(logFile);
@@ -130,7 +129,7 @@ public class EffLog extends Effect {
 					if (script != null)
 						scriptName = script.getConfig().getFileName();
 				}
-				LoggerUtils.log(SkriptLogger.LOGGER, logLevel, "[" + scriptName + "] " + message);
+				SkriptLogger.SINK.log(logLevel, "[" + scriptName + "] " + message, null);
 			}
 		}
 	}

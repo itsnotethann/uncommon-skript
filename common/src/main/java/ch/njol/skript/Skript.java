@@ -29,7 +29,6 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.util.LoggerUtils;
 import org.eclipse.jdt.annotation.Nullable;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -47,6 +46,8 @@ import org.skriptlang.skript.lang.experiment.ExperimentRegistry;
 import org.skriptlang.skript.lang.script.Script;
 import org.skriptlang.skript.lang.structure.Structure;
 import org.skriptlang.skript.lang.structure.StructureInfo;
+import org.skriptlang.skript.platform.PlatformEnvironment;
+import org.skriptlang.skript.platform.bukkit.BukkitPlatformEnvironment;
 import org.skriptlang.skript.registration.SyntaxInfo;
 import org.skriptlang.skript.registration.SyntaxRegistry;
 
@@ -161,6 +162,8 @@ public final class Skript extends JavaPlugin implements Listener {
 	private static Version minecraftVersion = new Version(666), UNKNOWN_VERSION = new Version(666);
 	private static ServerPlatform serverPlatform = getServerPlatform(); // Start with unknown... onLoad changes this
 
+	public static final PlatformEnvironment ENVIRONMENT = new BukkitPlatformEnvironment();
+
 	@Nullable
 	private static Version version = null;
 	@Deprecated(forRemoval = true) // TODO this field will be replaced by a proper registry later
@@ -171,7 +174,7 @@ public final class Skript extends JavaPlugin implements Listener {
 	 * This method is created to update MC version before onEnable method
 	 */
 	public static void updateMinecraftVersion() {
-		minecraftVersion = new Version(Bukkit.getVersion());
+		minecraftVersion = new Version(ENVIRONMENT.platformVersion());
 	}
 
 	public static Version getVersion() {
@@ -1446,12 +1449,12 @@ public final class Skript extends JavaPlugin implements Listener {
 	}
 
 	static void logEx() {
-		LoggerUtils.log(SkriptLogger.LOGGER, Level.SEVERE, EXCEPTION_PREFIX);
+		SkriptLogger.SINK.log(Level.SEVERE, EXCEPTION_PREFIX, null);
 	}
 
 	static void logEx(final String... lines) {
 		for (final String line : lines)
-			LoggerUtils.log(SkriptLogger.LOGGER, Level.SEVERE, EXCEPTION_PREFIX + line);
+			SkriptLogger.SINK.log(Level.SEVERE, EXCEPTION_PREFIX + line, null);
 	}
 
 	private static final Message SKRIPT_PREFIX_MESSAGE = new Message("skript.prefix");
