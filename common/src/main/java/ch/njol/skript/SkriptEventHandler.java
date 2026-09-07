@@ -23,10 +23,10 @@ import ch.njol.skript.lang.Trigger;
 import ch.njol.skript.util.Task;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
-import org.bukkit.Bukkit;
 import org.bukkit.event.*;
-import org.bukkit.plugin.EventExecutor;
 import org.eclipse.jdt.annotation.Nullable;
+import org.skriptlang.skript.platform.Registration;
+import org.skriptlang.skript.platform.bukkit.BukkitEventPriorities;
 
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
@@ -39,34 +39,9 @@ public final class SkriptEventHandler {
 	private SkriptEventHandler() { }
 
 	/**
-	 * An event listener for one priority.
-	 * Also stores the registered events for this listener, and
-	 * the {@link EventExecutor} to be used with this listener.
+	 * One {@link Registration} per (Event class, priority) pair currently listened to.
 	 */
-	public static class PriorityListener implements Listener {
-
-		public final EventPriority priority;
-
-		public final EventExecutor executor = (listener, event) -> check(event, ((PriorityListener) listener).priority);
-
-		public PriorityListener(EventPriority priority) {
-			this.priority = priority;
-		}
-
-	}
-
-	/**
-	 * Stores one {@link PriorityListener} per {@link EventPriority}.
-	 */
-	private static final PriorityListener[] listeners;
-
-	static {
-		EventPriority[] priorities = EventPriority.values();
-		listeners = new PriorityListener[priorities.length];
-		for (int i = 0; i < priorities.length; i++) {
-			listeners[i] = new PriorityListener(priorities[i]);
-		}
-	}
+	private static final Map<Class<? extends Event>, Map<EventPriority, Registration>> registrations = new HashMap<>();
 
 	/**
 	 * A Multimap tracking what Triggers are paired with what Events.
@@ -259,7 +234,7 @@ public final class SkriptEventHandler {
 	}
 
 	/**
-	 * Registers a {@link PriorityListener} with Bukkit for the provided Event.
+	 * Registers a listener on the {@link org.skriptlang.skript.platform.EventBus} for the provided Event.
 	 * Marks that the provided Trigger should be executed when the provided Event occurs.
 	 * @param trigger The Trigger to run when the Event occurs.
 	 * @param event The Event to listen for.
@@ -275,9 +250,11 @@ public final class SkriptEventHandler {
 
 		EventPriority priority = trigger.getEvent().getEventPriority();
 
-		if (!isEventRegistered(handlerList, priority)) { // Check if event is registered
-			PriorityListener listener = listeners[priority.ordinal()];
-			Bukkit.getPluginManager().registerEvent(event, listener, priority, listener.executor, Skript.getInstance());
+		Map<EventPriority, Registration> byPriority = registrations.computeIfAbsent(event, key -> new EnumMap<>(EventPriority.class));
+		if (!byPriority.containsKey(priority)) { // Check if event is registered
+			Registration registration = Skript.eventBus().channelFor(event)
+				.register(BukkitEventPriorities.toPlatform(priority), platformEvent -> check((Event) platformEvent, priority));
+			byPriority.put(priority, registration);
 		}
 	}
 
@@ -304,22 +281,14 @@ public final class SkriptEventHandler {
 			}
 
 			// We can attempt to unregister this listener
-			HandlerList handlerList = getHandlerList(event);
-			if (handlerList == null)
+			Map<EventPriority, Registration> byPriority = registrations.get(event);
+			if (byPriority == null)
 				continue;
-			Skript skript = Skript.getInstance();
-			// avoid concurrentmodification
-			List<RegisteredListener> listenersCopy = List.copyOf(handlerList.getRegisteredListeners());
-			for (RegisteredListener registeredListener : listenersCopy) {
-				Listener listener = registeredListener.getListener();
-				if (
-					registeredListener.getPlugin() == skript
-						&& listener instanceof PriorityListener
-						&& ((PriorityListener) listener).priority == priority
-				) {
-					handlerList.unregister(listener);
-				}
-			}
+			Registration registration = byPriority.remove(priority);
+			if (registration != null)
+				registration.unregister();
+			if (byPriority.isEmpty())
+				registrations.remove(event);
 		}
 	}
 
@@ -395,20 +364,6 @@ public final class SkriptEventHandler {
 				return null;
 			}
 		}
-	}
-
-	private static boolean isEventRegistered(HandlerList handlerList, EventPriority priority) {
-		for (RegisteredListener registeredListener : handlerList.getRegisteredListeners()) {
-			Listener listener = registeredListener.getListener();
-			if (
-				registeredListener.getPlugin() == Skript.getInstance()
-					&& listener instanceof PriorityListener
-					&& ((PriorityListener) listener).priority == priority
-			) {
-				return true;
-			}
-		}
-		return false;
 	}
 
 }

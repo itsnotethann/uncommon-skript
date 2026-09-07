@@ -1,11 +1,11 @@
 package ch.njol.skript.lang.function;
 
+import ch.njol.skript.Skript;
 import ch.njol.skript.SkriptConfig;
 import ch.njol.skript.classes.ClassInfo;
 import ch.njol.skript.lang.KeyProviderExpression;
 import ch.njol.skript.lang.KeyedValue;
 import ch.njol.util.coll.CollectionUtils;
-import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.skriptlang.skript.common.function.DefaultFunction;
@@ -79,7 +79,7 @@ public abstract class Function<T> implements org.skriptlang.skript.common.functi
 		// Call function event only if requested by addon
 		// Functions may be called VERY often, so this might have performance impact
 		if (Functions.callFunctionEvents)
-			Bukkit.getPluginManager().callEvent(event);
+			Skript.eventBus().fire(event);
 
 		// Parameters taken by the function.
 		Parameter<?>[] parameters = sign.getParameters();

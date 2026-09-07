@@ -46,8 +46,10 @@ import org.skriptlang.skript.lang.experiment.ExperimentRegistry;
 import org.skriptlang.skript.lang.script.Script;
 import org.skriptlang.skript.lang.structure.Structure;
 import org.skriptlang.skript.lang.structure.StructureInfo;
+import org.skriptlang.skript.platform.EventBus;
 import org.skriptlang.skript.platform.PlatformEnvironment;
 import org.skriptlang.skript.platform.PlatformScheduler;
+import org.skriptlang.skript.platform.bukkit.BukkitEventBus;
 import org.skriptlang.skript.platform.bukkit.BukkitPlatformEnvironment;
 import org.skriptlang.skript.platform.bukkit.BukkitPlatformScheduler;
 import org.skriptlang.skript.registration.SyntaxInfo;
@@ -174,6 +176,16 @@ public final class Skript extends JavaPlugin implements Listener {
 		if (s == null)
 			scheduler = s = new BukkitPlatformScheduler(Bukkit.getScheduler(), getInstance());
 		return s;
+	}
+
+	@Nullable
+	private static EventBus eventBus;
+
+	public static EventBus eventBus() {
+		EventBus b = eventBus;
+		if (b == null)
+			eventBus = b = new BukkitEventBus(Bukkit.getPluginManager(), getInstance());
+		return b;
 	}
 
 	@Nullable

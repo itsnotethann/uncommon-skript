@@ -17,7 +17,6 @@ import ch.njol.skript.util.Timespan;
 import ch.njol.skript.variables.HintManager;
 import ch.njol.util.OpenCloseable;
 import ch.njol.util.StringUtils;
-import org.bukkit.Bukkit;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -513,7 +512,7 @@ public class ScriptLoader {
 		eventRegistry().events(ScriptPreInitEvent.class)
 			.forEach(event -> event.onPreInit(configs));
 		//noinspection removal - we still need to call it
-		Bukkit.getPluginManager().callEvent(new ch.njol.skript.events.bukkit.PreScriptLoadEvent(configs));
+		Skript.eventBus().fire(new ch.njol.skript.events.bukkit.PreScriptLoadEvent(configs));
 
 		ScriptInfo scriptInfo = new ScriptInfo();
 
