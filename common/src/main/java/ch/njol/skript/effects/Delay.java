@@ -13,7 +13,6 @@ import ch.njol.skript.lang.TriggerItem;
 import ch.njol.skript.util.Timespan;
 import ch.njol.skript.variables.Variables;
 import ch.njol.util.Kleenean;
-import org.bukkit.Bukkit;
 import org.bukkit.event.Event;
 import org.jetbrains.annotations.Nullable;
 
@@ -84,7 +83,7 @@ public class Delay extends Effect {
 			// Back up local variables
 			Object localVars = Variables.removeLocals(event);
 
-			Bukkit.getScheduler().scheduleSyncDelayedTask(Skript.getInstance(), () -> {
+			Skript.scheduler().sync(() -> {
 				Skript.debug(getIndentation() + "... continuing after " + (System.nanoTime() - start) / 1_000_000_000. + "s");
 
 				// Re-set local variables
@@ -94,7 +93,7 @@ public class Delay extends Effect {
 				TriggerItem.walk(next, event);
 				Variables.removeLocals(event); // Clean up local vars, we may be exiting now
 
-			}, Math.max(duration.getAs(Timespan.TimePeriod.TICK), 1)); // Minimum delay is one tick, less than it is useless!
+			}, Math.max(duration.getAs(Timespan.TimePeriod.TICK), 1), -1); // Minimum delay is one tick, less than it is useless!
 		}
 		return null;
 	}

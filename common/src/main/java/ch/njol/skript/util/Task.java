@@ -23,6 +23,9 @@ import ch.njol.util.Closeable;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import org.eclipse.jdt.annotation.Nullable;
+import org.skriptlang.skript.platform.PlatformScheduler;
+import org.skriptlang.skript.platform.PlatformTask;
+import org.skriptlang.skript.platform.bukkit.BukkitPlatformScheduler;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
@@ -33,76 +36,66 @@ import java.util.concurrent.Future;
  * @author Peter Güttinger
  */
 public abstract class Task implements Runnable, Closeable {
-	
-	private final Plugin plugin;
+
+	private final PlatformScheduler scheduler;
 	private final boolean async;
 	private long period = -1;
-	
-	private int taskID = -1;
-	
+
+	@Nullable
+	private PlatformTask task;
+
 	public Task(final Plugin plugin, final long delay, final long period) {
 		this(plugin, delay, period, false);
 	}
-	
+
 	public Task(final Plugin plugin, final long delay, final long period, final boolean async) {
-		this.plugin = plugin;
+		this.scheduler = new BukkitPlatformScheduler(Bukkit.getScheduler(), plugin);
 		this.period = period;
 		this.async = async;
 		schedule(delay);
 	}
-	
+
 	public Task(final Plugin plugin, final long delay) {
 		this(plugin, delay, false);
 	}
-	
+
 	public Task(final Plugin plugin, final long delay, final boolean async) {
-		this.plugin = plugin;
+		this.scheduler = new BukkitPlatformScheduler(Bukkit.getScheduler(), plugin);
 		this.async = async;
 		schedule(delay);
 	}
-	
+
 	/**
 	 * Only call this if the task is not alive.
-	 * 
+	 *
 	 * @param delay
 	 */
 	private void schedule(final long delay) {
 		assert !isAlive();
 		if (!Skript.getInstance().isEnabled())
 			return;
-		
-		if (period == -1) {
-			if (async) {
-				taskID = Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, this, delay).getTaskId();
-			} else {
-				taskID = Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, this, delay);
-			}
-		} else {
-			if (async) {
-				taskID = Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, this, delay, period).getTaskId();
-			} else {
-				taskID = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, this, delay, period);
-			}
-		}
-		assert taskID != -1;
+
+		task = async ? scheduler.async(this, delay, period) : scheduler.sync(this, delay, period);
+		assert task != null;
 	}
-	
+
 	/**
 	 * @return Whether this task is still running, i.e. whether it will run later or is currently running.
 	 */
 	public final boolean isAlive() {
-		if (taskID == -1)
+		final PlatformTask t = task;
+		if (t == null)
 			return false;
-		return Bukkit.getScheduler().isQueued(taskID) || Bukkit.getScheduler().isCurrentlyRunning(taskID);
+		return t.isQueued() || t.isRunning();
 	}
-	
+
 	/**
 	 * Cancels this task.
 	 */
 	public final void cancel() {
-		if (taskID != -1) {
-			Bukkit.getScheduler().cancelTask(taskID);
-			taskID = -1;
+		if (task != null) {
+			task.cancel();
+			task = null;
 		}
 	}
 	
@@ -158,14 +151,14 @@ public abstract class Task implements Runnable, Closeable {
 	 */
 	@Nullable
 	public static <T> T callSync(final Callable<T> c, final Plugin p) {
-		if (Bukkit.isPrimaryThread()) {
+		if (Skript.ENVIRONMENT.isPrimaryThread()) {
 			try {
 				return c.call();
 			} catch (final Exception e) {
 				Skript.exception(e);
 			}
 		}
-		final Future<T> f = Bukkit.getScheduler().callSyncMethod(p, c);
+		final Future<T> f = new BukkitPlatformScheduler(Bukkit.getScheduler(), p).callSync(c);
 		try {
 			while (true) {
 				try {

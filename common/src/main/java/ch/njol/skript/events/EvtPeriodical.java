@@ -7,9 +7,9 @@ import ch.njol.skript.lang.Literal;
 import ch.njol.skript.lang.SkriptEvent;
 import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.skript.util.Timespan;
-import org.bukkit.Bukkit;
 import org.bukkit.event.Event;
 import org.jetbrains.annotations.Nullable;
+import org.skriptlang.skript.platform.PlatformTask;
 
 public class EvtPeriodical extends SkriptEvent {
 
@@ -29,7 +29,7 @@ public class EvtPeriodical extends SkriptEvent {
 	private Timespan period;
 
 	@SuppressWarnings("NotNullFieldNotInitialized")
-	private int[] taskIDs;
+	private PlatformTask task;
 
 	@Override
 	@SuppressWarnings("unchecked")
@@ -42,25 +42,21 @@ public class EvtPeriodical extends SkriptEvent {
 	public boolean postLoad() {
 		long ticks = period.getAs(Timespan.TimePeriod.TICK);
 
-		taskIDs = new int[]{
-			Bukkit.getScheduler().scheduleSyncRepeatingTask(
-				Skript.getInstance(), () -> {
-					ScheduledEvent event = new ScheduledEvent();
-					SkriptEventHandler.logEventStart(event);
-					SkriptEventHandler.logTriggerStart(trigger);
-					trigger.execute(event);
-					SkriptEventHandler.logTriggerEnd(trigger);
-					SkriptEventHandler.logEventEnd();
-				}, ticks, ticks)
-		};
+		task = Skript.scheduler().sync(() -> {
+			ScheduledEvent event = new ScheduledEvent();
+			SkriptEventHandler.logEventStart(event);
+			SkriptEventHandler.logTriggerStart(trigger);
+			trigger.execute(event);
+			SkriptEventHandler.logTriggerEnd(trigger);
+			SkriptEventHandler.logEventEnd();
+		}, ticks, ticks);
 
 		return true;
 	}
 
 	@Override
 	public void unload() {
-		for (int taskID : taskIDs)
-			Bukkit.getScheduler().cancelTask(taskID);
+		task.cancel();
 	}
 
 	@Override

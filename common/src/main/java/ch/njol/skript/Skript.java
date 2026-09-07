@@ -47,7 +47,9 @@ import org.skriptlang.skript.lang.script.Script;
 import org.skriptlang.skript.lang.structure.Structure;
 import org.skriptlang.skript.lang.structure.StructureInfo;
 import org.skriptlang.skript.platform.PlatformEnvironment;
+import org.skriptlang.skript.platform.PlatformScheduler;
 import org.skriptlang.skript.platform.bukkit.BukkitPlatformEnvironment;
+import org.skriptlang.skript.platform.bukkit.BukkitPlatformScheduler;
 import org.skriptlang.skript.registration.SyntaxInfo;
 import org.skriptlang.skript.registration.SyntaxRegistry;
 
@@ -163,6 +165,16 @@ public final class Skript extends JavaPlugin implements Listener {
 	private static ServerPlatform serverPlatform = getServerPlatform(); // Start with unknown... onLoad changes this
 
 	public static final PlatformEnvironment ENVIRONMENT = new BukkitPlatformEnvironment();
+
+	@Nullable
+	private static PlatformScheduler scheduler;
+
+	public static PlatformScheduler scheduler() {
+		PlatformScheduler s = scheduler;
+		if (s == null)
+			scheduler = s = new BukkitPlatformScheduler(Bukkit.getScheduler(), getInstance());
+		return s;
+	}
 
 	@Nullable
 	private static Version version = null;

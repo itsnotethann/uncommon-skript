@@ -5,7 +5,6 @@ import ch.njol.skript.effects.Delay;
 import ch.njol.skript.lang.Effect;
 import ch.njol.skript.lang.TriggerItem;
 import ch.njol.skript.variables.Variables;
-import org.bukkit.Bukkit;
 import org.bukkit.event.Event;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,7 +29,7 @@ public abstract class AsyncEffect extends Effect {
 		if (!Skript.getInstance().isEnabled()) // See https://github.com/SkriptLang/Skript/issues/3702
 			return null;
 
-		Bukkit.getScheduler().runTaskAsynchronously(Skript.getInstance(), () -> {
+		Skript.scheduler().async(() -> {
 			Delay.addDelayedEvent(e); // Mark this event as delayed
 			// Re-set local variables
 			if (localVars != null)
@@ -39,16 +38,16 @@ public abstract class AsyncEffect extends Effect {
 			execute(e); // Execute this effect
 
 			if (getNext() != null) {
-				Bukkit.getScheduler().scheduleSyncDelayedTask(Skript.getInstance(), () -> { // Walk to next item synchronously
+				Skript.scheduler().sync(() -> { // Walk to next item synchronously
 
 					TriggerItem.walk(getNext(), e);
 
 					Variables.removeLocals(e); // Clean up local vars, we may be exiting now
-				}, 0);
+				}, 0, -1);
 			} else {
 				Variables.removeLocals(e);
 			}
-		});
+		}, 0, -1);
 		return null;
 	}
 }
