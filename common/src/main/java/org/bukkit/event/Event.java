@@ -1,8 +1,9 @@
 package org.bukkit.event;
 
 import org.jetbrains.annotations.NotNull;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 
-public abstract class Event {
+public abstract class Event implements PlatformEvent {
 
 	private String name;
 	private final boolean async;
