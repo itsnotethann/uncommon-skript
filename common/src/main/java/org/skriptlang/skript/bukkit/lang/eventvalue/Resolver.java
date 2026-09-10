@@ -7,7 +7,6 @@ import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.jetbrains.annotations.Nullable;
 import org.skriptlang.skript.util.ClassUtils;
 
-import javax.swing.text.html.parser.Entity;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
