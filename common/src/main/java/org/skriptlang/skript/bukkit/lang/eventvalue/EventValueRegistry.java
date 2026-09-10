@@ -191,9 +191,9 @@ public interface EventValueRegistry extends Registry<EventValue<?, ?>>, ViewProv
 	/**
 	 * Returns a snapshot of the <i>direct</i> (subevents only) event values for the given event.
 	 * <br>
-	 * For example, getting the event values of {@link org.bukkit.event.entity.EntityDeathEvent}
-	 * will return the event values registered under {@link org.bukkit.event.entity.EntityDeathEvent} and
-	 * {@link org.bukkit.event.entity.PlayerDeathEvent}, but not {@link org.bukkit.event.entity.EntityEvent}.
+	 * For example, getting the event values of an entity death event will return the event
+	 * values registered under that event and under its player death subevent, but not those
+	 * registered under a broader entity event.
 	 *
 	 * @param event the event
 	 * @return an unmodifiable list of event values for the given event

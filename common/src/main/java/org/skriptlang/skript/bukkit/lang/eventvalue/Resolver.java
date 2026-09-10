@@ -2,7 +2,6 @@ package org.skriptlang.skript.bukkit.lang.eventvalue;
 
 import ch.njol.skript.classes.ClassInfo;
 import ch.njol.skript.registrations.Classes;
-import org.bukkit.entity.Player;
 import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.jetbrains.annotations.Nullable;
 import org.skriptlang.skript.util.ClassUtils;
@@ -115,12 +114,12 @@ class Resolver<E extends PlatformEvent, V> {
 	 * Filters the given list of {@link EventValue}s to only include those that match the given value class.
 	 * <p>
 	 * In this method we can strip converters that are able to be obtainable through their own 'event-classinfo'.
-	 * For example, {@link PlayerTradeEvent} has a {@link Player} value (player who traded)
-	 * 	and an {@link AbstractVillager} value (villager traded from).
-	 * Beforehand, since there is no {@link Entity} value, it was grabbing both values as they both can be cast as an {@link Entity},
+	 * For example, a player trade event has a player value (player who traded)
+	 * 	and a villager value (villager traded from).
+	 * Beforehand, since there is no entity value, it was grabbing both values as they both can be cast as an entity,
 	 * 	resulting in a parse error of "multiple entities".
 	 * Now, we filter out the values that can be obtained using their own classinfo, such as 'event-player'
-	 * 	which leaves us only the {@link AbstractVillager} for 'event-entity'.
+	 * 	which leaves us only the villager for 'event-entity'.
 	 *
 	 * @param valueClass The value class to filter by.
 	 * @param eventValues The event values to filter.
