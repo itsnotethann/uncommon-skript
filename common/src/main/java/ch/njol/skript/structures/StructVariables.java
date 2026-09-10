@@ -40,7 +40,7 @@ import ch.njol.util.StringUtils;
 import ch.njol.util.coll.CollectionUtils;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Queues;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 import org.skriptlang.skript.lang.converter.Converters;
@@ -284,7 +284,7 @@ public class StructVariables extends Structure {
 	}
 
 	@Override
-	public String toString(@Nullable Event event, boolean debug) {
+	public String toString(@Nullable PlatformEvent event, boolean debug) {
 		return "variables";
 	}
 

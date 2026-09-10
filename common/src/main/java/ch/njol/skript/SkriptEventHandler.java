@@ -23,7 +23,11 @@ import ch.njol.skript.lang.Trigger;
 import ch.njol.skript.util.Task;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
-import org.bukkit.event.*;
+import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.HandlerList;
+import org.skriptlang.skript.lang.event.Cancellable;
 import org.eclipse.jdt.annotation.Nullable;
 import org.skriptlang.skript.platform.Registration;
 import org.skriptlang.skript.platform.bukkit.BukkitEventPriorities;
@@ -41,20 +45,20 @@ public final class SkriptEventHandler {
 	/**
 	 * One {@link Registration} per (Event class, priority) pair currently listened to.
 	 */
-	private static final Map<Class<? extends Event>, Map<EventPriority, Registration>> registrations = new HashMap<>();
+	private static final Map<Class<? extends PlatformEvent>, Map<EventPriority, Registration>> registrations = new HashMap<>();
 
 	/**
 	 * A Multimap tracking what Triggers are paired with what Events.
 	 * Each Event effectively maps to an ArrayList of Triggers.
 	 */
-	private static final Multimap<Class<? extends Event>, Trigger> triggers = ArrayListMultimap.create();
+	private static final Multimap<Class<? extends PlatformEvent>, Trigger> triggers = ArrayListMultimap.create();
 
 	/**
 	 * A utility method to get all Triggers registered under the provided Event class.
 	 * @param event The event to find pairs from.
 	 * @return A List containing all Triggers registered under the provided Event class.
 	 */
-	private static List<Trigger> getTriggers(Class<? extends Event> event) {
+	private static List<Trigger> getTriggers(Class<? extends PlatformEvent> event) {
 		HandlerList eventHandlerList = getHandlerList(event);
 		assert eventHandlerList != null; // It had one at some point so this should remain true
 		return triggers.asMap().entrySet().stream()
@@ -70,7 +74,7 @@ public final class SkriptEventHandler {
 	 * @param event The Event to check.
 	 * @param priority The priority of the Event.
 	 */
-	private static void check(Event event, EventPriority priority) {
+	private static void check(PlatformEvent event, EventPriority priority) {
 		// get all triggers for this event, return if none
 		List<Trigger> triggers = getTriggers(event.getClass());
 		if (triggers.isEmpty())
@@ -108,7 +112,7 @@ public final class SkriptEventHandler {
 	 * @param event The event to check.
 	 * @return Whether the event should be treated as cancelled.
 	 */
-	private static boolean isCancelled(Event event) {
+	private static boolean isCancelled(PlatformEvent event) {
 		return event instanceof Cancellable &&
 			(((Cancellable) event).isCancelled()) &&
 			// TODO: listenCancelled is deprecated and should be removed in 2.10
@@ -121,7 +125,7 @@ public final class SkriptEventHandler {
 	 * @param trigger The Trigger to execute.
 	 * @param event The Event to execute the Trigger with.
 	 */
-	private static void execute(Trigger trigger, Event event) {
+	private static void execute(Trigger trigger, PlatformEvent event) {
 		// these methods need to be run on whatever thread the trigger is
 		Runnable execute = () -> {
 			logTriggerStart(trigger);
@@ -150,7 +154,7 @@ public final class SkriptEventHandler {
 	 * Requires {@link Skript#logVeryHigh()} to be true to log anything.
 	 * @param event The Event that started.
 	 */
-	public static void logEventStart(Event event) {
+	public static void logEventStart(PlatformEvent event) {
 		logEventStart(event, null);
 	}
 
@@ -160,7 +164,7 @@ public final class SkriptEventHandler {
 	 * @param event The Event that started.
 	 * @param priority The priority of the Event.
 	 */
-	public static void logEventStart(Event event, @Nullable EventPriority priority) {
+	public static void logEventStart(PlatformEvent event, @Nullable EventPriority priority) {
 		startEvent = System.nanoTime();
 		if (!Skript.logVeryHigh())
 			return;
@@ -228,8 +232,8 @@ public final class SkriptEventHandler {
 	 * @see #registerBukkitEvent(Trigger, Class)
 	 * @see #unregisterBukkitEvents(Trigger)
 	 */
-	public static void registerBukkitEvents(Trigger trigger, Class<? extends Event>[] events) {
-		for (Class<? extends Event> event : events)
+	public static void registerBukkitEvents(Trigger trigger, Class<? extends PlatformEvent>[] events) {
+		for (Class<? extends PlatformEvent> event : events)
 			registerBukkitEvent(trigger, event);
 	}
 
@@ -241,7 +245,7 @@ public final class SkriptEventHandler {
 	 * @see #registerBukkitEvents(Trigger, Class[])
 	 * @see #unregisterBukkitEvents(Trigger)
 	 */
-	public static void registerBukkitEvent(Trigger trigger, Class<? extends Event> event) {
+	public static void registerBukkitEvent(Trigger trigger, Class<? extends PlatformEvent> event) {
 		HandlerList handlerList = getHandlerList(event);
 		if (handlerList == null)
 			return;
@@ -253,7 +257,7 @@ public final class SkriptEventHandler {
 		Map<EventPriority, Registration> byPriority = registrations.computeIfAbsent(event, key -> new EnumMap<>(EventPriority.class));
 		if (!byPriority.containsKey(priority)) { // Check if event is registered
 			Registration registration = Skript.eventBus().channelFor(event)
-				.register(BukkitEventPriorities.toPlatform(priority), platformEvent -> check((Event) platformEvent, priority));
+				.register(BukkitEventPriorities.toPlatform(priority), platformEvent -> check(platformEvent, priority));
 			byPriority.put(priority, registration);
 		}
 	}
@@ -263,12 +267,12 @@ public final class SkriptEventHandler {
 	 * @param trigger The Trigger to unregister events for.
 	 */
 	public static void unregisterBukkitEvents(Trigger trigger) {
-		Iterator<Entry<Class<? extends Event>, Trigger>> entryIterator = triggers.entries().iterator();
+		Iterator<Entry<Class<? extends PlatformEvent>, Trigger>> entryIterator = triggers.entries().iterator();
 		entryLoop: while (entryIterator.hasNext()) {
-			Entry<Class<? extends Event>, Trigger> entry = entryIterator.next();
+			Entry<Class<? extends PlatformEvent>, Trigger> entry = entryIterator.next();
 			if (entry.getValue() != trigger)
 				continue;
-			Class<? extends Event> event = entry.getKey();
+			Class<? extends PlatformEvent> event = entry.getKey();
 
 			// Remove the trigger from the map
 			entryIterator.remove();
@@ -297,12 +301,12 @@ public final class SkriptEventHandler {
 	 * @deprecated Users should specify the listening behavior in the event declaration. "on any %event%:", "on cancelled %event%:".
 	 */
 	@Deprecated
-	public static final Set<Class<? extends Event>> listenCancelled = new HashSet<>();
+	public static final Set<Class<? extends PlatformEvent>> listenCancelled = new HashSet<>();
 
 	/**
 	 * A cache for the getHandlerList methods of Event classes.
 	 */
-	private static final Map<Class<? extends Event>, Method> handlerListMethods = new HashMap<>();
+	private static final Map<Class<? extends PlatformEvent>, Method> handlerListMethods = new HashMap<>();
 
 	/**
 	 * A cache for obtained HandlerLists.
@@ -310,7 +314,7 @@ public final class SkriptEventHandler {
 	private static final Map<Method, WeakReference<HandlerList>> handlerListCache = new HashMap<>();
 
 	@Nullable
-	private static HandlerList getHandlerList(Class<? extends Event> eventClass) {
+	private static HandlerList getHandlerList(Class<? extends PlatformEvent> eventClass) {
 		try {
 			Method method = getHandlerListMethod(eventClass);
 
@@ -330,7 +334,7 @@ public final class SkriptEventHandler {
 		}
 	}
 
-	private static Method getHandlerListMethod(Class<? extends Event> eventClass) {
+	private static Method getHandlerListMethod(Class<? extends PlatformEvent> eventClass) {
 		Method method;
 
 		synchronized (handlerListMethods) {
@@ -350,7 +354,7 @@ public final class SkriptEventHandler {
 	}
 
 	@Nullable
-	private static Method getHandlerListMethod_i(Class<? extends Event> eventClass) {
+	private static Method getHandlerListMethod_i(Class<? extends PlatformEvent> eventClass) {
 		try {
 			return eventClass.getDeclaredMethod("getHandlerList");
 		} catch (NoSuchMethodException e) {
@@ -359,7 +363,7 @@ public final class SkriptEventHandler {
 					&& !eventClass.getSuperclass().equals(Event.class)
 					&& Event.class.isAssignableFrom(eventClass.getSuperclass())
 			) {
-				return getHandlerListMethod(eventClass.getSuperclass().asSubclass(Event.class));
+				return getHandlerListMethod(eventClass.getSuperclass().asSubclass(PlatformEvent.class));
 			} else {
 				return null;
 			}

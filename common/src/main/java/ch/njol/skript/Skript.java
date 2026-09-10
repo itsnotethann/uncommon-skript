@@ -23,7 +23,7 @@ import ch.njol.util.StringUtils;
 import ch.njol.util.coll.iterator.CheckedIterator;
 import ch.njol.util.coll.iterator.EnumerationIterable;
 import org.bukkit.Bukkit;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginDescriptionFile;
@@ -1100,7 +1100,7 @@ public final class Skript extends JavaPlugin implements Listener {
 	 * @return A SkriptEventInfo representing the registered event. Used to generate Skript's documentation.
 	 */
 	@SuppressWarnings("unchecked")
-	public static <E extends SkriptEvent> SkriptEventInfo<E> registerEvent(String name, Class<E> c, Class<? extends Event> event, String... patterns) {
+	public static <E extends SkriptEvent> SkriptEventInfo<E> registerEvent(String name, Class<E> c, Class<? extends PlatformEvent> event, String... patterns) {
 		return registerEvent(name, c, new Class[] {event}, patterns);
 	}
 
@@ -1116,7 +1116,7 @@ public final class Skript extends JavaPlugin implements Listener {
 
 	@SuppressWarnings("ConstantConditions") // caused by bad array annotations
 	public static <E extends SkriptEvent> SkriptEventInfo<E> registerEvent(
-		String name, Class<E> eventClass, Class<? extends Event>[] events, String... patterns
+		String name, Class<E> eventClass, Class<? extends PlatformEvent>[] events, String... patterns
 	) {
 		checkAcceptRegistrations();
 		for (int i = 0; i < patterns.length; i++)

@@ -14,7 +14,7 @@ import ch.njol.skript.lang.VariableString;
 import ch.njol.skript.lang.simplification.SimplifiedLiteral;
 import ch.njol.skript.util.Date;
 import ch.njol.util.Kleenean;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.jetbrains.annotations.Nullable;
 
 import java.text.SimpleDateFormat;
@@ -75,7 +75,7 @@ public class ExprFormatDate extends PropertyExpression<Date, String> {
 	}
 
 	@Override
-	protected String[] get(Event e, Date[] source) {
+	protected String[] get(PlatformEvent e, Date[] source) {
 		SimpleDateFormat format;
 		String formatString;
 
@@ -109,7 +109,7 @@ public class ExprFormatDate extends PropertyExpression<Date, String> {
 	}
 
 	@Override
-	public String toString(@Nullable Event e, boolean debug) {
+	public String toString(@Nullable PlatformEvent e, boolean debug) {
 		return getExpr().toString(e, debug) + " formatted as " + (customFormat != null ? customFormat.toString(e, debug)
 			: (format != null ? format.toPattern() : DEFAULT_FORMAT.toPattern()));
 	}

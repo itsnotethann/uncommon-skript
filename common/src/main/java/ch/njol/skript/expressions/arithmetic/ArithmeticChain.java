@@ -21,7 +21,7 @@ package ch.njol.skript.expressions.arithmetic;
 import ch.njol.skript.lang.Expression;
 import ch.njol.skript.util.Utils;
 import ch.njol.util.Checker;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.eclipse.jdt.annotation.Nullable;
 import org.skriptlang.skript.lang.arithmetic.Arithmetics;
 import org.skriptlang.skript.lang.arithmetic.Operation;
@@ -66,7 +66,7 @@ public class ArithmeticChain<L, R, T> implements ArithmeticGettable<T> {
 	@Override
 	@Nullable
 	@SuppressWarnings("unchecked")
-	public T get(Event event) {
+	public T get(PlatformEvent event) {
 		L left = this.left.get(event);
 		if (left == null && this.left instanceof ArithmeticChain)
 			return null;

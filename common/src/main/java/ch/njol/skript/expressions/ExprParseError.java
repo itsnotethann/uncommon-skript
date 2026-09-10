@@ -10,7 +10,7 @@ import ch.njol.skript.lang.ExpressionType;
 import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.skript.lang.util.SimpleExpression;
 import ch.njol.util.Kleenean;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.eclipse.jdt.annotation.Nullable;
 
 /**
@@ -36,7 +36,7 @@ public class ExprParseError extends SimpleExpression<String> {
 	}
 
 	@Override
-	protected String[] get(final Event e) {
+	protected String[] get(final PlatformEvent e) {
 		return ExprParse.lastError == null ? new String[0] : new String[] {ExprParse.lastError};
 	}
 
@@ -51,7 +51,7 @@ public class ExprParseError extends SimpleExpression<String> {
 	}
 
 	@Override
-	public String toString(final @Nullable Event e, final boolean debug) {
+	public String toString(final @Nullable PlatformEvent e, final boolean debug) {
 		return "the last parse error";
 	}
 

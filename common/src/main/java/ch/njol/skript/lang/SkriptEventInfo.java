@@ -5,7 +5,7 @@ import ch.njol.skript.SkriptConfig;
 import ch.njol.skript.lang.SkriptEvent.ListeningBehavior;
 import ch.njol.skript.lang.SkriptEventInfo.ModernSkriptEventInfo;
 import com.google.common.collect.ImmutableList;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 import org.skriptlang.skript.bukkit.registration.BukkitSyntaxInfos;
@@ -23,7 +23,7 @@ import java.util.SequencedCollection;
 @Deprecated(since = "2.14", forRemoval = true)
 public sealed class SkriptEventInfo<E extends SkriptEvent> extends StructureInfo<E> permits ModernSkriptEventInfo {
 
-	public Class<? extends Event>[] events;
+	public Class<? extends PlatformEvent>[] events;
 	public final String name;
 
 	private ListeningBehavior listeningBehavior;
@@ -44,7 +44,7 @@ public sealed class SkriptEventInfo<E extends SkriptEvent> extends StructureInfo
 	 * @param originClassPath The class path for the origin of this event.
 	 * @param events The Bukkit-Events this SkriptEvent listens to
 	 */
-	public SkriptEventInfo(String name, String[] patterns, Class<E> eventClass, String originClassPath, Class<? extends Event>[] events) {
+	public SkriptEventInfo(String name, String[] patterns, Class<E> eventClass, String originClassPath, Class<? extends PlatformEvent>[] events) {
 		super(patterns, eventClass, originClassPath);
 		validateEvents(name, eventClass, events);
 
@@ -81,7 +81,7 @@ public sealed class SkriptEventInfo<E extends SkriptEvent> extends StructureInfo
 			.requiredPlugins(source.requiredPlugins().toArray(new String[0]));
 	}
 
-	private static void validateEvents(String name, Class<? extends SkriptEvent> eventClass, Class<? extends Event>[] events) {
+	private static void validateEvents(String name, Class<? extends SkriptEvent> eventClass, Class<? extends PlatformEvent>[] events) {
 //		for (int i = 0; i < events.length; i++) {
 //			for (int j = i + 1; j < events.length; j++) {
 //				if (events[i].isAssignableFrom(events[j]) || events[j].isAssignableFrom(events[i])) {
@@ -246,7 +246,7 @@ public sealed class SkriptEventInfo<E extends SkriptEvent> extends StructureInfo
 
 		private final Origin origin;
 
-		public ModernSkriptEventInfo(String name, String[] patterns, Class<E> eventClass, String originClassPath, Class<? extends Event>[] events) {
+		public ModernSkriptEventInfo(String name, String[] patterns, Class<E> eventClass, String originClassPath, Class<? extends PlatformEvent>[] events) {
 			super(name, patterns, eventClass, originClassPath, events);
 			this.origin = Skript.getSyntaxOrigin(eventClass);
 		}
@@ -346,7 +346,7 @@ public sealed class SkriptEventInfo<E extends SkriptEvent> extends StructureInfo
 		}
 
 		@Override
-		public Collection<Class<? extends Event>> events() {
+		public Collection<Class<? extends PlatformEvent>> events() {
 			return List.of(events);
 		}
 	}

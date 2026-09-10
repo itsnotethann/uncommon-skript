@@ -38,7 +38,7 @@ import ch.njol.skript.patterns.PatternCompiler;
 import ch.njol.skript.patterns.SkriptPattern;
 import ch.njol.util.Kleenean;
 import ch.njol.util.NonNullPair;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.eclipse.jdt.annotation.Nullable;
 
 import java.lang.reflect.Array;
@@ -154,7 +154,7 @@ public class ExprParse extends SimpleExpression<Object> {
 	@Override
 	@Nullable
 	@SuppressWarnings("null")
-	protected Object[] get(Event event) {
+	protected Object[] get(PlatformEvent event) {
 		String text = this.text.getSingle(event);
 		if (text == null)
 			return null;
@@ -249,7 +249,7 @@ public class ExprParse extends SimpleExpression<Object> {
 	}
 
 	@Override
-	public String toString(@Nullable Event event, boolean debug) {
+	public String toString(@Nullable PlatformEvent event, boolean debug) {
 		return text.toString(event, debug) + " parsed as " + (classInfo != null ? classInfo.toString(Language.F_INDEFINITE_ARTICLE) : pattern);
 	}
 

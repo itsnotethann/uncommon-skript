@@ -10,7 +10,7 @@ import ch.njol.skript.lang.*;
 import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.util.Kleenean;
 import com.google.common.collect.MapMaker;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
@@ -50,7 +50,7 @@ public class SecWhile extends LoopSection {
 	private TriggerItem actualNext;
 
 	private boolean doWhile;
-	private final Set<Event> ranDoWhile = Collections.newSetFromMap(new MapMaker()
+	private final Set<PlatformEvent> ranDoWhile = Collections.newSetFromMap(new MapMaker()
 			.concurrencyLevel(8)
 			.weakKeys()
 			.makeMap());
@@ -76,7 +76,7 @@ public class SecWhile extends LoopSection {
 
 	@Nullable
 	@Override
-	protected TriggerItem walk(Event event) {
+	protected TriggerItem walk(PlatformEvent event) {
 		if ((doWhile && ranDoWhile.add(event)) || condition.check(event)) {
 			currentLoopCounter.put(event, (currentLoopCounter.getOrDefault(event, 0L)) + 1);
 			return walk(event, true);
@@ -104,12 +104,12 @@ public class SecWhile extends LoopSection {
 	}
 
 	@Override
-	public String toString(@Nullable Event event, boolean debug) {
+	public String toString(@Nullable PlatformEvent event, boolean debug) {
 		return (doWhile ? "do " : "") + "while " + condition.toString(event, debug);
 	}
 
 	@Override
-	public void exit(Event event) {
+	public void exit(PlatformEvent event) {
 		ranDoWhile.remove(event);
 		super.exit(event);
 	}

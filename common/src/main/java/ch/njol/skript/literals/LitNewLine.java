@@ -10,7 +10,7 @@ import ch.njol.skript.lang.ExpressionType;
 import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.skript.lang.util.SimpleLiteral;
 import ch.njol.util.Kleenean;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.jetbrains.annotations.Nullable;
 
 @Name("New Line")
@@ -33,7 +33,7 @@ public class LitNewLine extends SimpleLiteral<String> {
 	}
 
 	@Override
-	public String toString(@Nullable Event event, boolean debug) {
+	public String toString(@Nullable PlatformEvent event, boolean debug) {
 		return "new line";
 	}
 }

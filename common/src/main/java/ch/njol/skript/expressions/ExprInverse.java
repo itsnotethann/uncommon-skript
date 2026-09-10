@@ -10,7 +10,7 @@ import ch.njol.skript.lang.ExpressionType;
 import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.skript.lang.util.SimpleExpression;
 import ch.njol.util.Kleenean;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.jetbrains.annotations.Nullable;
 
 @Name("Inverse Boolean")
@@ -35,7 +35,7 @@ public class ExprInverse extends SimpleExpression<Boolean> {
 	}
 
 	@Override
-	protected Boolean @Nullable [] get(Event event) {
+	protected Boolean @Nullable [] get(PlatformEvent event) {
 		Boolean[] original = booleans.getArray(event);
 		Boolean[] toggled = new Boolean[original.length];
 		for (int i = 0; i < original.length; i++) {
@@ -55,7 +55,7 @@ public class ExprInverse extends SimpleExpression<Boolean> {
 	}
 
 	@Override
-	public String toString(@Nullable Event event, boolean debug) {
+	public String toString(@Nullable PlatformEvent event, boolean debug) {
 		return "inverse of " + booleans.toString(event, debug);
 	}
 

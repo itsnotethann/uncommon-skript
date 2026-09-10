@@ -11,7 +11,7 @@ import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.skript.lang.simplification.SimplifiedLiteral;
 import ch.njol.skript.util.LiteralUtils;
 import ch.njol.util.Kleenean;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.jetbrains.annotations.Nullable;
 import org.skriptlang.skript.lang.comparator.Comparators;
 import org.skriptlang.skript.lang.comparator.Relation;
@@ -50,7 +50,7 @@ public class ExprExcept extends WrapperExpression<Object> {
 	}
 
 	@Override
-	protected Object @Nullable [] get(Event event) {
+	protected Object @Nullable [] get(PlatformEvent event) {
 		Object[] exclude = this.exclude.getArray(event);
 		if (exclude.length == 0)
 			return getExpr().getArray(event);
@@ -74,7 +74,7 @@ public class ExprExcept extends WrapperExpression<Object> {
 	}
 
 	@Override
-	public String toString(@Nullable Event event, boolean debug) {
+	public String toString(@Nullable PlatformEvent event, boolean debug) {
 		return (new SyntaxStringBuilder(event, debug))
 			.append(getExpr(), "except", exclude)
 			.toString();

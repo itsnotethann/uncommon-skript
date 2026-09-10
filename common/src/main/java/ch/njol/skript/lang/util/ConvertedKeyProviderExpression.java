@@ -6,7 +6,7 @@ import ch.njol.skript.lang.KeyReceiverExpression;
 import ch.njol.skript.lang.KeyedValue;
 import com.google.common.collect.Iterators;
 import org.apache.commons.lang3.ArrayUtils;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.jetbrains.annotations.NotNull;
 import org.skriptlang.skript.lang.converter.ConverterInfo;
 import org.skriptlang.skript.lang.converter.Converters;
@@ -26,8 +26,8 @@ import java.util.function.Consumer;
  */
 public class ConvertedKeyProviderExpression<F, T> extends ConvertedExpression<F, T> implements KeyProviderExpression<T>, KeyReceiverExpression<T> {
 
-	private final WeakHashMap<Event, String[]> arrayKeysCache = new WeakHashMap<>();
-	private final WeakHashMap<Event, String[]> allKeysCache = new WeakHashMap<>();
+	private final WeakHashMap<PlatformEvent, String[]> arrayKeysCache = new WeakHashMap<>();
+	private final WeakHashMap<PlatformEvent, String[]> allKeysCache = new WeakHashMap<>();
 	private final boolean supportsKeyedChange;
 
 	public ConvertedKeyProviderExpression(KeyProviderExpression<? extends F> source, Class<T> to, ConverterInfo<? super F, ? extends T> info) {
@@ -41,7 +41,7 @@ public class ConvertedKeyProviderExpression<F, T> extends ConvertedExpression<F,
 	}
 
 	@Override
-	public T[] getArray(Event event) {
+	public T[] getArray(PlatformEvent event) {
 		if (!canReturnKeys()) {
 			return super.getArray(event);
 		}
@@ -49,7 +49,7 @@ public class ConvertedKeyProviderExpression<F, T> extends ConvertedExpression<F,
 	}
 
 	@Override
-	public T[] getAll(Event event) {
+	public T[] getAll(PlatformEvent event) {
 		if (!canReturnKeys()) {
 			return super.getAll(event);
 		}
@@ -73,14 +73,14 @@ public class ConvertedKeyProviderExpression<F, T> extends ConvertedExpression<F,
 	}
 
 	@Override
-	public @NotNull String @NotNull [] getArrayKeys(Event event) throws IllegalStateException {
+	public @NotNull String @NotNull [] getArrayKeys(PlatformEvent event) throws IllegalStateException {
 		if (!arrayKeysCache.containsKey(event))
 			throw new IllegalStateException();
 		return arrayKeysCache.remove(event);
 	}
 
 	@Override
-	public @NotNull String @NotNull [] getAllKeys(Event event) {
+	public @NotNull String @NotNull [] getAllKeys(PlatformEvent event) {
 		if (!allKeysCache.containsKey(event))
 			throw new IllegalStateException();
 		return allKeysCache.remove(event);
@@ -97,7 +97,7 @@ public class ConvertedKeyProviderExpression<F, T> extends ConvertedExpression<F,
 	}
 
 	@Override
-	public void change(Event event, Object @NotNull [] delta, ChangeMode mode, @NotNull String @NotNull [] keys) {
+	public void change(PlatformEvent event, Object @NotNull [] delta, ChangeMode mode, @NotNull String @NotNull [] keys) {
 		if (supportsKeyedChange) {
 			((KeyReceiverExpression<?>) getSource()).change(event, delta, mode, keys);
 		} else {
@@ -116,7 +116,7 @@ public class ConvertedKeyProviderExpression<F, T> extends ConvertedExpression<F,
 	}
 
 	@Override
-	public Iterator<KeyedValue<T>> keyedIterator(Event event) {
+	public Iterator<KeyedValue<T>> keyedIterator(PlatformEvent event) {
 		Iterator<? extends KeyedValue<? extends F>> source = getSource().keyedIterator(event);
 		return Iterators.filter(
 			Iterators.transform(source, keyedValue -> {

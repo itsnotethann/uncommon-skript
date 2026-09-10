@@ -32,7 +32,7 @@ import ch.njol.skript.util.Contract;
 import ch.njol.skript.util.LiteralUtils;
 import ch.njol.skript.util.Utils;
 import ch.njol.util.StringUtils;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.eclipse.jdt.annotation.Nullable;
 import org.skriptlang.skript.lang.converter.Converters;
 
@@ -376,7 +376,7 @@ public class FunctionReference<T> implements Contract {
 
 	@SuppressWarnings("unchecked")
 	@Nullable
-	protected T[] execute(Event e) {
+	protected T[] execute(PlatformEvent e) {
 		// If needed, acquire the function reference
 		if (function == null)
 			function = (Function<? extends T>) getRegisteredFunction();
@@ -447,7 +447,7 @@ public class FunctionReference<T> implements Contract {
 		return contract;
 	}
 
-	public String toString(@Nullable Event e, boolean debug) {
+	public String toString(@Nullable PlatformEvent e, boolean debug) {
 		StringBuilder b = new StringBuilder(functionName + "(");
 		for (int i = 0; i < parameters.length; i++) {
 			if (i != 0)

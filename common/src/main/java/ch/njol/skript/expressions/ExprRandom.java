@@ -15,7 +15,7 @@ import ch.njol.skript.lang.util.SimpleExpression;
 import ch.njol.skript.util.LiteralUtils;
 import ch.njol.util.Kleenean;
 import ch.njol.util.coll.CollectionUtils;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.eclipse.jdt.annotation.Nullable;
 
 import java.lang.reflect.Array;
@@ -63,7 +63,7 @@ public class ExprRandom extends SimpleExpression<Object> {
 	}
 
 	@Override
-	protected Object[] get(Event event) {
+	protected Object[] get(PlatformEvent event) {
 		Object[] set = expr.getAll(event);
 		if (set.length <= 1)
 			return set;
@@ -83,7 +83,7 @@ public class ExprRandom extends SimpleExpression<Object> {
 	}
 
 	@Override
-	public String toString(@Nullable Event event, boolean debug) {
+	public String toString(@Nullable PlatformEvent event, boolean debug) {
 		return "a random element out of " + expr.toString(event, debug);
 	}
 

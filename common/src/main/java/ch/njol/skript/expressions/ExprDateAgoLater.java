@@ -14,7 +14,7 @@ import ch.njol.skript.lang.util.SimpleExpression;
 import ch.njol.skript.util.Date;
 import ch.njol.skript.util.Timespan;
 import ch.njol.util.Kleenean;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.jetbrains.annotations.Nullable;
 
 @Name("Date Ago/Later")
@@ -49,7 +49,7 @@ public class ExprDateAgoLater extends SimpleExpression<Date> {
 	@Override
 	@Nullable
 	@SuppressWarnings("null")
-	protected Date[] get(Event e) {
+	protected Date[] get(PlatformEvent e) {
 		Timespan timespan = this.timespan.getSingle(e);
 		Date date = this.date != null ? this.date.getSingle(e) : new Date();
 		if (timespan == null || date == null)
@@ -76,7 +76,7 @@ public class ExprDateAgoLater extends SimpleExpression<Date> {
 	}
 
 	@Override
-	public String toString(@Nullable Event e, boolean debug) {
+	public String toString(@Nullable PlatformEvent e, boolean debug) {
 		return timespan.toString(e, debug) + " " + (ago ? (date != null ? "before " + date.toString(e, debug) : "ago")
 			: (date != null ? "after " + date.toString(e, debug) : "later"));
 	}

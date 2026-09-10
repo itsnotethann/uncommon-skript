@@ -10,7 +10,7 @@ import ch.njol.skript.lang.ExpressionType;
 import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.skript.lang.util.SimpleExpression;
 import ch.njol.util.Kleenean;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.eclipse.jdt.annotation.Nullable;
 
 @Name("Percent of")
@@ -40,7 +40,7 @@ public class ExprPercent extends SimpleExpression<Number> {
 	}
 
 	@Override
-	protected @Nullable Number[] get(Event event) {
+	protected @Nullable Number[] get(PlatformEvent event) {
 		Number percent = this.percent.getSingle(event);
 		Number[] numbers = this.numbers.getArray(event);
 		if (percent == null || numbers.length == 0)
@@ -65,7 +65,7 @@ public class ExprPercent extends SimpleExpression<Number> {
 	}
 
 	@Override
-	public String toString(@Nullable Event event, boolean debug) {
+	public String toString(@Nullable PlatformEvent event, boolean debug) {
 		return percent.toString(event, debug) + " percent of " + numbers.toString(event, debug);
 	}
 

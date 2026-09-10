@@ -19,7 +19,7 @@ import ch.njol.util.coll.iterator.EmptyIterator;
 import com.google.common.collect.Iterators;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang3.function.TriFunction;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -123,7 +123,7 @@ public class ExprElement<T> extends SimpleExpression<T> implements KeyProviderEx
 
 	}
 
-	private final Map<Event, List<String>> cache = new WeakHashMap<>();
+	private final Map<PlatformEvent, List<String>> cache = new WeakHashMap<>();
 
 	private Expression<? extends T> expr;
 	private @Nullable Expression<Integer> startIndex, endIndex;
@@ -151,7 +151,7 @@ public class ExprElement<T> extends SimpleExpression<T> implements KeyProviderEx
 	}
 
 	@Override
-	protected T @Nullable [] get(Event event) {
+	protected T @Nullable [] get(PlatformEvent event) {
 		if (keyed) {
 			KeyedValue.UnzippedKeyValues<T> unzipped = KeyedValue.unzip(keyedIterator(event));
 			cache.put(event, unzipped.keys());
@@ -174,7 +174,7 @@ public class ExprElement<T> extends SimpleExpression<T> implements KeyProviderEx
 	}
 
 	@Override
-	public @NotNull String @NotNull [] getArrayKeys(Event event) throws IllegalStateException {
+	public @NotNull String @NotNull [] getArrayKeys(PlatformEvent event) throws IllegalStateException {
 		if (!keyed)
 			throw new UnsupportedOperationException();
 		if (!cache.containsKey(event))
@@ -183,7 +183,7 @@ public class ExprElement<T> extends SimpleExpression<T> implements KeyProviderEx
 	}
 
 	@Override
-	public @Nullable Iterator<? extends T> iterator(Event event) {
+	public @Nullable Iterator<? extends T> iterator(PlatformEvent event) {
 		if (expr.isSingle()) {
 			T single = expr.getSingle(event);
 			return Iterators.singletonIterator(single);
@@ -193,7 +193,7 @@ public class ExprElement<T> extends SimpleExpression<T> implements KeyProviderEx
 	}
 
 	@Override
-	public Iterator<KeyedValue<T>> keyedIterator(Event event) {
+	public Iterator<KeyedValue<T>> keyedIterator(PlatformEvent event) {
 		if (!keyed)
 			throw new UnsupportedOperationException();
 		//noinspection unchecked
@@ -201,7 +201,7 @@ public class ExprElement<T> extends SimpleExpression<T> implements KeyProviderEx
 		return transformIterator(event, iterator);
 	}
 
-	private <A> Iterator<A> transformIterator(Event event, @Nullable Iterator<A> iterator) {
+	private <A> Iterator<A> transformIterator(PlatformEvent event, @Nullable Iterator<A> iterator) {
 		if (iterator == null || !iterator.hasNext())
 			return EmptyIterator.get();
 		Integer startIndex = 0, endIndex = 0;
@@ -284,7 +284,7 @@ public class ExprElement<T> extends SimpleExpression<T> implements KeyProviderEx
 	}
 
 	@Override
-	public String toString(@Nullable Event event, boolean debug) {
+	public String toString(@Nullable PlatformEvent event, boolean debug) {
 		String prefix;
 		switch (type) {
 			case FIRST_ELEMENT:

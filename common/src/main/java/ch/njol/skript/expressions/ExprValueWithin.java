@@ -16,7 +16,7 @@ import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.skript.registrations.Classes;
 import ch.njol.skript.util.ClassInfoReference;
 import ch.njol.util.Kleenean;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.eclipse.jdt.annotation.Nullable;
 
 @Name("Value Within")
@@ -83,14 +83,14 @@ public class ExprValueWithin extends WrapperExpression<Object> {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public void change(Event event, @Nullable Object[] delta, ChangeMode mode) {
+	public void change(PlatformEvent event, @Nullable Object[] delta, ChangeMode mode) {
 		if (changer == null)
 			throw new UnsupportedOperationException();
 		changer.change(getArray(event), delta, mode);
 	}
 
 	@Override
-	public String toString(@Nullable Event event, boolean debug) {
+	public String toString(@Nullable PlatformEvent event, boolean debug) {
 		return (classInfo == null ? "value" : classInfo.toString(event, debug)) + " within " + getExpr();
 	}
 

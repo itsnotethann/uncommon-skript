@@ -14,7 +14,7 @@ import ch.njol.skript.lang.util.SimpleExpression;
 import ch.njol.skript.util.LiteralUtils;
 import ch.njol.skript.util.Utils;
 import ch.njol.util.Kleenean;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -56,7 +56,7 @@ public class ExprDefaultValue extends SimpleExpression<Object> {
 	}
 
 	@Override
-	protected Object[] get(Event event) {
+	protected Object[] get(PlatformEvent event) {
 		Object[] values = this.values.getArray(event);
 		if (values.length != 0) {
 			return values;
@@ -88,7 +88,7 @@ public class ExprDefaultValue extends SimpleExpression<Object> {
 	}
 
 	@Override
-	public String toString(Event event, boolean debug) {
+	public String toString(PlatformEvent event, boolean debug) {
 		return values.toString(event, debug) + " or else " + defaultValues.toString(event, debug);
 	}
 

@@ -31,7 +31,7 @@ import ch.njol.skript.log.RetainingLogHandler;
 import ch.njol.skript.log.SkriptLogger;
 import ch.njol.skript.registrations.Classes;
 import ch.njol.util.Kleenean;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.eclipse.jdt.annotation.Nullable;
 
 @Name("Return")
@@ -101,7 +101,7 @@ public class EffReturn extends Effect {
 
 	@Override
 	@Nullable
-	protected TriggerItem walk(Event event) {
+	protected TriggerItem walk(PlatformEvent event) {
 		debug(event, false);
 		//noinspection rawtypes,unchecked
 		((ReturnHandler) handler).returnValues(event, value);
@@ -121,12 +121,12 @@ public class EffReturn extends Effect {
 	}
 
 	@Override
-	protected void execute(Event event) {
+	protected void execute(PlatformEvent event) {
 		assert false;
 	}
 
 	@Override
-	public String toString(@Nullable Event event, boolean debug) {
+	public String toString(@Nullable PlatformEvent event, boolean debug) {
 		return "return " + value.toString(event, debug);
 	}
 

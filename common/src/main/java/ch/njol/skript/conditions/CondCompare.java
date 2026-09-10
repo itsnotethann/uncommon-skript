@@ -16,7 +16,7 @@ import ch.njol.skript.registrations.Classes;
 import ch.njol.skript.util.Patterns;
 import ch.njol.skript.util.Utils;
 import ch.njol.util.Kleenean;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.jetbrains.annotations.Nullable;
 import org.skriptlang.skript.lang.comparator.Comparator;
 import org.skriptlang.skript.lang.comparator.ComparatorInfo;
@@ -308,7 +308,7 @@ public class CondCompare extends Condition implements VerboseAssert {
 	 */
 	@Override
 	@SuppressWarnings("unchecked")
-	public boolean check(final Event event) {
+	public boolean check(final PlatformEvent event) {
 		final Expression<?> third = this.third;
 		// if we are directly comparing the equality of two AND lists, we should change behavior to
 		// compare element-wise, instead of comparing everything to everything.
@@ -354,7 +354,7 @@ public class CondCompare extends Condition implements VerboseAssert {
 			), isNegated());
 	}
 
-	public String getExpectedMessage(Event event) {
+	public String getExpectedMessage(PlatformEvent event) {
 		String message = "a value ";
 		if (third == null)
 			return message + (isNegated() ? "not " : "") + relation + " " + VerboseAssert.getExpressionValue(second, event);
@@ -366,7 +366,7 @@ public class CondCompare extends Condition implements VerboseAssert {
 		return message;
 	}
 
-	public String getReceivedMessage(Event event) {
+	public String getReceivedMessage(PlatformEvent event) {
 		return VerboseAssert.getExpressionValue(first, event);
 	}
 
@@ -377,7 +377,7 @@ public class CondCompare extends Condition implements VerboseAssert {
 	 * @return Whether every element in {@link CondCompare#first} is equal to its counterpart in {@link CondCompare#second}.
 	 * 		e.g. (1,2,3) = (1,2,3), but (1,2,3) != (3,2,1)
 	 */
-	private boolean compareLists(Event event) {
+	private boolean compareLists(PlatformEvent event) {
 		Object[] first = this.first.getArray(event);
 		Object[] second = this.second.getArray(event);
 		boolean shouldMatch = !isNegated(); // for readability
@@ -398,7 +398,7 @@ public class CondCompare extends Condition implements VerboseAssert {
 	}
 
 	@Override
-	public String toString(final @Nullable Event event, final boolean debug) {
+	public String toString(final @Nullable PlatformEvent event, final boolean debug) {
 		String s;
 		final Expression<?> third = this.third;
 		if (third == null)

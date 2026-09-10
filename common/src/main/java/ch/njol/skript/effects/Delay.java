@@ -13,7 +13,7 @@ import ch.njol.skript.lang.TriggerItem;
 import ch.njol.skript.util.Timespan;
 import ch.njol.skript.variables.Variables;
 import ch.njol.util.Kleenean;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.temporal.ChronoUnit;
@@ -63,7 +63,7 @@ public class Delay extends Effect {
 
 	@Override
 	@Nullable
-	protected TriggerItem walk(Event event) {
+	protected TriggerItem walk(PlatformEvent event) {
 		Timespan duration = this.duration.getSingle(event);
 		if (duration == null) return null;
 		if (pattern == 1) {
@@ -99,16 +99,16 @@ public class Delay extends Effect {
 	}
 
 	@Override
-	protected void execute(Event event) {
+	protected void execute(PlatformEvent event) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public String toString(@Nullable Event event, boolean debug) {
+	public String toString(@Nullable PlatformEvent event, boolean debug) {
 		return "wait for " + duration.toString(event, debug) + (event == null ? "" : "...");
 	}
 
-	private static final Set<Event> DELAYED =
+	private static final Set<PlatformEvent> DELAYED =
 		Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
 
 	/**
@@ -116,7 +116,7 @@ public class Delay extends Effect {
 	 * @param event The event to check for a delay.
 	 * @return Whether {@link TriggerItem} execution has been delayed.
 	 */
-	public static boolean isDelayed(Event event) {
+	public static boolean isDelayed(PlatformEvent event) {
 		return DELAYED.contains(event);
 	}
 
@@ -124,7 +124,7 @@ public class Delay extends Effect {
 	 * The main method for marking the execution of {@link TriggerItem}s as delayed.
 	 * @param event The event to mark as delayed.
 	 */
-	public static void addDelayedEvent(Event event) {
+	public static void addDelayedEvent(PlatformEvent event) {
 		DELAYED.add(event);
 	}
 

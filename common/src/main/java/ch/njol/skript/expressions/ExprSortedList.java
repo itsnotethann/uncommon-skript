@@ -13,7 +13,7 @@ import ch.njol.skript.util.LiteralUtils;
 import ch.njol.util.Kleenean;
 import ch.njol.util.coll.CollectionUtils;
 import ch.njol.util.coll.iterator.EmptyIterator;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.jetbrains.annotations.Nullable;
 import org.skriptlang.skript.lang.comparator.Comparator;
 import org.skriptlang.skript.lang.comparator.Comparators;
@@ -61,7 +61,7 @@ public class ExprSortedList extends SimpleExpression<Object> implements KeyedIte
 	}
 
 	@Override
-	protected Object @Nullable [] get(Event event) {
+	protected Object @Nullable [] get(PlatformEvent event) {
 		try {
 			return list.stream(event)
 				.sorted(ExprSortedList::compare)
@@ -77,7 +77,7 @@ public class ExprSortedList extends SimpleExpression<Object> implements KeyedIte
 	}
 
 	@Override
-	public Iterator<KeyedValue<Object>> keyedIterator(Event event) {
+	public Iterator<KeyedValue<Object>> keyedIterator(PlatformEvent event) {
 		if (!keyed)
 			throw new UnsupportedOperationException();
 		try {
@@ -158,7 +158,7 @@ public class ExprSortedList extends SimpleExpression<Object> implements KeyedIte
 	}
 
 	@Override
-	public String toString(@Nullable Event event, boolean debug) {
+	public String toString(@Nullable PlatformEvent event, boolean debug) {
 		return "sorted " + list.toString(event, debug);
 	}
 

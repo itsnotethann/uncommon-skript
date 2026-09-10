@@ -11,7 +11,7 @@ import ch.njol.skript.lang.ExpressionType;
 import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.skript.lang.util.SimpleExpression;
 import ch.njol.util.Kleenean;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.eclipse.jdt.annotation.Nullable;
 
 /**
@@ -45,7 +45,7 @@ public class ExprIndexOf extends SimpleExpression<Long> {
 
 	@Override
 	@Nullable
-	protected Long[] get(final Event e) {
+	protected Long[] get(final PlatformEvent e) {
 		final String h = haystack.getSingle(e), n = needle.getSingle(e);
 		if (h == null || n == null)
 			return new Long[0];
@@ -64,7 +64,7 @@ public class ExprIndexOf extends SimpleExpression<Long> {
 	}
 
 	@Override
-	public String toString(final @Nullable Event e, final boolean debug) {
+	public String toString(final @Nullable PlatformEvent e, final boolean debug) {
 		return "the " + (first ? "first" : "last") + " index of " + needle.toString(e, debug) + " in " + haystack.toString(e, debug);
 	}
 

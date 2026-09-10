@@ -9,7 +9,7 @@ import ch.njol.skript.lang.SyntaxElement;
 import ch.njol.skript.lang.util.SimpleExpression;
 import ch.njol.util.Kleenean;
 import com.google.common.base.Preconditions;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.UnknownNullability;
@@ -192,12 +192,12 @@ public abstract class PropertyExpression<F, T> extends SimpleExpression<T> {
 	}
 
 	@Override
-	protected final T[] get(Event event) {
+	protected final T[] get(PlatformEvent event) {
 		return get(event, expr.getArray(event));
 	}
 
 	@Override
-	public final T[] getAll(Event event) {
+	public final T[] getAll(PlatformEvent event) {
 		T[] result = get(event, expr.getAll(event));
 		if (result == null) {
 			throw new SkriptAPIException("PropertyExpression must not return a null array");
@@ -220,7 +220,7 @@ public abstract class PropertyExpression<F, T> extends SimpleExpression<T> {
 	 * @return An array of the converted objects, which may contain less elements than the source array, but must not be null.
 	 * @see Converters#convert(Object[], Class, Converter)
 	 */
-	protected abstract T[] get(Event event, F[] source);
+	protected abstract T[] get(PlatformEvent event, F[] source);
 
 	/**
 	 * @param source the array of the objects from the expressions.

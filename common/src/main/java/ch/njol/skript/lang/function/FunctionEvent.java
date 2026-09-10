@@ -19,6 +19,7 @@
 package ch.njol.skript.lang.function;
 
 import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.bukkit.event.HandlerList;
 
 public final class FunctionEvent<T> extends Event {

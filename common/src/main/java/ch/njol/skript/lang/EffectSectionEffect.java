@@ -20,7 +20,7 @@ package ch.njol.skript.lang;
 
 import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.util.Kleenean;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.eclipse.jdt.annotation.Nullable;
 
 /**
@@ -40,10 +40,10 @@ public class EffectSectionEffect extends Effect {
 	}
 
 	@Override
-	protected void execute(Event event) { }
+	protected void execute(PlatformEvent event) { }
 
 	@Override
-	protected @Nullable TriggerItem walk(Event event) {
+	protected @Nullable TriggerItem walk(PlatformEvent event) {
 		return effectSection.walk(event);
 	}
 
@@ -68,7 +68,7 @@ public class EffectSectionEffect extends Effect {
 	}
 
 	@Override
-	public String toString(@Nullable Event event, boolean debug) {
+	public String toString(@Nullable PlatformEvent event, boolean debug) {
 		return effectSection.toString(event, debug);
 	}
 

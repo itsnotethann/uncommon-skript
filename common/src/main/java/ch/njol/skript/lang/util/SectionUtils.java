@@ -9,7 +9,7 @@ import ch.njol.skript.lang.parser.ParserInstance;
 import ch.njol.skript.variables.HintManager;
 import ch.njol.skript.variables.HintManager.Backup;
 import ch.njol.skript.variables.Variables;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -24,7 +24,7 @@ public final class SectionUtils {
 	private SectionUtils() { }
 
 	/**
-	 * This method is used for loading a section into a {@link Trigger} under different context ({@link Event}s).
+	 * This method is used for loading a section into a {@link Trigger} under different context ({@link PlatformEvent}s).
 	 * However, unlike the traditional methods such as {@link Section#loadCode(SectionNode, String, Runnable, Runnable, Class[])},
 	 * this method assumes some level of linkage between the returned trigger and the section it was loaded from.
 	 * These assumptions are:
@@ -34,7 +34,7 @@ public final class SectionUtils {
 	 * </ul>
 	 * As a result, this method takes action to ensure that type hints are shared and that delays are not permitted.
 	 * At runtime, local variables will need to be copied by the caller
-	 *  using a method such as {@link Variables#withLocalVariables(Event, Event, Runnable)}
+	 *  using a method such as {@link Variables#withLocalVariables(PlatformEvent, PlatformEvent, Runnable)}
 	 * @param name The name of the section being loaded.
 	 * @param triggerSupplier A function to load code using a trigger.
 	 *  The function has two runnable arguments. When using a method like {@link Section#loadCode(SectionNode, String, Runnable, Runnable, Class[])},

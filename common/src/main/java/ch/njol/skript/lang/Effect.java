@@ -5,7 +5,7 @@ import ch.njol.skript.config.Node;
 import ch.njol.skript.lang.function.EffFunctionCall;
 import ch.njol.skript.log.ParseLogHandler;
 import ch.njol.skript.log.SkriptLogger;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.skriptlang.skript.log.runtime.SyntaxRuntimeErrorProducer;
@@ -35,10 +35,10 @@ public abstract class Effect extends Statement implements SyntaxRuntimeErrorProd
 	 *
 	 * @param event The event with which this effect will be executed
 	 */
-	protected abstract void execute(Event event);
+	protected abstract void execute(PlatformEvent event);
 
 	@Override
-	public final boolean run(Event event) {
+	public final boolean run(PlatformEvent event) {
 		execute(event);
 		return true;
 	}

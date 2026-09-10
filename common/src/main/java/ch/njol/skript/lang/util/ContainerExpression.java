@@ -22,7 +22,7 @@ import ch.njol.skript.lang.Expression;
 import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.skript.util.Container;
 import ch.njol.util.Kleenean;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.eclipse.jdt.annotation.Nullable;
 
 import java.util.Iterator;
@@ -42,13 +42,13 @@ public class ContainerExpression extends SimpleExpression<Object> {
 	}
 
 	@Override
-	protected Object[] get(Event e) {
+	protected Object[] get(PlatformEvent e) {
 		throw new UnsupportedOperationException("ContainerExpression must only be used by Loops");
 	}
 
 	@Override
 	@Nullable
-	public Iterator<Object> iterator(Event event) {
+	public Iterator<Object> iterator(PlatformEvent event) {
 		Iterator<? extends Container<?>> iterator = expr.iterator(event);
 		if (iterator == null)
 			return null;
@@ -100,7 +100,7 @@ public class ContainerExpression extends SimpleExpression<Object> {
 	}
 
 	@Override
-	public String toString(@Nullable Event event, boolean debug) {
+	public String toString(@Nullable PlatformEvent event, boolean debug) {
 		return expr.toString(event, debug);
 	}
 

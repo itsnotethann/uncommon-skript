@@ -21,7 +21,7 @@ package ch.njol.skript.lang;
 import ch.njol.skript.SkriptAPIException;
 import ch.njol.skript.config.SectionNode;
 import ch.njol.skript.lang.SkriptParser.ParseResult;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.eclipse.jdt.annotation.Nullable;
 
 /**
@@ -61,12 +61,12 @@ public class SectionSkriptEvent extends SkriptEvent {
 	}
 
 	@Override
-	public boolean check(Event event) {
+	public boolean check(PlatformEvent event) {
 		throw new SkriptAPIException("check should never be called for a SectionSkriptEvent.");
 	}
 
 	@Override
-	public String toString(@Nullable Event event, boolean debug) {
+	public String toString(@Nullable PlatformEvent event, boolean debug) {
 		return name;
 	}
 

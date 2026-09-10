@@ -1,7 +1,7 @@
 package org.skriptlang.skript.bukkit.lang.eventvalue;
 
 import ch.njol.skript.classes.Changer.ChangeMode;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.jetbrains.annotations.Nullable;
 import org.skriptlang.skript.lang.converter.Converter;
 import org.skriptlang.skript.lang.converter.Converters;
@@ -29,7 +29,7 @@ import java.util.Optional;
  * @param <SourceValue> The source value type.
  * @param <ConvertedValue> The converted value type.
  */
-record ConvertedEventValue<SourceEvent extends Event, ConvertedEvent extends Event, SourceValue, ConvertedValue>(
+record ConvertedEventValue<SourceEvent extends PlatformEvent, ConvertedEvent extends PlatformEvent, SourceValue, ConvertedValue>(
 	Class<ConvertedEvent> eventClass,
 	Class<ConvertedValue> valueClass,
 	EventValue<SourceEvent, SourceValue> source,
@@ -55,7 +55,7 @@ record ConvertedEventValue<SourceEvent extends Event, ConvertedEvent extends Eve
 	 * otherwise a new {@link ConvertedEventValue} instance, or {@code null} if no suitable
 	 * converter exists between the source and target value classes.
 	 */
-	public static <SourceEvent extends Event, ConvertedEvent extends Event, SourceValue, ConvertedValue> EventValue<ConvertedEvent, ConvertedValue> newInstance(
+	public static <SourceEvent extends PlatformEvent, ConvertedEvent extends PlatformEvent, SourceValue, ConvertedValue> EventValue<ConvertedEvent, ConvertedValue> newInstance(
 		Class<ConvertedEvent> eventClass,
 		Class<ConvertedValue> valueClass,
 		EventValue<SourceEvent, SourceValue> source
@@ -198,7 +198,7 @@ record ConvertedEventValue<SourceEvent extends Event, ConvertedEvent extends Eve
 	}
 
 	@Override
-	public @Nullable <NewEvent extends Event, NewValue> EventValue<NewEvent, NewValue> getConverted(
+	public @Nullable <NewEvent extends PlatformEvent, NewValue> EventValue<NewEvent, NewValue> getConverted(
 		Class<NewEvent> newEventClass,
 		Class<NewValue> newValueClass
 	) {
@@ -206,7 +206,7 @@ record ConvertedEventValue<SourceEvent extends Event, ConvertedEvent extends Eve
 	}
 
 	@Override
-	public <NewEvent extends Event, NewValue> EventValue<NewEvent, NewValue> getConverted(
+	public <NewEvent extends PlatformEvent, NewValue> EventValue<NewEvent, NewValue> getConverted(
 		Class<NewEvent> newEventClass,
 		Class<NewValue> newValueClass,
 		Converter<ConvertedValue, NewValue> converter,

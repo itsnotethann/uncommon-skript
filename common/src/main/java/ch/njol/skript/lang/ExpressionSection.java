@@ -7,7 +7,7 @@ import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.skript.log.ParseLogHandler;
 import ch.njol.skript.log.SkriptLogger;
 import ch.njol.util.Kleenean;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
@@ -77,12 +77,12 @@ public class ExpressionSection extends Section {
 	}
 
 	@Override
-	protected @Nullable TriggerItem walk(Event event) {
+	protected @Nullable TriggerItem walk(PlatformEvent event) {
 		return super.walk(event, false);
 	}
 
 	@Override
-	public String toString(@Nullable Event event, boolean debug) {
+	public String toString(@Nullable PlatformEvent event, boolean debug) {
 		return expression.toString(event, debug);
 	}
 
@@ -100,7 +100,7 @@ public class ExpressionSection extends Section {
 		super.loadOptionalCode(sectionNode);
 	}
 
-	public boolean runSection(Event event) {
+	public boolean runSection(PlatformEvent event) {
 		return TriggerItem.walk(this.first, event);
 	}
 
@@ -111,7 +111,7 @@ public class ExpressionSection extends Section {
 
 	@SafeVarargs
 	public final Trigger loadCodeTask(SectionNode sectionNode, String name,
-									  @Nullable Runnable beforeLoading, @Nullable Runnable afterLoading, Class<? extends Event>... events) {
+									  @Nullable Runnable beforeLoading, @Nullable Runnable afterLoading, Class<? extends PlatformEvent>... events) {
 		return super.loadCode(sectionNode, name, beforeLoading, afterLoading, events);
 	}
 

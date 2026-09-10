@@ -10,7 +10,7 @@ import ch.njol.skript.lang.*;
 import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.util.Kleenean;
 import ch.njol.util.StringUtils;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.eclipse.jdt.annotation.Nullable;
 
 import java.util.List;
@@ -77,20 +77,20 @@ public class EffContinue extends Effect {
 	}
 
 	@Override
-	protected void execute(Event event) {
+	protected void execute(PlatformEvent event) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	@Nullable
-	protected TriggerItem walk(Event event) {
+	protected TriggerItem walk(PlatformEvent event) {
 		for (LoopSection loop : innerLoops)
 			loop.exit(event);
 		return loop;
 	}
 
 	@Override
-	public String toString(@Nullable Event event, boolean debug) {
+	public String toString(@Nullable PlatformEvent event, boolean debug) {
 		return "continue";
 	}
 

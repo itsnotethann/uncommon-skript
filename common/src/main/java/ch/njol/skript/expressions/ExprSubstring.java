@@ -8,7 +8,7 @@ import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.skript.lang.util.SimpleExpression;
 import ch.njol.skript.lang.util.SimpleLiteral;
 import ch.njol.util.Kleenean;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.eclipse.jdt.annotation.Nullable;
 
 import java.util.ArrayList;
@@ -54,7 +54,7 @@ public class ExprSubstring extends SimpleExpression<String> {
 	@Override
 	@Nullable
 	@SuppressWarnings("null")
-	protected String[] get(final Event e) {
+	protected String[] get(final PlatformEvent e) {
 		final List<String> parts = new ArrayList<>();
 		final String[] strings = string.getArray(e);
 		if (strings == null)
@@ -94,7 +94,7 @@ public class ExprSubstring extends SimpleExpression<String> {
 
 	@Override
 	@SuppressWarnings("null")
-	public String toString(final @Nullable Event e, final boolean debug) {
+	public String toString(final @Nullable PlatformEvent e, final boolean debug) {
 		if (start == null) {
 			assert end != null;
 			return "the first " + end.toString(e, debug) + " characters of " + string.toString(e, debug);

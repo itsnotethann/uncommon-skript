@@ -23,7 +23,7 @@ import ch.njol.skript.SkriptAPIException;
 import ch.njol.skript.config.SectionNode;
 import ch.njol.skript.effects.EffReturn;
 import ch.njol.skript.lang.parser.ParserInstance;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.jetbrains.annotations.ApiStatus.NonExtendable;
 import org.jetbrains.annotations.Nullable;
 
@@ -69,7 +69,7 @@ public interface ReturnHandler<T> {
 	 * @throws SkriptAPIException if this return handler is not a {@link Section}
 	 */
 	@NonExtendable
-	default ReturnableTrigger<T> loadReturnableSectionCode(SectionNode node, String name, Class<? extends Event>[] events) {
+	default ReturnableTrigger<T> loadReturnableSectionCode(SectionNode node, String name, Class<? extends PlatformEvent>[] events) {
 		if (!(this instanceof Section))
 			throw new SkriptAPIException("loadReturnableSectionCode called on a non-section object");
 		ParserInstance parser = ParserInstance.get();
@@ -135,7 +135,7 @@ public interface ReturnHandler<T> {
 	 * @param event the event providing context
 	 * @param value an expression representing the value(s) to return
 	 */
-	void returnValues(Event event, Expression<? extends T> value);
+	void returnValues(PlatformEvent event, Expression<? extends T> value);
 
 	/**
 	 * @return whether this return handler may accept multiple return values

@@ -20,7 +20,7 @@ import ch.njol.skript.util.LiteralUtils;
 import ch.njol.skript.util.Patterns;
 import ch.njol.skript.variables.HintManager;
 import ch.njol.util.Kleenean;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.jetbrains.annotations.Nullable;
 import org.skriptlang.skript.lang.script.ScriptWarning;
 
@@ -300,7 +300,7 @@ public class EffChange extends Effect {
 	}
 
 	@Override
-	protected void execute(Event event) {
+	protected void execute(PlatformEvent event) {
 		Object[] delta = null;
 		if (changer != null) {
 			delta = changer.getArray(event);
@@ -328,7 +328,7 @@ public class EffChange extends Effect {
 	}
 
 	@Override
-	public String toString(@Nullable Event event, boolean debug) {
+	public String toString(@Nullable PlatformEvent event, boolean debug) {
 		SyntaxStringBuilder builder = new SyntaxStringBuilder(event, debug);
 		switch (mode) {
 			case ADD -> {

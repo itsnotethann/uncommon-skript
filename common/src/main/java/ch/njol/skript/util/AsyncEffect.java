@@ -5,7 +5,7 @@ import ch.njol.skript.effects.Delay;
 import ch.njol.skript.lang.Effect;
 import ch.njol.skript.lang.TriggerItem;
 import ch.njol.skript.variables.Variables;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -21,7 +21,7 @@ public abstract class AsyncEffect extends Effect {
 
 	@Override
 	@Nullable
-	protected TriggerItem walk(Event e) {
+	protected TriggerItem walk(PlatformEvent e) {
 		debug(e, true);
 
 		Object localVars = Variables.removeLocals(e); // Back up local variables

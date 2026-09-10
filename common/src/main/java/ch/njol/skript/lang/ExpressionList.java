@@ -7,7 +7,7 @@ import ch.njol.skript.registrations.Classes;
 import ch.njol.util.Kleenean;
 import ch.njol.util.coll.CollectionUtils;
 import com.google.common.collect.ImmutableSet;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Array;
@@ -68,7 +68,7 @@ public class ExpressionList<T> implements Expression<T> {
 	}
 
 	@Override
-	public @Nullable T getSingle(Event event) {
+	public @Nullable T getSingle(PlatformEvent event) {
 		if (!single)
 			throw new UnsupportedOperationException();
 		Expression<? extends T> expression = CollectionUtils.getRandom(expressions);
@@ -76,7 +76,7 @@ public class ExpressionList<T> implements Expression<T> {
 	}
 
 	@Override
-	public T[] getArray(Event event) {
+	public T[] getArray(PlatformEvent event) {
 		if (and)
 			return getAll(event);
 		Expression<? extends T> expression = CollectionUtils.getRandom(expressions);
@@ -85,7 +85,7 @@ public class ExpressionList<T> implements Expression<T> {
 	}
 
 	@Override
-	public T[] getAll(Event event) {
+	public T[] getAll(PlatformEvent event) {
 		List<T> values = new ArrayList<>();
 		for (Expression<? extends T> expr : expressions)
 			values.addAll(Arrays.asList(expr.getAll(event)));
@@ -94,7 +94,7 @@ public class ExpressionList<T> implements Expression<T> {
 	}
 
 	@Override
-	public @Nullable Iterator<? extends T> iterator(Event event) {
+	public @Nullable Iterator<? extends T> iterator(PlatformEvent event) {
 		if (!and) {
 			Expression<? extends T> expression = CollectionUtils.getRandom(expressions);
 			return expression != null ? expression.iterator(event) : null;
@@ -137,12 +137,12 @@ public class ExpressionList<T> implements Expression<T> {
 	}
 
 	@Override
-	public boolean check(Event event, Predicate<? super T> checker, boolean negated) {
+	public boolean check(PlatformEvent event, Predicate<? super T> checker, boolean negated) {
 		return CollectionUtils.check(expressions, expr -> expr.check(event, checker) ^ negated, and);
 	}
 
 	@Override
-	public boolean check(Event event, Predicate<? super T> checker) {
+	public boolean check(PlatformEvent event, Predicate<? super T> checker) {
 		return check(event, checker, false);
 	}
 
@@ -232,7 +232,7 @@ public class ExpressionList<T> implements Expression<T> {
 	}
 
 	@Override
-	public void change(Event event, Object @Nullable [] delta, ChangeMode mode) throws UnsupportedOperationException {
+	public void change(PlatformEvent event, Object @Nullable [] delta, ChangeMode mode) throws UnsupportedOperationException {
 		if (and) {
 			for (Expression<?> expr : expressions) {
 				expr.change(event, delta, mode);
@@ -244,7 +244,7 @@ public class ExpressionList<T> implements Expression<T> {
 	}
 
 	@Override
-	public <R> void changeInPlace(Event event, Function<T, R> changeFunction, boolean getAll) {
+	public <R> void changeInPlace(PlatformEvent event, Function<T, R> changeFunction, boolean getAll) {
 		if (and || getAll) {
 			for (Expression<?> expr : expressions) {
 				//noinspection unchecked,rawtypes
@@ -295,7 +295,7 @@ public class ExpressionList<T> implements Expression<T> {
 	}
 
 	@Override
-	public String toString(@Nullable Event event, boolean debug) {
+	public String toString(@Nullable PlatformEvent event, boolean debug) {
 		StringBuilder result = new StringBuilder("(");
 		for (int i = 0; i < expressions.length; i++) {
 			if (i != 0) {

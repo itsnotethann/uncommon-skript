@@ -10,7 +10,7 @@ import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.skript.lang.util.SimpleExpression;
 import ch.njol.skript.util.LiteralUtils;
 import ch.njol.util.Kleenean;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
@@ -72,7 +72,7 @@ public class ExprIndices extends SimpleExpression<String> {
 	}
 
 	@Override
-	protected String @Nullable [] get(Event event) {
+	protected String @Nullable [] get(PlatformEvent event) {
 		Object[] values = keyedExpression.getArray(event);
 		String[] keys = keyedExpression.getArrayKeys(event);
 		if (sort) {
@@ -115,7 +115,7 @@ public class ExprIndices extends SimpleExpression<String> {
 	}
 
 	@Override
-	public String toString(@Nullable Event event, boolean debug) {
+	public String toString(@Nullable PlatformEvent event, boolean debug) {
 		String text = "indices of " + keyedExpression.toString(event, debug);
 
 		if (sort)

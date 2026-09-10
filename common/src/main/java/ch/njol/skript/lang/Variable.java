@@ -23,7 +23,7 @@ import ch.njol.util.coll.iterator.SingleItemIterator;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterators;
 import org.apache.commons.lang3.ArrayUtils;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.eclipse.jdt.annotation.Nullable;
 import org.jetbrains.annotations.NotNull;
 import org.skriptlang.skript.lang.arithmetic.Arithmetics;
@@ -68,7 +68,7 @@ public class Variable<T> implements Expression<T>, KeyReceiverExpression<T>, Key
 	private final boolean list;
 
 	private final @Nullable Variable<?> source;
-	private final Map<Event, String[]> cache = Collections.synchronizedMap(new WeakHashMap<>());
+	private final Map<PlatformEvent, String[]> cache = Collections.synchronizedMap(new WeakHashMap<>());
 
 	private ListProvider listProvider = new ShallowListProvider();
 
@@ -289,7 +289,7 @@ public class Variable<T> implements Expression<T>, KeyReceiverExpression<T>, Key
 	}
 
 	@Override
-	public String toString(@Nullable Event event, boolean debug) {
+	public String toString(@Nullable PlatformEvent event, boolean debug) {
 		StringBuilder stringBuilder = new StringBuilder()
 			.append("{");
 		if (local)
@@ -337,7 +337,7 @@ public class Variable<T> implements Expression<T>, KeyReceiverExpression<T>, Key
 	 * Gets the value of this variable as stored in the variables map.
 	 * This method also checks against default variables.
 	 */
-	public @Nullable Object getRaw(Event event) {
+	public @Nullable Object getRaw(PlatformEvent event) {
 		DefaultVariables data = script == null ? null : script.getData(DefaultVariables.class);
 		if (data != null)
 			data.enterScope();
@@ -367,7 +367,7 @@ public class Variable<T> implements Expression<T>, KeyReceiverExpression<T>, Key
 		return null;
 	}
 
-	private @Nullable Object get(Event event) {
+	private @Nullable Object get(PlatformEvent event) {
 		Object rawValue = getRaw(event);
 		if (!list)
 			return rawValue;
@@ -377,7 +377,7 @@ public class Variable<T> implements Expression<T>, KeyReceiverExpression<T>, Key
 	}
 
 	@Override
-	public Iterator<KeyedValue<T>> keyedIterator(Event event) {
+	public Iterator<KeyedValue<T>> keyedIterator(PlatformEvent event) {
 		if (!list)
 			throw new SkriptAPIException("Invalid call to keyedIterator");
 		Iterator<KeyedValue<?>> iterator = Iterators.forArray(listProvider.getValues(event));
@@ -391,14 +391,14 @@ public class Variable<T> implements Expression<T>, KeyReceiverExpression<T>, Key
 		return Iterators.filter(transformed, Objects::nonNull);
 	}
 
-	public Iterator<Pair<String, Object>> variablesIterator(Event event) {
+	public Iterator<Pair<String, Object>> variablesIterator(PlatformEvent event) {
 		if (!list)
 			throw new SkriptAPIException("Looping a non-list variable");
 		return Variables.getVariableIterator(name.toString(event), local, event);
 	}
 
 	@Override
-	public @Nullable Iterator<T> iterator(Event event) {
+	public @Nullable Iterator<T> iterator(PlatformEvent event) {
 		if (!list) {
 			T value = getSingle(event);
 			return value != null ? new SingleItemIterator<>(value) : null;
@@ -407,12 +407,12 @@ public class Variable<T> implements Expression<T>, KeyReceiverExpression<T>, Key
 		return Iterators.transform(keyedIterator(event), KeyedValue::value);
 	}
 
-	private @Nullable T getConverted(Event event) {
+	private @Nullable T getConverted(PlatformEvent event) {
 		assert !list;
 		return Converters.convert(get(event), types);
 	}
 
-	private T[] getConvertedArray(Event event) {
+	private T[] getConvertedArray(PlatformEvent event) {
 		assert list;
 		//noinspection unchecked
 		KeyedValue<Object>[] values = (KeyedValue<Object>[]) listProvider.getValues(event);
@@ -426,18 +426,18 @@ public class Variable<T> implements Expression<T>, KeyReceiverExpression<T>, Key
 		return unzipped.values().toArray((T[]) Array.newInstance(superType, 0));
 	}
 
-	private void set(Event event, @Nullable Object value) {
+	private void set(PlatformEvent event, @Nullable Object value) {
 		Variables.setVariable(name.toString(event), value, event, local);
 	}
 
-	private void setIndex(Event event, String index, @Nullable Object value) {
+	private void setIndex(PlatformEvent event, String index, @Nullable Object value) {
 		assert list;
 		String name = this.name.toString(event);
 		assert name.endsWith(SEPARATOR + "*") : name + "; " + this.name;
 		Variables.setVariable(name.substring(0, name.length() - 1) + index, value, event, local);
 	}
 
-	public int size(Event event) {
+	public int size(PlatformEvent event) {
 		Preconditions.checkState(list, "Cannot get the size of a single variable");
 		Map<?, ?> map = (Map<?, ?>) getRaw(event);
 		if (map == null)
@@ -472,7 +472,7 @@ public class Variable<T> implements Expression<T>, KeyReceiverExpression<T>, Key
 	}
 
 	@Override
-	public void change(Event event, Object @NotNull [] delta, ChangeMode mode, @NotNull String @NotNull [] keys) {
+	public void change(PlatformEvent event, Object @NotNull [] delta, ChangeMode mode, @NotNull String @NotNull [] keys) {
 		if (!list) {
 			this.change(event, delta, mode);
 			return;
@@ -499,7 +499,7 @@ public class Variable<T> implements Expression<T>, KeyReceiverExpression<T>, Key
 
 	@Override
 	@SuppressWarnings({"unchecked", "rawtypes"})
-	public void change(Event event, Object @Nullable [] delta, ChangeMode mode) throws UnsupportedOperationException {
+	public void change(PlatformEvent event, Object @Nullable [] delta, ChangeMode mode) throws UnsupportedOperationException {
 		switch (mode) {
 			case DELETE:
 				set(event, null);
@@ -649,15 +649,15 @@ public class Variable<T> implements Expression<T>, KeyReceiverExpression<T>, Key
 
 	/**
 	 * {@inheritDoc}
-	 * @param getAll This has no effect for a Variable, as {@link #getArray(Event)} is the same as {@link #getAll(Event)}.
+	 * @param getAll This has no effect for a Variable, as {@link #getArray(PlatformEvent)} is the same as {@link #getAll(PlatformEvent)}.
 	 */
 	@Override
-	public <R> void changeInPlace(Event event, Function<T, R> changeFunction, boolean getAll) {
+	public <R> void changeInPlace(PlatformEvent event, Function<T, R> changeFunction, boolean getAll) {
 		changeInPlace(event, changeFunction);
 	}
 
 	@Override
-	public <R> void changeInPlace(Event event, Function<T, R> changeFunction) {
+	public <R> void changeInPlace(PlatformEvent event, Function<T, R> changeFunction) {
 		if (!list) {
 			T value = getSingle(event);
 			if (value == null)
@@ -673,14 +673,14 @@ public class Variable<T> implements Expression<T>, KeyReceiverExpression<T>, Key
 	}
 
 	@Override
-	public @Nullable T getSingle(Event event) {
+	public @Nullable T getSingle(PlatformEvent event) {
 		if (list)
 			throw new SkriptAPIException("Invalid call to getSingle");
 		return getConverted(event);
 	}
 
 	@Override
-	public @NotNull String @NotNull [] getArrayKeys(Event event) throws SkriptAPIException {
+	public @NotNull String @NotNull [] getArrayKeys(PlatformEvent event) throws SkriptAPIException {
 		if (!list)
 			throw new SkriptAPIException("Invalid call to getArrayKeys on non-list");
 		if (!cache.containsKey(event))
@@ -689,7 +689,7 @@ public class Variable<T> implements Expression<T>, KeyReceiverExpression<T>, Key
 	}
 
 	@Override
-	public @NotNull String @NotNull [] getAllKeys(Event event) {
+	public @NotNull String @NotNull [] getAllKeys(PlatformEvent event) {
 		return this.getArrayKeys(event);
 	}
 
@@ -717,13 +717,13 @@ public class Variable<T> implements Expression<T>, KeyReceiverExpression<T>, Key
 	}
 
 	@Override
-	public T[] getArray(Event event) {
+	public T[] getArray(PlatformEvent event) {
 		return getAll(event);
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public T[] getAll(Event event) {
+	public T[] getAll(PlatformEvent event) {
 		if (list)
 			return getConvertedArray(event);
 		T value = getConverted(event);
@@ -744,12 +744,12 @@ public class Variable<T> implements Expression<T>, KeyReceiverExpression<T>, Key
 	}
 
 	@Override
-	public boolean check(Event event, Predicate<? super T> checker, boolean negated) {
+	public boolean check(PlatformEvent event, Predicate<? super T> checker, boolean negated) {
 		return SimpleExpression.check(getAll(event), checker, negated, getAnd());
 	}
 
 	@Override
-	public boolean check(Event event, Predicate<? super T> checker) {
+	public boolean check(PlatformEvent event, Predicate<? super T> checker) {
 		return SimpleExpression.check(getAll(event), checker, false, getAnd());
 	}
 
@@ -795,14 +795,14 @@ public class Variable<T> implements Expression<T>, KeyReceiverExpression<T>, Key
 
 	private interface ListProvider {
 
-		KeyedValue<?>[] getValues(Event event);
+		KeyedValue<?>[] getValues(PlatformEvent event);
 
 	}
 
 	class ShallowListProvider implements ListProvider {
 
 		@Override
-		public KeyedValue<?>[] getValues(Event event) {
+		public KeyedValue<?>[] getValues(PlatformEvent event) {
 			if (!list)
 				throw new SkriptAPIException("Invalid call to getValues on non-list variable");
 
@@ -836,7 +836,7 @@ public class Variable<T> implements Expression<T>, KeyReceiverExpression<T>, Key
 	class RecursiveListProvider implements ListProvider {
 
 		@Override
-		public KeyedValue<?>[] getValues(Event event) {
+		public KeyedValue<?>[] getValues(PlatformEvent event) {
 			if (!list)
 				throw new SkriptAPIException("Invalid call to getValues on non-list variable");
 
@@ -851,7 +851,7 @@ public class Variable<T> implements Expression<T>, KeyReceiverExpression<T>, Key
 			return keyedValues.toArray(new KeyedValue[0]);
 		}
 
-		private void getValuesRecursive(Event event, Map<?, ?> variable, String root, String prefix, List<KeyedValue<?>> values) {
+		private void getValuesRecursive(PlatformEvent event, Map<?, ?> variable, String root, String prefix, List<KeyedValue<?>> values) {
 			//noinspection unchecked
 			for (Entry<String, ?> entry : ((Map<String, ?>) variable).entrySet()) {
 				if (entry.getKey() == null || entry.getValue() == null)

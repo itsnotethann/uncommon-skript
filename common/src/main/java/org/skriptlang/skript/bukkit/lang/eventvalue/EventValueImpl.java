@@ -11,7 +11,7 @@ import ch.njol.skript.patterns.SkriptPattern;
 import ch.njol.skript.registrations.Classes;
 import ch.njol.skript.util.Utils;
 import com.google.common.base.MoreObjects;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.jetbrains.annotations.Nullable;
 import org.skriptlang.skript.lang.converter.Converter;
 
@@ -22,7 +22,7 @@ import java.util.function.Function;
 /**
  * Default implementation of {@link EventValue}.
  */
-final class EventValueImpl<E extends Event, V> implements EventValue<E, V> {
+final class EventValueImpl<E extends PlatformEvent, V> implements EventValue<E, V> {
 
 	private final Class<E> eventClass;
 	private final Class<V> valueClass;
@@ -164,7 +164,7 @@ final class EventValueImpl<E extends Event, V> implements EventValue<E, V> {
 	}
 
 	@Override
-	public @Nullable <ConvertedEvent extends Event, ConvertedValue> EventValue<ConvertedEvent, ConvertedValue> getConverted(
+	public @Nullable <ConvertedEvent extends PlatformEvent, ConvertedValue> EventValue<ConvertedEvent, ConvertedValue> getConverted(
 		Class<ConvertedEvent> newEventClass,
 		Class<ConvertedValue> newValueClass
 	) {
@@ -172,7 +172,7 @@ final class EventValueImpl<E extends Event, V> implements EventValue<E, V> {
 	}
 
 	@Override
-	public <ConvertedEvent extends Event, ConvertedValue> EventValue<ConvertedEvent, ConvertedValue> getConverted(
+	public <ConvertedEvent extends PlatformEvent, ConvertedValue> EventValue<ConvertedEvent, ConvertedValue> getConverted(
 		Class<ConvertedEvent> newEventClass,
 		Class<ConvertedValue> newValueClass,
 		Converter<V, ConvertedValue> converter,
@@ -191,7 +191,7 @@ final class EventValueImpl<E extends Event, V> implements EventValue<E, V> {
 			.toString();
 	}
 
-	static class BuilderImpl<E extends Event, V> implements Builder<E, V> {
+	static class BuilderImpl<E extends PlatformEvent, V> implements Builder<E, V> {
 
 		private final Class<E> eventClass;
 		private final Class<V> valueClass;

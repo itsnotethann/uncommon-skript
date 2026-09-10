@@ -13,7 +13,7 @@ import ch.njol.skript.registrations.Classes;
 import ch.njol.util.Kleenean;
 import ch.njol.util.coll.CollectionUtils;
 import ch.njol.util.coll.iterator.NonNullIterator;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -95,7 +95,7 @@ public class UnparsedLiteral implements Literal<Object> {
 	}
 
 	@Override
-	public String toString(@Nullable Event event, boolean debug) {
+	public String toString(@Nullable PlatformEvent event, boolean debug) {
 		return "'" + data + "'";
 	}
 
@@ -183,7 +183,7 @@ public class UnparsedLiteral implements Literal<Object> {
 	}
 
 	@Override
-	public Object[] getAll(Event event) {
+	public Object[] getAll(PlatformEvent event) {
 		throw invalidAccessException();
 	}
 
@@ -193,7 +193,7 @@ public class UnparsedLiteral implements Literal<Object> {
 	}
 
 	@Override
-	public Object[] getArray(Event event) {
+	public Object[] getArray(PlatformEvent event) {
 		throw invalidAccessException();
 	}
 
@@ -203,17 +203,17 @@ public class UnparsedLiteral implements Literal<Object> {
 	}
 
 	@Override
-	public Object getSingle(Event event) {
+	public Object getSingle(PlatformEvent event) {
 		throw invalidAccessException();
 	}
 
 	@Override
-	public NonNullIterator<Object> iterator(Event event) {
+	public NonNullIterator<Object> iterator(PlatformEvent event) {
 		throw invalidAccessException();
 	}
 
 	@Override
-	public void change(Event event, Object @Nullable [] delta, ChangeMode mode) throws UnsupportedOperationException {
+	public void change(PlatformEvent event, Object @Nullable [] delta, ChangeMode mode) throws UnsupportedOperationException {
 		throw invalidAccessException();
 	}
 
@@ -223,12 +223,12 @@ public class UnparsedLiteral implements Literal<Object> {
 	}
 
 	@Override
-	public boolean check(Event event, Predicate<? super Object> checker) {
+	public boolean check(PlatformEvent event, Predicate<? super Object> checker) {
 		throw invalidAccessException();
 	}
 
 	@Override
-	public boolean check(Event event, Predicate<? super Object> checker, boolean negated) {
+	public boolean check(PlatformEvent event, Predicate<? super Object> checker, boolean negated) {
 		throw invalidAccessException();
 	}
 

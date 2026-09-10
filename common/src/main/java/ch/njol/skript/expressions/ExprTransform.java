@@ -11,7 +11,7 @@ import ch.njol.skript.registrations.Classes;
 import ch.njol.skript.util.LiteralUtils;
 import ch.njol.util.Kleenean;
 import com.google.common.collect.Iterators;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.UnknownNullability;
@@ -49,7 +49,7 @@ public class ExprTransform extends SimpleExpression<Object> implements InputSour
 			ParserInstance.registerData(InputData.class, InputData::new);
 	}
 
-	private final Map<Event, List<String>> cache = new WeakHashMap<>();
+	private final Map<PlatformEvent, List<String>> cache = new WeakHashMap<>();
 
 	private boolean keyed;
 	private @UnknownNullability Expression<?> mappingExpr;
@@ -80,7 +80,7 @@ public class ExprTransform extends SimpleExpression<Object> implements InputSour
 	}
 
 	@Override
-	public @NotNull Iterator<?> iterator(Event event) {
+	public @NotNull Iterator<?> iterator(PlatformEvent event) {
 		if (hasIndices()) {
 			Iterator<? extends KeyedValue<?>> iterator = ((KeyProviderExpression<?>) unmappedObjects).keyedIterator(event);
 			return StreamSupport.stream(Spliterators.spliteratorUnknownSize(iterator, Spliterator.ORDERED), false)
@@ -107,7 +107,7 @@ public class ExprTransform extends SimpleExpression<Object> implements InputSour
 	}
 
 	@Override
-	public Iterator<KeyedValue<Object>> keyedIterator(Event event) {
+	public Iterator<KeyedValue<Object>> keyedIterator(PlatformEvent event) {
 		Iterator<? extends KeyedValue<?>> iterator = ((KeyProviderExpression<?>) unmappedObjects).keyedIterator(event);
 		return StreamSupport.stream(Spliterators.spliteratorUnknownSize(iterator, Spliterator.ORDERED), false)
 			.map(keyedValue -> {
@@ -121,7 +121,7 @@ public class ExprTransform extends SimpleExpression<Object> implements InputSour
 	}
 
 	@Override
-	protected Object @Nullable [] get(Event event) {
+	protected Object @Nullable [] get(PlatformEvent event) {
 		if (!canReturnKeys())
 			return Converters.convertStrictly(Iterators.toArray(iterator(event), Object.class), getReturnType());
 		KeyedValue.UnzippedKeyValues<Object> unzipped = KeyedValue.unzip(keyedIterator(event));
@@ -130,7 +130,7 @@ public class ExprTransform extends SimpleExpression<Object> implements InputSour
 	}
 
 	@Override
-	public @NotNull String @NotNull [] getArrayKeys(Event event) throws IllegalStateException {
+	public @NotNull String @NotNull [] getArrayKeys(PlatformEvent event) throws IllegalStateException {
 		if (!cache.containsKey(event))
 			throw new IllegalStateException();
 		return cache.remove(event).toArray(new String[0]);
@@ -200,7 +200,7 @@ public class ExprTransform extends SimpleExpression<Object> implements InputSour
 	}
 
 	@Override
-	public String toString(@Nullable Event event, boolean debug) {
+	public String toString(@Nullable PlatformEvent event, boolean debug) {
 		return unmappedObjects.toString(event, debug) + " transformed using " + mappingExpr.toString(event, debug);
 	}
 

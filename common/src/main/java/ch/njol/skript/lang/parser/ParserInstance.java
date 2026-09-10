@@ -15,7 +15,7 @@ import ch.njol.skript.variables.HintManager;
 import ch.njol.util.Kleenean;
 import ch.njol.util.coll.CollectionUtils;
 import com.google.common.base.Preconditions;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -180,7 +180,7 @@ public final class ParserInstance implements Experimented {
 
 	private @Nullable String currentEventName;
 
-	private Class<? extends Event> @Nullable [] currentEvents = null;
+	private Class<? extends PlatformEvent> @Nullable [] currentEvents = null;
 
 	public void setCurrentEventName(@Nullable String currentEventName) {
 		this.currentEventName = currentEventName;
@@ -194,13 +194,13 @@ public final class ParserInstance implements Experimented {
 	 * @param currentEvents The events that may be present during execution.
 	 *                      An instance of the events present in the provided array MUST be used to execute any loaded items.
 	 */
-	public void setCurrentEvents(Class<? extends Event> @Nullable [] currentEvents) {
+	public void setCurrentEvents(Class<? extends PlatformEvent> @Nullable [] currentEvents) {
 		this.currentEvents = currentEvents;
 		getDataInstances().forEach(data -> data.onCurrentEventsChange(currentEvents));
 	}
 
 	@SafeVarargs
-	public final void setCurrentEvent(String name, @Nullable Class<? extends Event>... events) {
+	public final void setCurrentEvent(String name, @Nullable Class<? extends PlatformEvent>... events) {
 		currentEventName = name;
 		setCurrentEvents(events);
 		setHasDelayBefore(Kleenean.FALSE);
@@ -212,7 +212,7 @@ public final class ParserInstance implements Experimented {
 		setHasDelayBefore(Kleenean.FALSE);
 	}
 
-	public Class<? extends Event> @Nullable [] getCurrentEvents() {
+	public Class<? extends PlatformEvent> @Nullable [] getCurrentEvents() {
 		return currentEvents;
 	}
 
@@ -229,10 +229,10 @@ public final class ParserInstance implements Experimented {
 	 * <br><br>
 	 * See also {@link #isCurrentEvent(Class[])} for checking with multiple argument classes
 	 */
-	public boolean isCurrentEvent(Class<? extends Event> event) {
+	public boolean isCurrentEvent(Class<? extends PlatformEvent> event) {
 		if (currentEvents == null)
 			return false;
-		for (Class<? extends Event> currentEvent : currentEvents) {
+		for (Class<? extends PlatformEvent> currentEvent : currentEvents) {
 			// check that current event is same or child of event we want
 			if (event.isAssignableFrom(currentEvent))
 				return true;
@@ -253,8 +253,8 @@ public final class ParserInstance implements Experimented {
 	 * @see #isCurrentEvent(Class)
 	 */
 	@SafeVarargs
-	public final boolean isCurrentEvent(Class<? extends Event>... events) {
-		for (Class<? extends Event> event : events) {
+	public final boolean isCurrentEvent(Class<? extends PlatformEvent>... events) {
+		for (Class<? extends PlatformEvent> event : events) {
 			if (isCurrentEvent(event))
 				return true;
 		}
@@ -585,7 +585,7 @@ public final class ParserInstance implements Experimented {
 		@Deprecated(since = "2.11.0", forRemoval = true)
 		public void onCurrentScriptChange(@Nullable Config currentScript) { }
 
-		public void onCurrentEventsChange(Class<? extends Event> @Nullable [] currentEvents) { }
+		public void onCurrentEventsChange(Class<? extends PlatformEvent> @Nullable [] currentEvents) { }
 
 	}
 
@@ -675,7 +675,7 @@ public final class ParserInstance implements Experimented {
 		private final Script currentScript;
 		private final @Nullable Structure currentStructure;
 		private final @Nullable String currentEventName;
-		private final Class<? extends Event> @Nullable [] currentEvents;
+		private final Class<? extends PlatformEvent> @Nullable [] currentEvents;
 		private final List<TriggerSection> currentSections;
 		private final Kleenean hasDelayBefore;
 		private final HintManager hintManager;

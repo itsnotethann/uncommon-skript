@@ -5,7 +5,7 @@ import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.skript.lang.parser.ParserInstance;
 import ch.njol.skript.lang.util.ContextlessEvent;
 import ch.njol.util.Kleenean;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.jetbrains.annotations.Nullable;
 import org.skriptlang.skript.lang.script.Script;
 
@@ -37,7 +37,7 @@ public class SimplifiedCondition extends Condition {
 		if (original instanceof SimplifiedCondition simplifiedCondition)
 			return simplifiedCondition;
 
-		Event event = ContextlessEvent.get();
+		PlatformEvent event = ContextlessEvent.get();
 		boolean result = original.check(event);
 
 		if (warn) {
@@ -58,7 +58,7 @@ public class SimplifiedCondition extends Condition {
 	 * Constructs a new {@link SimplifiedCondition}.
 	 *
 	 * @param source The source {@link Condition} this was created from.
-	 * @param result The evaluated result from {@code source} via {@link Condition#check(Event)}.
+	 * @param result The evaluated result from {@code source} via {@link Condition#check(PlatformEvent)}.
 	 */
 	private SimplifiedCondition(Condition source, boolean result) {
 		this.source = source;
@@ -85,12 +85,12 @@ public class SimplifiedCondition extends Condition {
 	}
 
 	@Override
-	public boolean check(Event event) {
+	public boolean check(PlatformEvent event) {
 		return result;
 	}
 
 	@Override
-	public String toString(@Nullable Event event, boolean debug) {
+	public String toString(@Nullable PlatformEvent event, boolean debug) {
 		return source.toString(event, debug);
 	}
 

@@ -7,7 +7,7 @@ import ch.njol.skript.config.SectionNode;
 import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.skript.lang.parser.ParserInstance;
 import ch.njol.util.Kleenean;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -24,10 +24,10 @@ import java.util.function.Supplier;
  * In most cases though, a section should load its code through one of the following loading methods:
  * {@link #loadCode(SectionNode)}, {@link #loadCode(SectionNode, String, Class[])}, {@link #loadOptionalCode(SectionNode)}
  * <br><br>
- * Every section must override the {@link TriggerSection#walk(Event)} method. In this method, you can determine whether *  the section should run. If you have stored a {@link Trigger} from {@link #loadCode(SectionNode, String, Class[])}, you
+ * Every section must override the {@link TriggerSection#walk(PlatformEvent)} method. In this method, you can determine whether *  the section should run. If you have stored a {@link Trigger} from {@link #loadCode(SectionNode, String, Class[])}, you
  * should not run it with this event passed in this walk method.
  * <br><br>
- * In the walk method, it is recommended that you return {@link TriggerSection#walk(Event, boolean)}.
+ * In the walk method, it is recommended that you return {@link TriggerSection#walk(PlatformEvent, boolean)}.
  * This method is very useful, as it will handle most of the things you need to do.
  * The boolean parameter for the method determines whether the section should run.
  * If it is true, Skript will attempt to run the section's code if it has been loaded. If the section's code hasn't been loaded, Skript will behave as if false was passed.
@@ -37,8 +37,8 @@ import java.util.function.Supplier;
  * if true or false is passed, as the section's code was never actually loaded into the current trigger. Please note that this will result in
  * all code after the section to run. If you wish to delay the entire execution, you should return <b>null</b> and Skript will not continue on.
  * You should generally make sure that code after the section will run at some point though.
- * Also note, that if you aren't returning the result of {@link TriggerSection#walk(Event, boolean)},
- * you should probably call {@link TriggerSection#debug(Event, boolean)}. The boolean parameter should be false in most cases.
+ * Also note, that if you aren't returning the result of {@link TriggerSection#walk(PlatformEvent, boolean)},
+ * you should probably call {@link TriggerSection#debug(PlatformEvent, boolean)}. The boolean parameter should be false in most cases.
  *
  * @see Skript#registerSection(Class, String...)
  */
@@ -106,7 +106,7 @@ public abstract class Section extends TriggerSection implements SyntaxElement {
 	 * to run the section one or more times.
 	 */
 	@SafeVarargs
-	protected final Trigger loadCode(SectionNode sectionNode, String name, Class<? extends Event>... events) {
+	protected final Trigger loadCode(SectionNode sectionNode, String name, Class<? extends PlatformEvent>... events) {
 		return loadCode(sectionNode, name, null, events);
 	}
 
@@ -115,7 +115,7 @@ public abstract class Section extends TriggerSection implements SyntaxElement {
 	 */
 	@SafeVarargs
 	@Deprecated(since = "2.12", forRemoval = true)
-	protected final Trigger loadCode(SectionNode sectionNode, String name, @Nullable Runnable afterLoading, Class<? extends Event>... events) {
+	protected final Trigger loadCode(SectionNode sectionNode, String name, @Nullable Runnable afterLoading, Class<? extends PlatformEvent>... events) {
 		return loadCode(sectionNode, name, null, afterLoading, events);
 	}
 
@@ -142,7 +142,7 @@ public abstract class Section extends TriggerSection implements SyntaxElement {
 	@SafeVarargs
 	protected final Trigger loadCode(SectionNode sectionNode, String name,
 									 @Nullable Runnable beforeLoading, @Nullable Runnable afterLoading,
-									 Class<? extends Event>... events) {
+									 Class<? extends PlatformEvent>... events) {
 		ParserInstance parser = getParser();
 
 		// backup the existing data
@@ -256,7 +256,7 @@ public abstract class Section extends TriggerSection implements SyntaxElement {
 		 * Once a syntax has claimed a section, another syntax may not claim it.
 		 *
 		 * @param syntax The syntax that wants to own this section. This will likely not yet be initialized.
-		 * @param errorRepresentation A string representation of the syntax for error messages, as {@link #toString(Event, boolean)} cannot be used yet.
+		 * @param errorRepresentation A string representation of the syntax for error messages, as {@link #toString(PlatformEvent, boolean)} cannot be used yet.
 		 * @param runIfClaimed A function that will be run if the claim was successful. Usually this is the syntax's init method.
 		 * @return True if this was successfully claimed and the provided function ran successfully, false otherwise
 		 */
@@ -277,7 +277,7 @@ public abstract class Section extends TriggerSection implements SyntaxElement {
 		 * Once a syntax has claimed a section, another syntax may not claim it.
 		 *
 		 * @param syntax The syntax that wants to own this section. This will likely not yet be initialized.
-		 * @param errorRepresentation A string representation of the syntax for error messages, as {@link #toString(Event, boolean)} cannot be used yet.
+		 * @param errorRepresentation A string representation of the syntax for error messages, as {@link #toString(PlatformEvent, boolean)} cannot be used yet.
 		 * @return True if this was successfully claimed, false if it was already owned
 		 */
 		@ApiStatus.Internal

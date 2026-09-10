@@ -11,7 +11,7 @@ import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.skript.lang.util.SimpleExpression;
 import ch.njol.util.Kleenean;
 import org.apache.commons.lang.WordUtils;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.eclipse.jdt.annotation.Nullable;
 
 @Name("Case Text")
@@ -94,7 +94,7 @@ public class ExprStringCase extends SimpleExpression<String> {
 	@SuppressWarnings("null")
 	@Override
 	@Nullable
-	protected String[] get(Event e) {
+	protected String[] get(PlatformEvent e) {
 		String[] strs = expr.getArray(e);
 		for (int i = 0; i < strs.length; i++) {
 			if (strs[i] != null) {
@@ -134,7 +134,7 @@ public class ExprStringCase extends SimpleExpression<String> {
 	}
 
 	@Override
-	public String toString(@Nullable Event event, boolean debug) {
+	public String toString(@Nullable PlatformEvent event, boolean debug) {
 		String mode = "";
 		switch (type) {
 			case 0: // Basic Case Change

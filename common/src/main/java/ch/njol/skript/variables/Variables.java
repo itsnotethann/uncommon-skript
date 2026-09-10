@@ -19,7 +19,7 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.UnmodifiableView;
@@ -41,8 +41,8 @@ import java.util.function.Function;
 /**
  * Handles all things related to variables.
  *
- * @see #setVariable(String, Object, Event, boolean)
- * @see #getVariable(String, Event, boolean)
+ * @see #setVariable(String, Object, PlatformEvent, boolean)
+ * @see #getVariable(String, PlatformEvent, boolean)
  */
 public class Variables {
 
@@ -122,7 +122,7 @@ public class Variables {
 
 	private static final Map<Class<?>, Function<Object, Object>> variableConverterMap = new ConcurrentHashMap<>();
 
-	public static @org.jetbrains.annotations.Nullable Object findAndRunConverter(String key, Event event, @Nullable Object object, boolean local) {
+	public static @org.jetbrains.annotations.Nullable Object findAndRunConverter(String key, PlatformEvent event, @Nullable Object object, boolean local) {
 		if (object == null) return null;
 		for (Class<?> clazz : variableConverterMap.keySet()) {
 			if (!clazz.isAssignableFrom(object.getClass())) continue;
@@ -361,9 +361,9 @@ public class Variables {
 
 	/**
 	 * A map storing all local variables,
-	 * indexed by their {@link Event}.
+	 * indexed by their {@link PlatformEvent}.
 	 */
-	private static final Map<Event, VariablesMap> localVariables = new ConcurrentHashMap<>();
+	private static final Map<PlatformEvent, VariablesMap> localVariables = new ConcurrentHashMap<>();
 
 	/**
 	 * Gets the {@link TreeMap} of all global variables.
@@ -404,7 +404,7 @@ public class Variables {
 	 * or {@code null} if the event had no local variables.
 	 */
 	@Nullable
-	public static VariablesMap removeLocals(Event event) {
+	public static VariablesMap removeLocals(PlatformEvent event) {
 		return localVariables.remove(event);
 	}
 
@@ -419,7 +419,7 @@ public class Variables {
 	 * @param event the event.
 	 * @param map the new local variables.
 	 */
-	public static void setLocalVariables(Event event, @Nullable Object map) {
+	public static void setLocalVariables(PlatformEvent event, @Nullable Object map) {
 		if (map != null) {
 			localVariables.put(event, (VariablesMap) map);
 		} else {
@@ -434,7 +434,7 @@ public class Variables {
 	 * @param event the event to copy local variables from.
 	 * @return the copy.
 	 */
-	public static @Nullable Object copyLocalVariables(Event event) {
+	public static @Nullable Object copyLocalVariables(PlatformEvent event) {
 		VariablesMap from = localVariables.get(event);
 		if (from == null)
 			return null;
@@ -454,7 +454,7 @@ public class Variables {
 	 * @param user The event to copy the variables to and back from.
 	 * @param action The code to run while the variables are copied.
 	 */
-	public static void withLocalVariables(Event provider, Event user, @NotNull Runnable action) {
+	public static void withLocalVariables(PlatformEvent provider, PlatformEvent user, @NotNull Runnable action) {
 		Variables.setLocalVariables(user, Variables.copyLocalVariables(provider));
 		action.run();
 		Variables.setLocalVariables(provider, Variables.copyLocalVariables(user));
@@ -478,7 +478,7 @@ public class Variables {
 	 */
 	// TODO don't expose the internal value, bad API
 	@Nullable
-	public static Object getVariable(String name, @Nullable Event event, boolean local) {
+	public static Object getVariable(String name, @Nullable PlatformEvent event, boolean local) {
 		String n;
 		if (caseInsensitiveVariables) {
 			n = name.toLowerCase(Locale.ENGLISH);
@@ -527,7 +527,7 @@ public class Variables {
 	 * @return an {@link Iterator} of {@link Pair}s, containing the {@link String} index and {@link Object} value of the
 	 * 			elements of the list. An empty iterator is returned if the variable does not exist.
 	 */
-	public static Iterator<Pair<String, Object>> getVariableIterator(String name, boolean local, @Nullable Event event) {
+	public static Iterator<Pair<String, Object>> getVariableIterator(String name, boolean local, @Nullable PlatformEvent event) {
 		assert name.endsWith("*");
 		Object val = getVariable(name, event, local);
 		String subName = StringUtils.substring(name, 0, -1);
@@ -586,7 +586,7 @@ public class Variables {
 	 *                 the local variable resides in.
 	 * @param local if this variable is a local or global variable.
 	 */
-	public static void deleteVariable(String name, @Nullable Event event, boolean local) {
+	public static void deleteVariable(String name, @Nullable PlatformEvent event, boolean local) {
 		setVariable(name, null, event, local);
 	}
 
@@ -602,7 +602,7 @@ public class Variables {
 	 *                 the local variable resides in.
 	 * @param local if this variable is a local or global variable.
 	 */
-	public static void setVariable(String name, @Nullable Object value, @Nullable Event event, boolean local) {
+	public static void setVariable(String name, @Nullable Object value, @Nullable PlatformEvent event, boolean local) {
 		if (caseInsensitiveVariables) {
 			name = name.toLowerCase(Locale.ENGLISH);
 		}

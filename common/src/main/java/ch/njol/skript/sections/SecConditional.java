@@ -17,7 +17,7 @@ import ch.njol.skript.patterns.SkriptPattern;
 import ch.njol.skript.util.Patterns;
 import ch.njol.util.Kleenean;
 import com.google.common.collect.Iterables;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.UnknownNullability;
 import org.skriptlang.skript.lang.condition.Conditional;
@@ -77,7 +77,7 @@ public class SecConditional extends Section {
 	}
 
 	private ConditionalType type;
-	private @UnknownNullability Conditional<Event> conditional;
+	private @UnknownNullability Conditional<PlatformEvent> conditional;
 	private boolean ifAny;
 	private boolean parseIf;
 	private boolean parseIfPassed;
@@ -161,10 +161,10 @@ public class SecConditional extends Section {
 
 		// if this an "if" or "else if", let's try to parse the conditions right away
 		if (type == ConditionalType.IF || type == ConditionalType.ELSE_IF) {
-			Class<? extends Event>[] currentEvents = parser.getCurrentEvents();
+			Class<? extends PlatformEvent>[] currentEvents = parser.getCurrentEvents();
 			String currentEventName = parser.getCurrentEventName();
 
-			List<Conditional<Event>> conditionals = new ArrayList<>();
+			List<Conditional<PlatformEvent>> conditionals = new ArrayList<>();
 
 			// Change event if using 'parse if'
 			if (parseIf) {
@@ -299,7 +299,7 @@ public class SecConditional extends Section {
 	}
 
 	@Override
-	protected @Nullable TriggerItem walk(Event event) {
+	protected @Nullable TriggerItem walk(PlatformEvent event) {
 		if (type == ConditionalType.THEN || (parseIf && !parseIfPassed)) {
 			return getActualNext();
 		} else if (parseIf || checkConditions(event)) {
@@ -336,7 +336,7 @@ public class SecConditional extends Section {
 	}
 
 	@Override
-	public String toString(@Nullable Event event, boolean debug) {
+	public String toString(@Nullable PlatformEvent event, boolean debug) {
 		String parseIf = this.parseIf ? "parse " : "";
 		return switch (type) {
 			case IF -> {
@@ -412,7 +412,7 @@ public class SecConditional extends Section {
 		return null;
 	}
 
-	private boolean checkConditions(Event event) {
+	private boolean checkConditions(PlatformEvent event) {
 		return conditional == null || conditional.evaluate(event).isTrue();
 	}
 

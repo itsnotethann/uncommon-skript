@@ -13,7 +13,7 @@ import ch.njol.skript.util.LiteralUtils;
 import ch.njol.util.Kleenean;
 import ch.njol.util.coll.CollectionUtils;
 import com.google.common.collect.Iterators;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Array;
@@ -51,7 +51,7 @@ public class ExprShuffledList extends SimpleExpression<Object> implements KeyedI
 	}
 
 	@Override
-	protected Object @Nullable [] get(Event event) {
+	protected Object @Nullable [] get(PlatformEvent event) {
 		Object[] origin = list.getArray(event).clone();
 		List<Object> shuffled = Arrays.asList(origin); // Not yet shuffled...
 		Collections.shuffle(shuffled);
@@ -66,7 +66,7 @@ public class ExprShuffledList extends SimpleExpression<Object> implements KeyedI
 	}
 
 	@Override
-	public Iterator<KeyedValue<Object>> keyedIterator(Event event) {
+	public Iterator<KeyedValue<Object>> keyedIterator(PlatformEvent event) {
 		if (!keyed)
 			throw new UnsupportedOperationException();
 		Iterator<? extends KeyedValue<?>> iterator = ((KeyedIterableExpression<?>) list).keyedIterator(event);
@@ -133,7 +133,7 @@ public class ExprShuffledList extends SimpleExpression<Object> implements KeyedI
 	}
 
 	@Override
-	public String toString(@Nullable Event event, boolean debug) {
+	public String toString(@Nullable PlatformEvent event, boolean debug) {
 		return "shuffled " + list.toString(event, debug);
 	}
 

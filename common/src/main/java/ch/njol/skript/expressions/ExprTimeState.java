@@ -11,7 +11,7 @@ import ch.njol.skript.lang.ExpressionType;
 import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.skript.log.ErrorQuality;
 import ch.njol.util.Kleenean;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.eclipse.jdt.annotation.Nullable;
 
 /**
@@ -54,7 +54,7 @@ public class ExprTimeState extends WrapperExpression<Object> {
 	}
 
 	@Override
-	public String toString(final @Nullable Event e, final boolean debug) {
+	public String toString(final @Nullable PlatformEvent e, final boolean debug) {
 		return "the " + (getTime() == -1 ? "past" : "future") + " state of " + getExpr().toString(e, debug);
 	}
 

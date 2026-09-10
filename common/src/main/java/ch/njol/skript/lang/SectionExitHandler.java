@@ -20,7 +20,7 @@ package ch.njol.skript.lang;
 
 import ch.njol.skript.effects.EffExit;
 import ch.njol.skript.effects.EffReturn;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 
 /**
  * A {@link Section} implementing this interface can execute a task when
@@ -33,6 +33,6 @@ public interface SectionExitHandler {
 	 * Exits the section
 	 * @param event The involved event
 	 */
-	void exit(Event event);
+	void exit(PlatformEvent event);
 
 }

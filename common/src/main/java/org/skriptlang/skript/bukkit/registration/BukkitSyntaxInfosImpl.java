@@ -28,12 +28,12 @@ final class BukkitSyntaxInfosImpl {
 		private final Collection<String> examples;
 		private final Collection<String> keywords;
 		private final Collection<String> requiredPlugins;
-		private final Collection<Class<? extends org.bukkit.event.Event>> events;
+		private final Collection<Class<? extends org.skriptlang.skript.lang.event.PlatformEvent>> events;
 
 		EventImpl(
 			SyntaxInfo<E> defaultInfo, ListeningBehavior listeningBehavior, String name,
 			@Nullable String documentationId, Collection<String> since, Collection<String> description, Collection<String> examples,
-			Collection<String> keywords, Collection<String> requiredPlugins, Collection<Class<? extends org.bukkit.event.Event>> events
+			Collection<String> keywords, Collection<String> requiredPlugins, Collection<Class<? extends org.skriptlang.skript.lang.event.PlatformEvent>> events
 		) {
 			this.defaultInfo = defaultInfo;
 			this.listeningBehavior = listeningBehavior;
@@ -116,7 +116,7 @@ final class BukkitSyntaxInfosImpl {
 		}
 
 		@Override
-		public Collection<Class<? extends org.bukkit.event.Event>> events() {
+		public Collection<Class<? extends org.skriptlang.skript.lang.event.PlatformEvent>> events() {
 			return events;
 		}
 
@@ -199,7 +199,7 @@ final class BukkitSyntaxInfosImpl {
 			private final List<String> examples = new ArrayList<>();
 			private final List<String> keywords = new ArrayList<>();
 			private final List<String> requiredPlugins = new ArrayList<>();
-			private final List<Class<? extends org.bukkit.event.Event>> events = new ArrayList<>();
+			private final List<Class<? extends org.skriptlang.skript.lang.event.PlatformEvent>> events = new ArrayList<>();
 
 			BuilderImpl(Class<E> type, String name) {
 				this.defaultBuilder = SyntaxInfo.builder(type);
@@ -339,19 +339,19 @@ final class BukkitSyntaxInfosImpl {
 			}
 
 			@Override
-			public B addEvent(Class<? extends org.bukkit.event.Event> event) {
+			public B addEvent(Class<? extends org.skriptlang.skript.lang.event.PlatformEvent> event) {
 				this.events.add(event);
 				return (B) this;
 			}
 
 			@Override
-			public B addEvents(Class<? extends org.bukkit.event.Event>... events) {
+			public B addEvents(Class<? extends org.skriptlang.skript.lang.event.PlatformEvent>... events) {
 				Collections.addAll(this.events, events);
 				return (B) this;
 			}
 
 			@Override
-			public B addEvents(Collection<Class<? extends org.bukkit.event.Event>> events) {
+			public B addEvents(Collection<Class<? extends org.skriptlang.skript.lang.event.PlatformEvent>> events) {
 				this.events.addAll(events);
 				return (B) this;
 			}

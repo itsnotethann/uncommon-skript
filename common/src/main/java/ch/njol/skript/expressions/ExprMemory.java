@@ -11,7 +11,7 @@ import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.skript.lang.util.SimpleExpression;
 import ch.njol.util.Kleenean;
 import ch.njol.util.coll.CollectionUtils;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.eclipse.jdt.annotation.Nullable;
 
 import java.util.Locale;
@@ -52,7 +52,7 @@ public class ExprMemory extends SimpleExpression<Double> {
 	}
 
 	@Override
-	protected Double[] get(Event event) {
+	protected Double[] get(PlatformEvent event) {
 		double memory = 0;
 		switch (type) {
 			case FREE:
@@ -79,7 +79,7 @@ public class ExprMemory extends SimpleExpression<Double> {
 	}
 
 	@Override
-	public String toString(@Nullable Event event, boolean debug) {
+	public String toString(@Nullable PlatformEvent event, boolean debug) {
 		return type.name().toLowerCase(Locale.ENGLISH) + " memory";
 	}
 

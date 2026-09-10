@@ -29,7 +29,7 @@ import ch.njol.skript.lang.parser.ParserInstance;
 import ch.njol.skript.log.ErrorQuality;
 import ch.njol.skript.sections.SecConditional;
 import ch.njol.util.Kleenean;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.eclipse.jdt.annotation.Nullable;
 
 import java.util.List;
@@ -103,7 +103,7 @@ public class EffExit extends Effect { // TODO [code style] warn user about code 
 
 	@Override
 	@Nullable
-	protected TriggerItem walk(Event event) {
+	protected TriggerItem walk(PlatformEvent event) {
 		debug(event, false);
 		TriggerItem node = this;
 		for (int i = breakLevels; i > 0;) {
@@ -122,12 +122,12 @@ public class EffExit extends Effect { // TODO [code style] warn user about code 
 	}
 
 	@Override
-	protected void execute(Event event) {
+	protected void execute(PlatformEvent event) {
 		assert false;
 	}
 
 	@Override
-	public String toString(@Nullable Event event, boolean debug) {
+	public String toString(@Nullable PlatformEvent event, boolean debug) {
 		return "stop " + breakLevels + " " + names[type];
 	}
 

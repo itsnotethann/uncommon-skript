@@ -11,7 +11,7 @@ import ch.njol.skript.lang.simplification.SimplifiedLiteral;
 import ch.njol.skript.lang.util.SimpleExpression;
 import ch.njol.util.Kleenean;
 import com.google.common.collect.Iterators;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
@@ -44,7 +44,7 @@ public class ExprAlphabetList extends SimpleExpression<String> implements KeyedI
 	}
 
 	@Override
-	protected String @Nullable [] get(Event event) {
+	protected String @Nullable [] get(PlatformEvent event) {
 		String[] sorted = texts.getArray(event);
 		Arrays.sort(sorted);
 		return sorted;
@@ -56,7 +56,7 @@ public class ExprAlphabetList extends SimpleExpression<String> implements KeyedI
 	}
 
 	@Override
-	public Iterator<KeyedValue<String>> keyedIterator(Event event) {
+	public Iterator<KeyedValue<String>> keyedIterator(PlatformEvent event) {
 		if (!keyed)
 			throw new UnsupportedOperationException();
 		var iterator = ((KeyedIterableExpression<String>) texts).keyedIterator(event);
@@ -96,7 +96,7 @@ public class ExprAlphabetList extends SimpleExpression<String> implements KeyedI
 	}
 
 	@Override
-	public String toString(@Nullable Event event, boolean debug) {
+	public String toString(@Nullable PlatformEvent event, boolean debug) {
 		return "alphabetically sorted " + texts.toString(event, debug);
 	}
 

@@ -4,7 +4,7 @@ import ch.njol.skript.classes.Changer;
 import ch.njol.skript.lang.Expression;
 import ch.njol.skript.lang.util.ContextlessEvent;
 import ch.njol.skript.lang.util.SimpleLiteral;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Function;
@@ -29,7 +29,7 @@ public class SimplifiedLiteral<T> extends SimpleLiteral<T> {
 		if (original instanceof SimplifiedLiteral<T> literal)
 			return literal;
 
-		Event event = ContextlessEvent.get();
+		PlatformEvent event = ContextlessEvent.get();
 		T[] values = original.getAll(event);
 
 		//noinspection unchecked
@@ -62,7 +62,7 @@ public class SimplifiedLiteral<T> extends SimpleLiteral<T> {
 	}
 
 	@Override
-	public void change(Event event, Object @Nullable [] delta, Changer.ChangeMode mode) throws UnsupportedOperationException {
+	public void change(PlatformEvent event, Object @Nullable [] delta, Changer.ChangeMode mode) throws UnsupportedOperationException {
 		source.change(event, delta, mode);
 	}
 
@@ -72,12 +72,12 @@ public class SimplifiedLiteral<T> extends SimpleLiteral<T> {
 	}
 
 	@Override
-	public <R> void changeInPlace(Event event, Function<T, R> changeFunction) {
+	public <R> void changeInPlace(PlatformEvent event, Function<T, R> changeFunction) {
 		getSource().changeInPlace(event, changeFunction);
 	}
 
 	@Override
-	public <R> void changeInPlace(Event event, Function<T, R> changeFunction, boolean getAll) {
+	public <R> void changeInPlace(PlatformEvent event, Function<T, R> changeFunction, boolean getAll) {
 		getSource().changeInPlace(event, changeFunction, getAll);
 	}
 
@@ -88,7 +88,7 @@ public class SimplifiedLiteral<T> extends SimpleLiteral<T> {
 	}
 
 	@Override
-	public String toString(@Nullable Event event, boolean debug) {
+	public String toString(@Nullable PlatformEvent event, boolean debug) {
 		if (debug)
 			return "[" + source.toString(event, true) + " (SIMPLIFIED)]";
 		return source.toString(event, false);

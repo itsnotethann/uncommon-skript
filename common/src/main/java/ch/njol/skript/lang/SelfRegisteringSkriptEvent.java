@@ -19,7 +19,7 @@
 package ch.njol.skript.lang;
 
 import ch.njol.skript.config.Config;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 
 import java.util.Objects;
 
@@ -79,7 +79,7 @@ public abstract class SelfRegisteringSkriptEvent extends SkriptEvent {
 	}
 
 	@Override
-	public final boolean check(Event e) {
+	public final boolean check(PlatformEvent e) {
 		throw new UnsupportedOperationException();
 	}
 

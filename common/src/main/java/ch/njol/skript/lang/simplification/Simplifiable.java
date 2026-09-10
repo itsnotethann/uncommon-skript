@@ -4,7 +4,7 @@ import ch.njol.skript.lang.Debuggable;
 import ch.njol.skript.lang.Expression;
 import ch.njol.skript.lang.Literal;
 import ch.njol.skript.lang.SyntaxElement;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 
 /**
  * Represents an object that can be simplified to a simpler {@link SyntaxElement}. For example, a complex math equation
@@ -25,7 +25,7 @@ public interface Simplifiable<S extends SyntaxElement> {
 	 * <br>
 	 * References to the original object should be replaced with the simplified object.
 	 * <br>
-	 * Any returned object should attempt to maintain the original value of {@link Debuggable#toString(Event, boolean)}.
+	 * Any returned object should attempt to maintain the original value of {@link Debuggable#toString(PlatformEvent, boolean)}.
 	 * An addition indicating that the value was simplified can be added in the debug string. See {@link SimplifiedLiteral}
 	 * for an example.
 	 * <br>

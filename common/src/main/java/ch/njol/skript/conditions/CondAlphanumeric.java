@@ -10,7 +10,7 @@ import ch.njol.skript.lang.Expression;
 import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.util.Kleenean;
 import org.apache.commons.lang.StringUtils;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.eclipse.jdt.annotation.Nullable;
 
 @Name("Alphanumeric")
@@ -38,12 +38,12 @@ public class CondAlphanumeric extends Condition {
 	}
 
 	@Override
-	public boolean check(Event e) {
+	public boolean check(PlatformEvent e) {
 		return isNegated() ^ strings.check(e, StringUtils::isAlphanumeric);
 	}
 
 	@Override
-	public String toString(@Nullable Event e, boolean debug) {
+	public String toString(@Nullable PlatformEvent e, boolean debug) {
 		return strings.toString(e, debug) + " is" + (isNegated() ? "n't" : "") + " alphanumeric";
 	}
 

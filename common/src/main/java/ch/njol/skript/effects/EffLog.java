@@ -32,7 +32,7 @@ import ch.njol.skript.log.SkriptLogger;
 import ch.njol.skript.util.ExceptionUtils;
 import ch.njol.util.Closeable;
 import ch.njol.util.Kleenean;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.eclipse.jdt.annotation.Nullable;
 import org.skriptlang.skript.lang.script.Script;
 
@@ -95,7 +95,7 @@ public class EffLog extends Effect {
 
 	@SuppressWarnings("resource")
 	@Override
-	protected void execute(Event event) {
+	protected void execute(PlatformEvent event) {
 		for (String message : messages.getArray(event)) {
 			if (files != null) {
 				for (String logFile : files.getArray(event)) {
@@ -135,7 +135,7 @@ public class EffLog extends Effect {
 	}
 
 	@Override
-	public String toString(@Nullable Event event, boolean debug) {
+	public String toString(@Nullable PlatformEvent event, boolean debug) {
 		return "log " + messages.toString(event, debug)
 			+ (files != null ? " to " + files.toString(event, debug) : "")
 			+ (logLevel != Level.INFO ? "with severity " + logLevel.toString().toLowerCase(Locale.ENGLISH) : "");

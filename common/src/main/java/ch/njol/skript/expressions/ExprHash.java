@@ -10,7 +10,7 @@ import ch.njol.skript.lang.Expression;
 import ch.njol.skript.lang.ExpressionType;
 import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.util.Kleenean;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.eclipse.jdt.annotation.Nullable;
 
 import java.nio.charset.Charset;
@@ -71,7 +71,7 @@ public class ExprHash extends PropertyExpression<String, String> {
 
 	@SuppressWarnings("null")
 	@Override
-	protected String[] get(final Event e, final String[] source) {
+	protected String[] get(final PlatformEvent e, final String[] source) {
 		// These can't be null
 		assert md5 != null;
 		assert sha256 != null;
@@ -104,7 +104,7 @@ public class ExprHash extends PropertyExpression<String, String> {
 	}
 
 	@Override
-	public String toString(final @Nullable Event e, final boolean debug) {
+	public String toString(final @Nullable PlatformEvent e, final boolean debug) {
 		return "hash of " + getExpr();
 	}
 

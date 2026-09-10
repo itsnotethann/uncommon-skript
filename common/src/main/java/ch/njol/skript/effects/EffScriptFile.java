@@ -12,7 +12,7 @@ import ch.njol.skript.lang.SkriptParser;
 import ch.njol.skript.util.FileUtils;
 import ch.njol.util.Kleenean;
 import ch.njol.util.OpenCloseable;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.eclipse.jdt.annotation.Nullable;
 import org.skriptlang.skript.lang.script.Script;
 
@@ -52,7 +52,7 @@ public class EffScriptFile extends Effect {
 	}
 
 	@Override
-	protected void execute(Event e) {
+	protected void execute(PlatformEvent e) {
 		String name = fileName.getSingle(e);
 		if (name == null)
 			return;
@@ -128,7 +128,7 @@ public class EffScriptFile extends Effect {
 	}
 
 	@Override
-	public String toString(@Nullable Event e, boolean debug) {
+	public String toString(@Nullable PlatformEvent e, boolean debug) {
 		return (mark == ENABLE ? "enable" : mark == RELOAD ? "disable" : mark == DISABLE ? "unload" : "")
 			+ " script file " + fileName.toString(e, debug);
 	}

@@ -13,7 +13,7 @@ import ch.njol.skript.util.LiteralUtils;
 import ch.njol.util.Kleenean;
 import ch.njol.util.coll.CollectionUtils;
 import com.google.common.collect.Iterators;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
@@ -55,14 +55,14 @@ public class ExprReversedList extends SimpleExpression<Object> implements KeyedI
 
 	@Override
 	@Nullable
-	protected Object[] get(Event event) {
+	protected Object[] get(PlatformEvent event) {
 		Object[] array = list.getArray(event);
 		reverse(array);
 		return array;
 	}
 
 	@Override
-	public @Nullable Iterator<?> iterator(Event event) {
+	public @Nullable Iterator<?> iterator(PlatformEvent event) {
 		List<?> list = Arrays.asList(this.list.getArray(event));
 		return new Iterator<>() {
 			private final ListIterator<?> listIterator = list.listIterator(list.size());
@@ -85,7 +85,7 @@ public class ExprReversedList extends SimpleExpression<Object> implements KeyedI
 	}
 
 	@Override
-	public Iterator<KeyedValue<Object>> keyedIterator(Event event) {
+	public Iterator<KeyedValue<Object>> keyedIterator(PlatformEvent event) {
 		if (!keyed)
 			throw new UnsupportedOperationException();
 		Iterator<? extends KeyedValue<?>> iterator = ((KeyedIterableExpression<?>) list).keyedIterator(event);
@@ -171,7 +171,7 @@ public class ExprReversedList extends SimpleExpression<Object> implements KeyedI
 	}
 
 	@Override
-	public String toString(@Nullable Event event, boolean debug) {
+	public String toString(@Nullable PlatformEvent event, boolean debug) {
 		return "reversed " + list.toString(event, debug);
 	}
 

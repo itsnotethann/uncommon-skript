@@ -25,7 +25,7 @@ import ch.njol.skript.doc.Name;
 import ch.njol.skript.doc.Since;
 import ch.njol.skript.lang.*;
 import ch.njol.util.Kleenean;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.eclipse.jdt.annotation.Nullable;
 
 @Name("Do If")
@@ -60,11 +60,11 @@ public class EffDoIf extends Effect  {
 	}
 
 	@Override
-	protected void execute(Event e) {}
+	protected void execute(PlatformEvent e) {}
 
 	@Nullable
 	@Override
-	public TriggerItem walk(Event e) {
+	public TriggerItem walk(PlatformEvent e) {
 		if (condition.check(e)) {
 			effect.setParent(getParent());
 			effect.setNext(getNext());
@@ -74,7 +74,7 @@ public class EffDoIf extends Effect  {
 	}
 
 	@Override
-	public String toString(@Nullable Event e, boolean debug) {
+	public String toString(@Nullable PlatformEvent e, boolean debug) {
 		return effect.toString(e, debug) + " if " + condition.toString(e, debug);
 	}
 

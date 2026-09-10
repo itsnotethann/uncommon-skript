@@ -1,7 +1,7 @@
 package ch.njol.skript.lang;
 
 import com.google.common.collect.MapMaker;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 
 import java.util.Map;
 
@@ -13,7 +13,7 @@ import java.util.Map;
  */
 public abstract class LoopSection extends Section implements SyntaxElement, Debuggable, SectionExitHandler {
 
-	protected final transient Map<Event, Long> currentLoopCounter = new MapMaker()
+	protected final transient Map<PlatformEvent, Long> currentLoopCounter = new MapMaker()
 		.weakKeys()
 		.concurrencyLevel(8)
 		.makeMap();
@@ -22,7 +22,7 @@ public abstract class LoopSection extends Section implements SyntaxElement, Debu
 	 * @param event The event where the loop is used to return its loop iterations
 	 * @return The loop iteration number
 	 */
-	public long getLoopCounter(Event event) {
+	public long getLoopCounter(PlatformEvent event) {
 		return currentLoopCounter.getOrDefault(event, 1L);
 	}
 
@@ -36,7 +36,7 @@ public abstract class LoopSection extends Section implements SyntaxElement, Debu
 	 * @param event The event where the loop is used to reset its relevant properties
 	 */
 	@Override
-	public void exit(Event event) {
+	public void exit(PlatformEvent event) {
 		currentLoopCounter.remove(event);
 	}
 

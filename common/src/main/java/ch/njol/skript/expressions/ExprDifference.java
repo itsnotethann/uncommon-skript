@@ -15,7 +15,7 @@ import ch.njol.skript.lang.util.SimpleExpression;
 import ch.njol.skript.util.LiteralUtils;
 import ch.njol.skript.util.Utils;
 import ch.njol.util.Kleenean;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.jetbrains.annotations.Nullable;
 import org.skriptlang.skript.lang.arithmetic.Arithmetics;
 import org.skriptlang.skript.lang.arithmetic.DifferenceInfo;
@@ -133,7 +133,7 @@ public class ExprDifference extends SimpleExpression<Object> {
 	@Override
 	@Nullable
 	@SuppressWarnings("unchecked")
-	protected Object[] get(Event event) {
+	protected Object[] get(PlatformEvent event) {
 		Object first = this.first.getSingle(event);
 		Object second = this.second.getSingle(event);
 		if (first == null || second == null) {
@@ -175,7 +175,7 @@ public class ExprDifference extends SimpleExpression<Object> {
 	}
 
 	@Override
-	public String toString(@Nullable Event event, boolean debug) {
+	public String toString(@Nullable PlatformEvent event, boolean debug) {
 		return "difference between " + first.toString(event, debug) + " and " + second.toString(event, debug);
 	}
 

@@ -10,7 +10,7 @@ import ch.njol.skript.lang.Condition;
 import ch.njol.skript.lang.Expression;
 import ch.njol.skript.lang.SkriptParser;
 import ch.njol.util.Kleenean;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.eclipse.jdt.annotation.Nullable;
 
 @Name("Starts/Ends With")
@@ -43,7 +43,7 @@ public class CondStartsEndsWith extends Condition {
 	}
 
 	@Override
-	public boolean check(Event e) {
+	public boolean check(PlatformEvent e) {
 		String[] affixes = this.affix.getAll(e);
 		if (affixes.length < 1)
 			return false;
@@ -82,7 +82,7 @@ public class CondStartsEndsWith extends Condition {
 	}
 
 	@Override
-	public String toString(@Nullable Event e, boolean debug) {
+	public String toString(@Nullable PlatformEvent e, boolean debug) {
 		if (isNegated())
 			return strings.toString(e, debug) + " doesn't " + (usingEnds ? "end" : "start") + " with " + affix.toString(e, debug);
 		else

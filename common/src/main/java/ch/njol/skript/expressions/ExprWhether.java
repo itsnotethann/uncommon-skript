@@ -11,7 +11,7 @@ import ch.njol.skript.lang.ExpressionType;
 import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.skript.lang.util.SimpleExpression;
 import ch.njol.util.Kleenean;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.jetbrains.annotations.UnknownNullability;
 
 @Name("Whether")
@@ -38,7 +38,7 @@ public class ExprWhether extends SimpleExpression<Boolean> {
 	}
 
 	@Override
-	protected Boolean[] get(Event event) {
+	protected Boolean[] get(PlatformEvent event) {
 		return new Boolean[] {condition.check(event)};
 	}
 
@@ -53,7 +53,7 @@ public class ExprWhether extends SimpleExpression<Boolean> {
 	}
 
 	@Override
-	public String toString(Event event, boolean debug) {
+	public String toString(PlatformEvent event, boolean debug) {
 		return "whether " + condition.toString(event, debug);
 	}
 

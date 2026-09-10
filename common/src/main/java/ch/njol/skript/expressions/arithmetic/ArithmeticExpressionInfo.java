@@ -19,7 +19,7 @@
 package ch.njol.skript.expressions.arithmetic;
 
 import ch.njol.skript.lang.Expression;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.eclipse.jdt.annotation.Nullable;
 import org.skriptlang.skript.lang.arithmetic.Arithmetics;
 
@@ -33,7 +33,7 @@ public class ArithmeticExpressionInfo<T> implements ArithmeticGettable<T> {
 
 	@Override
 	@Nullable
-	public T get(Event event) {
+	public T get(PlatformEvent event) {
 		T object = expression.getSingle(event);
 		return object == null ? Arithmetics.getDefaultValue(expression.getReturnType()) : object;
 	}

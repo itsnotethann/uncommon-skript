@@ -2,7 +2,7 @@ package org.skriptlang.skript.bukkit.lang.eventvalue;
 
 import ch.njol.skript.Skript;
 import ch.njol.skript.SkriptAPIException;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.jetbrains.annotations.Unmodifiable;
 import org.skriptlang.skript.util.Registry;
 import org.skriptlang.skript.util.ViewProvider;
@@ -40,7 +40,7 @@ public interface EventValueRegistry extends Registry<EventValue<?, ?>>, ViewProv
 	 * @throws SkriptAPIException if another value with the same
 	 * event class, value class, time, and identifier patterns already exists
 	 */
-	<E extends Event> void register(EventValue<E, ?> eventValue);
+	<E extends PlatformEvent> void register(EventValue<E, ?> eventValue);
 
 	/**
 	 * Unregisters the given event value.
@@ -66,7 +66,7 @@ public interface EventValueRegistry extends Registry<EventValue<?, ?>>, ViewProv
 	 * @param time the time state to check for
 	 * @return {@code true} if a value is registered for the given parameters
 	 */
-	boolean isRegistered(Class<? extends Event> eventClass, Class<?> valueClass, EventValue.Time time);
+	boolean isRegistered(Class<? extends PlatformEvent> eventClass, Class<?> valueClass, EventValue.Time time);
 
 	/**
 	 * Resolve an {@link EventValue} by identifier using {@link EventValue.Time#NOW} and {@link Flags#DEFAULT}.
@@ -78,7 +78,7 @@ public interface EventValueRegistry extends Registry<EventValue<?, ?>>, ViewProv
 	 * @return a {@link Resolution} describing candidates or empty/error state
 	 * @see #resolve(Class, String, EventValue.Time)
 	 */
-	<E extends Event, V> Resolution<E, V> resolve(Class<E> eventClass, String identifier);
+	<E extends PlatformEvent, V> Resolution<E, V> resolve(Class<E> eventClass, String identifier);
 
 	/**
 	 * Resolve an {@link EventValue} by identifier for a specific time using {@link Flags#DEFAULT}.
@@ -91,7 +91,7 @@ public interface EventValueRegistry extends Registry<EventValue<?, ?>>, ViewProv
 	 * @return a {@link Resolution} describing candidates or empty/error state
 	 * @see #resolve(Class, String, EventValue.Time, Flags)
 	 */
-	<E extends Event, V> Resolution<E, V> resolve(Class<E> eventClass, String identifier, EventValue.Time time);
+	<E extends PlatformEvent, V> Resolution<E, V> resolve(Class<E> eventClass, String identifier, EventValue.Time time);
 
 	/**
 	 * Resolve an {@link EventValue} by identifier with explicit time and flags.
@@ -104,7 +104,7 @@ public interface EventValueRegistry extends Registry<EventValue<?, ?>>, ViewProv
 	 * @param <V> the expected value type
 	 * @return a {@link Resolution} describing candidates or empty/error state
 	 */
-	<E extends Event, V> Resolution<E, V> resolve(
+	<E extends PlatformEvent, V> Resolution<E, V> resolve(
 		Class<E> eventClass,
 		String identifier,
 		EventValue.Time time,
@@ -120,7 +120,7 @@ public interface EventValueRegistry extends Registry<EventValue<?, ?>>, ViewProv
 	 * @param <V> the desired value type
 	 * @return a {@link Resolution} describing candidates or empty/error state
 	 */
-	<E extends Event, V> Resolution<E, ? extends V> resolve(Class<E> eventClass, Class<V> valueClass);
+	<E extends PlatformEvent, V> Resolution<E, ? extends V> resolve(Class<E> eventClass, Class<V> valueClass);
 
 	/**
 	 * Resolves by desired value class for a specific time using {@link Flags#DEFAULT}.
@@ -132,7 +132,7 @@ public interface EventValueRegistry extends Registry<EventValue<?, ?>>, ViewProv
 	 * @param <V> the desired value type
 	 * @return a {@link Resolution} describing candidates or empty/error state
 	 */
-	<E extends Event, V> Resolution<E, ? extends V> resolve(
+	<E extends PlatformEvent, V> Resolution<E, ? extends V> resolve(
 		Class<E> eventClass,
 		Class<V> valueClass,
 		EventValue.Time time
@@ -149,7 +149,7 @@ public interface EventValueRegistry extends Registry<EventValue<?, ?>>, ViewProv
 	 * @param <V> the desired value type
 	 * @return a {@link Resolution} describing candidates or empty/error state
 	 */
-	<E extends Event, V> Resolution<E, ? extends V> resolve(
+	<E extends PlatformEvent, V> Resolution<E, ? extends V> resolve(
 		Class<E> eventClass,
 		Class<V> valueClass,
 		EventValue.Time time,
@@ -166,7 +166,7 @@ public interface EventValueRegistry extends Registry<EventValue<?, ?>>, ViewProv
 	 * @param <V> the value type
 	 * @return a {@link Resolution} describing candidates or empty/error state
 	 */
-	<E extends Event, V> Resolution<E, V> resolveExact(
+	<E extends PlatformEvent, V> Resolution<E, V> resolveExact(
 		Class<E> eventClass,
 		Class<V> valueClass,
 		EventValue.Time time
@@ -198,7 +198,7 @@ public interface EventValueRegistry extends Registry<EventValue<?, ?>>, ViewProv
 	 * @param event the event
 	 * @return an unmodifiable list of event values for the given event
 	 */
-	@Unmodifiable <E extends Event> List<EventValue<? extends E, ?>> elements(Class<E> event);
+	@Unmodifiable <E extends PlatformEvent> List<EventValue<? extends E, ?>> elements(Class<E> event);
 
 	/**
 	 * @return an unmodifiable view of this registry
@@ -218,7 +218,7 @@ public interface EventValueRegistry extends Registry<EventValue<?, ?>>, ViewProv
 	 * @param <E> the event type
 	 * @param <V> the value type
 	 */
-	record Resolution<E extends Event, V>(List<EventValue<E, V>> all, boolean errored) {
+	record Resolution<E extends PlatformEvent, V>(List<EventValue<E, V>> all, boolean errored) {
 
 		/**
 		 * Creates a successful resolution from candidates.
@@ -228,7 +228,7 @@ public interface EventValueRegistry extends Registry<EventValue<?, ?>>, ViewProv
 		 * @param <V> the value type
 		 * @return a new resolution
 		 */
-		public static <E extends Event, V> Resolution<E, V> of(List<EventValue<E, V>> eventValues) {
+		public static <E extends PlatformEvent, V> Resolution<E, V> of(List<EventValue<E, V>> eventValues) {
 			return new Resolution<>(eventValues, false);
 		}
 
@@ -239,7 +239,7 @@ public interface EventValueRegistry extends Registry<EventValue<?, ?>>, ViewProv
 		 * @param <V> the value type
 		 * @return an empty resolution
 		 */
-		public static <E extends Event, V> Resolution<E, V> empty() {
+		public static <E extends PlatformEvent, V> Resolution<E, V> empty() {
 			return new Resolution<>(Collections.emptyList(), false);
 		}
 
@@ -250,7 +250,7 @@ public interface EventValueRegistry extends Registry<EventValue<?, ?>>, ViewProv
 		 * @param <V> the value type
 		 * @return an error resolution
 		 */
-		public static <E extends Event, V> Resolution<E, V> error() {
+		public static <E extends PlatformEvent, V> Resolution<E, V> error() {
 			return new Resolution<>(Collections.emptyList(), true);
 		}
 

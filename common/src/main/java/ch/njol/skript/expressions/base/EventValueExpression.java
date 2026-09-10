@@ -20,7 +20,7 @@ import ch.njol.util.Kleenean;
 import ch.njol.util.StringUtils;
 import ch.njol.util.coll.CollectionUtils;
 import com.google.common.base.Preconditions;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 import org.skriptlang.skript.bukkit.lang.eventvalue.EventValue;
@@ -121,7 +121,7 @@ public class EventValueExpression<T> extends SimpleExpression<T> implements Defa
 	}
 
 	private final EventValueRegistry registry = Skript.instance().registry(EventValueRegistry.class);
-	public final Set<Class<? extends Event>> events = new HashSet<>();
+	public final Set<Class<? extends PlatformEvent>> events = new HashSet<>();
 
 	private final @Nullable Class<?> componentType;
 	private final @Nullable Class<? extends T> type;
@@ -188,7 +188,7 @@ public class EventValueExpression<T> extends SimpleExpression<T> implements Defa
 	 * @param <E> The event type.
 	 * @return The resolution result.
 	 */
-	private <E extends Event> Resolution<E, ? extends T> resolve(Class<E> eventClass) {
+	private <E extends PlatformEvent> Resolution<E, ? extends T> resolve(Class<E> eventClass) {
 		return resolve(eventClass, EventValueRegistry.Flags.DEFAULT);
 	}
 
@@ -200,7 +200,7 @@ public class EventValueExpression<T> extends SimpleExpression<T> implements Defa
 	 * @param <E> The event type.
 	 * @return The resolution result.
 	 */
-	private <E extends Event> Resolution<E, ? extends T> resolve(Class<E> eventClass, EventValueRegistry.Flags flags) {
+	private <E extends PlatformEvent> Resolution<E, ? extends T> resolve(Class<E> eventClass, EventValueRegistry.Flags flags) {
 		return resolve(eventClass, EventValue.Time.of(getTime()), flags);
 	}
 
@@ -213,7 +213,7 @@ public class EventValueExpression<T> extends SimpleExpression<T> implements Defa
 	 * @param <E> The event type.
 	 * @return The resolution result.
 	 */
-	private <E extends Event> Resolution<E, ? extends T> resolveForTime(Class<E> eventClass, EventValue.Time time) {
+	private <E extends PlatformEvent> Resolution<E, ? extends T> resolveForTime(Class<E> eventClass, EventValue.Time time) {
 		return resolve(
 			eventClass,
 			time,
@@ -231,7 +231,7 @@ public class EventValueExpression<T> extends SimpleExpression<T> implements Defa
 	 * @param <E> The event type.
 	 * @return The resolution result.
 	 */
-	private <E extends Event> Resolution<E, ? extends T> resolve(
+	private <E extends PlatformEvent> Resolution<E, ? extends T> resolve(
 		Class<E> eventClass,
 		EventValue.Time time,
 		EventValueRegistry.Flags flags
@@ -251,7 +251,7 @@ public class EventValueExpression<T> extends SimpleExpression<T> implements Defa
 	}
 
 	/**
-	 * Gets a string representation of this expression's input for error messages and {@link #toString(Event, boolean)}.
+	 * Gets a string representation of this expression's input for error messages and {@link #toString(PlatformEvent, boolean)}.
 	 *
 	 * @param plural Whether the name should be plural.
 	 * @return The identifier if it exists, otherwise the name of the component type's super class info.
@@ -270,12 +270,12 @@ public class EventValueExpression<T> extends SimpleExpression<T> implements Defa
 		ParseLogHandler log = SkriptLogger.startParseLogHandler();
 		try {
 			boolean hasValue = false;
-			Class<? extends Event>[] events = parser.getCurrentEvents();
+			Class<? extends PlatformEvent>[] events = parser.getCurrentEvents();
 			if (events == null) {
 				assert false;
 				return false;
 			}
-			for (Class<? extends Event> event : events) {
+			for (Class<? extends PlatformEvent> event : events) {
 				Resolution<?, ? extends T> resolution = resolve(event, NO_CONVERSION_FLAGS);
 				if (resolution.multiple()) {
 					log.printError("There are multiple " + input(true) + " in " + Utils.a(parser.getCurrentEventName()) + " event. " +
@@ -296,7 +296,7 @@ public class EventValueExpression<T> extends SimpleExpression<T> implements Defa
 					EventValueExpression<?> suggestedEventValue = new EventValueExpression<>(suggested);
 					boolean suggestedValueExists = false;
 
-					for (Class<? extends Event> event : events) {
+					for (Class<? extends PlatformEvent> event : events) {
 						if (suggestedEventValue.resolve(event, NO_CONVERSION_FLAGS).multiple()
 							|| !suggestedEventValue.resolve(event).successful())
 							continue;
@@ -335,7 +335,7 @@ public class EventValueExpression<T> extends SimpleExpression<T> implements Defa
 
 	@Override
 	@SuppressWarnings("unchecked")
-	protected T @Nullable [] get(Event event) {
+	protected T @Nullable [] get(PlatformEvent event) {
 		T value = getValue(event);
 		if (value == null)
 			return (T[]) Array.newInstance(getReturnType(), 0);
@@ -351,7 +351,7 @@ public class EventValueExpression<T> extends SimpleExpression<T> implements Defa
 	}
 
 	@Nullable
-	private <E extends Event> T getValue(E event) {
+	private <E extends PlatformEvent> T getValue(E event) {
 		Class<E> eventClass = getParseTimeEventClass(event);
 		if (eventClass == null)
 			return null;
@@ -361,8 +361,8 @@ public class EventValueExpression<T> extends SimpleExpression<T> implements Defa
 			.orElse(null);
 	}
 
-	private <E extends Event> Class<E> getParseTimeEventClass(E event) {
-		for (Class<? extends Event> eventClass : events) {
+	private <E extends PlatformEvent> Class<E> getParseTimeEventClass(E event) {
+		for (Class<? extends PlatformEvent> eventClass : events) {
 			if (eventClass.isInstance(event)) {
 				//noinspection unchecked
 				return (Class<E>) eventClass;
@@ -374,7 +374,7 @@ public class EventValueExpression<T> extends SimpleExpression<T> implements Defa
 	@Override
 	@SuppressWarnings("unchecked")
 	public Class<?> @Nullable [] acceptChange(ChangeMode mode) {
-		for (Class<? extends Event> event : events) {
+		for (Class<? extends PlatformEvent> event : events) {
 			Resolution<?, ? extends T> resolution = resolve(event);
 			if (!resolution.successful())
 				continue;
@@ -396,8 +396,8 @@ public class EventValueExpression<T> extends SimpleExpression<T> implements Defa
 	}
 
 	@Override
-	public void change(Event event, @Nullable Object[] delta, ChangeMode mode) {
-		Class<Event> eventClass = getParseTimeEventClass(event);
+	public void change(PlatformEvent event, @Nullable Object[] delta, ChangeMode mode) {
+		Class<PlatformEvent> eventClass = getParseTimeEventClass(event);
 		if (eventClass == null)
 			return;
 		Resolution<?, ? extends T> resolution = resolve(eventClass);
@@ -423,12 +423,12 @@ public class EventValueExpression<T> extends SimpleExpression<T> implements Defa
 
 	@Override
 	public boolean setTime(int time) {
-		Class<? extends Event>[] events = getParser().getCurrentEvents();
+		Class<? extends PlatformEvent>[] events = getParser().getCurrentEvents();
 		if (events == null) {
 			assert false;
 			return false;
 		}
-		for (Class<? extends Event> event : events) {
+		for (Class<? extends PlatformEvent> event : events) {
 			assert event != null;
 			if (resolveForTime(event, EventValue.Time.PAST).successful()
 				|| resolveForTime(event, EventValue.Time.FUTURE).successful()) {
@@ -455,7 +455,7 @@ public class EventValueExpression<T> extends SimpleExpression<T> implements Defa
 	public boolean isSingle() {
 		if (!single.isUnknown())
 			return single.isTrue();
-		for (Class<? extends Event> event : events) {
+		for (Class<? extends PlatformEvent> event : events) {
 			Resolution<?, ? extends T> resolution = resolve(event);
 			if (!resolution.successful())
 				continue;
@@ -472,7 +472,7 @@ public class EventValueExpression<T> extends SimpleExpression<T> implements Defa
 			//noinspection unchecked
 			return new Class[] {componentType};
 		Set<Class<? extends T>> types = new HashSet<>();
-		for (Class<? extends Event> eventClass : events) {
+		for (Class<? extends PlatformEvent> eventClass : events) {
 			Resolution<?, ? extends T> resolution = resolve(eventClass);
 			if (!resolution.successful())
 				continue;
@@ -496,7 +496,7 @@ public class EventValueExpression<T> extends SimpleExpression<T> implements Defa
 	}
 
 	@Override
-	public String toString(@Nullable Event event, boolean debug) {
+	public String toString(@Nullable PlatformEvent event, boolean debug) {
 		if (!debug || event == null)
 			return "event-" + input(!isSingle());
 		return Classes.getDebugMessage(getValue(event));

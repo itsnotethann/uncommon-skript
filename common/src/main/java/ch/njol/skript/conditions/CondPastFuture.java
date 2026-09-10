@@ -12,7 +12,7 @@ import ch.njol.skript.lang.ExpressionList;
 import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.skript.util.Date;
 import ch.njol.util.Kleenean;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.jetbrains.annotations.Nullable;
 
 @Name("In The Past/Future")
@@ -57,7 +57,7 @@ public class CondPastFuture extends Condition {
 	}
 
 	@Override
-	public boolean check(Event event) {
+	public boolean check(PlatformEvent event) {
 		// now should never be in the past or future
 		if (dates instanceof ExprNow)
 			return isNegated();
@@ -79,7 +79,7 @@ public class CondPastFuture extends Condition {
 	}
 
 	@Override
-	public String toString(@Nullable Event event, boolean debug) {
+	public String toString(@Nullable PlatformEvent event, boolean debug) {
 		return dates.toString(event, debug) + (dates.isSingle() ? " is"  : " are") + " in the" + (isFuture ? " future" : " past");
 	}
 

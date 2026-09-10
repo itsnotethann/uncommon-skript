@@ -12,7 +12,7 @@ import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.skript.lang.simplification.SimplifiedLiteral;
 import ch.njol.skript.lang.util.SimpleExpression;
 import ch.njol.util.Kleenean;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.jetbrains.annotations.Nullable;
 
 @Name("Angle")
@@ -49,7 +49,7 @@ public class ExprAngle extends SimpleExpression<Number> {
 	}
 
 	@Override
-	protected Number @Nullable [] get(Event event) {
+	protected Number @Nullable [] get(PlatformEvent event) {
 		Number[] numbers = angle.getArray(event);
 
 		if (isRadians) {
@@ -80,7 +80,7 @@ public class ExprAngle extends SimpleExpression<Number> {
 	}
 
 	@Override
-	public String toString(@Nullable Event event, boolean debug) {
+	public String toString(@Nullable PlatformEvent event, boolean debug) {
 		return angle.toString(event, debug) + " in " + (isRadians ? "degrees" : "radians");
 	}
 

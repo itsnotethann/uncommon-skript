@@ -26,7 +26,7 @@ import ch.njol.skript.lang.util.SimpleLiteral;
 import ch.njol.skript.localization.Noun;
 import ch.njol.util.coll.iterator.ArrayIterator;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
 import org.skriptlang.skript.lang.arithmetic.Arithmetics;
@@ -545,7 +545,7 @@ public class ClassInfo<T> implements Debuggable {
 	
 	@Override
 	@NonNull
-	public String toString(final @Nullable Event event, final boolean debug) {
+	public String toString(final @Nullable PlatformEvent event, final boolean debug) {
 		if (debug)
 			return codeName + " (" + c.getCanonicalName() + ")";
 		return getName().getSingular();

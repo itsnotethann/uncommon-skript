@@ -8,7 +8,7 @@ import ch.njol.skript.util.Utils;
 import ch.njol.util.Kleenean;
 import ch.njol.util.coll.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.skriptlang.skript.lang.converter.Converters;
@@ -24,7 +24,7 @@ public class ExprFunctionCall<T> extends SimpleExpression<T> implements KeyProvi
 	private final FunctionReference<?> reference;
 	private final Class<? extends T>[] returnTypes;
 	private final Class<T> returnType;
-	private final Map<Event, String[]> cache = Collections.synchronizedMap(new WeakHashMap<>());
+	private final Map<PlatformEvent, String[]> cache = Collections.synchronizedMap(new WeakHashMap<>());
 
 	public ExprFunctionCall(FunctionReference<T> function) {
 		this(function, CollectionUtils.array(function.getSignature().getReturnType().getC()));
@@ -48,7 +48,7 @@ public class ExprFunctionCall<T> extends SimpleExpression<T> implements KeyProvi
 	}
 
 	@Override
-	protected T @Nullable [] get(Event event) {
+	protected T @Nullable [] get(PlatformEvent event) {
 		Object[] values;
 		Object execute = reference.execute(event);
 		if (execute == null) {
@@ -85,7 +85,7 @@ public class ExprFunctionCall<T> extends SimpleExpression<T> implements KeyProvi
 	}
 
 	@Override
-	public @NotNull String @NotNull [] getArrayKeys(Event event) throws IllegalStateException {
+	public @NotNull String @NotNull [] getArrayKeys(PlatformEvent event) throws IllegalStateException {
 		if (!cache.containsKey(event))
 			throw new IllegalStateException();
 		return cache.remove(event);
@@ -131,7 +131,7 @@ public class ExprFunctionCall<T> extends SimpleExpression<T> implements KeyProvi
 	}
 
 	@Override
-	public String toString(@Nullable Event event, boolean debug) {
+	public String toString(@Nullable PlatformEvent event, boolean debug) {
 		return reference.toString(event, debug);
 	}
 

@@ -13,7 +13,7 @@ import ch.njol.skript.lang.simplification.SimplifiedLiteral;
 import ch.njol.skript.lang.util.SimpleExpression;
 import ch.njol.util.Kleenean;
 import org.apache.commons.lang.ArrayUtils;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.jetbrains.annotations.Nullable;
 
 @Name("Characters Between")
@@ -57,7 +57,7 @@ public class ExprCharacters extends SimpleExpression<String> {
 
 	@Override
 	@Nullable
-	protected String[] get(Event event) {
+	protected String[] get(PlatformEvent event) {
 		String start = this.start.getSingle(event);
 		String end = this.end.getSingle(event);
 		if (start == null || end == null)
@@ -107,7 +107,7 @@ public class ExprCharacters extends SimpleExpression<String> {
 	}
 
 	@Override
-	public String toString(@Nullable Event event, boolean debug) {
+	public String toString(@Nullable PlatformEvent event, boolean debug) {
 		return "all the " + (isAlphanumeric ? "alphanumeric " : "") + "characters between " + start.toString(event, debug) + " and " + end.toString(event, debug);
 	}
 }

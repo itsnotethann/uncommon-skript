@@ -18,7 +18,7 @@
  */
 package ch.njol.skript.expressions.arithmetic;
 
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.eclipse.jdt.annotation.Nullable;
 
 /**
@@ -27,7 +27,7 @@ import org.eclipse.jdt.annotation.Nullable;
 public interface ArithmeticGettable<T> {
 
 	@Nullable
-	T get(Event event);
+	T get(PlatformEvent event);
 
 	Class<? extends T> getReturnType();
 

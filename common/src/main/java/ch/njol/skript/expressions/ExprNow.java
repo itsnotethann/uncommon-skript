@@ -11,7 +11,7 @@ import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.skript.lang.util.SimpleExpression;
 import ch.njol.skript.util.Date;
 import ch.njol.util.Kleenean;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.jetbrains.annotations.Nullable;
 
 @Name("Now")
@@ -30,7 +30,7 @@ public class ExprNow extends SimpleExpression<Date> {
 	}
 
 	@Override
-	protected Date[] get(final Event e) {
+	protected Date[] get(final PlatformEvent e) {
 		return new Date[] {new Date()};
 	}
 
@@ -45,7 +45,7 @@ public class ExprNow extends SimpleExpression<Date> {
 	}
 
 	@Override
-	public String toString(final @Nullable Event e, final boolean debug) {
+	public String toString(final @Nullable PlatformEvent e, final boolean debug) {
 		return "now";
 	}
 

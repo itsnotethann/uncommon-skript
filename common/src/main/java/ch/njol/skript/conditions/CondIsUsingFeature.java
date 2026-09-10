@@ -9,7 +9,7 @@ import ch.njol.skript.lang.Condition;
 import ch.njol.skript.lang.Expression;
 import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.util.Kleenean;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.skriptlang.skript.lang.experiment.Experimented;
@@ -44,7 +44,7 @@ public class CondIsUsingFeature extends Condition {
 	}
 
 	@Override
-	public boolean check(Event event) {
+	public boolean check(PlatformEvent event) {
 		String[] array = names.getArray(event);
 		if (array.length == 0)
 			return true;
@@ -56,7 +56,7 @@ public class CondIsUsingFeature extends Condition {
 	}
 
 	@Override
-	public String toString(@Nullable Event event, boolean debug) {
+	public String toString(@Nullable PlatformEvent event, boolean debug) {
 		return "the current script " + (isNegated() ? "isn't" : "is") + " using " + names.toString(event, debug);
 	}
 

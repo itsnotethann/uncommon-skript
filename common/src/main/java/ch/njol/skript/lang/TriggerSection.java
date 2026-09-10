@@ -3,7 +3,7 @@ package ch.njol.skript.lang;
 import ch.njol.skript.ScriptLoader;
 import ch.njol.skript.config.SectionNode;
 import ch.njol.skript.lang.parser.ParserInstance;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -79,14 +79,14 @@ public abstract class TriggerSection extends TriggerItem {
 	}
 
 	@Override
-	protected final boolean run(Event event) {
+	protected final boolean run(PlatformEvent event) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	protected abstract @Nullable TriggerItem walk(Event event);
+	protected abstract @Nullable TriggerItem walk(PlatformEvent event);
 
-	protected final @Nullable TriggerItem walk(Event event, boolean run) {
+	protected final @Nullable TriggerItem walk(PlatformEvent event, boolean run) {
 		debug(event, run);
 		if (run && first != null) {
 			return first;

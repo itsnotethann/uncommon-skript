@@ -24,7 +24,7 @@ import ch.njol.skript.lang.ParseContext;
 import ch.njol.skript.lang.SkriptParser;
 import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.util.Kleenean;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.eclipse.jdt.annotation.Nullable;
 
 /**
@@ -47,13 +47,13 @@ public class EffFunctionCall extends Effect {
 	}
 	
 	@Override
-	protected void execute(final Event e) {
+	protected void execute(final PlatformEvent e) {
 		function.execute(e);
 		function.resetReturnValue(); // Function might have return value that we're ignoring
 	}
 	
 	@Override
-	public String toString(@Nullable final Event e, final boolean debug) {
+	public String toString(@Nullable final PlatformEvent e, final boolean debug) {
 		return function.toString(e, debug);
 	}
 	

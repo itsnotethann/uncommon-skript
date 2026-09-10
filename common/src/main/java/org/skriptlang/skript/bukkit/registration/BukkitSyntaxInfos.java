@@ -43,7 +43,7 @@ public final class BukkitSyntaxInfos {
 		 */
 		@Contract("_, _, _, _, _ -> new")
 		static <E extends SkriptEvent> Event<E> simple(Class<E> eventClass, Supplier<E> instanceSupplier,
-													   String name, Class<? extends org.bukkit.event.Event> bukkitEventClass, String... patterns) {
+													   String name, Class<? extends org.skriptlang.skript.lang.event.PlatformEvent> bukkitEventClass, String... patterns) {
 			return builder(eventClass, name)
 				.supplier(instanceSupplier)
 				.addEvent(bukkitEventClass)
@@ -123,7 +123,7 @@ public final class BukkitSyntaxInfos {
 		/**
 		 * @return A collection of the classes representing the Bukkit events the {@link SkriptEvent} listens for.
 		 */
-		Collection<Class<? extends org.bukkit.event.Event>> events();
+		Collection<Class<? extends org.skriptlang.skript.lang.event.PlatformEvent>> events();
 
 		/**
 		 * An Event-specific builder is used for constructing a new Event syntax info.
@@ -335,7 +335,7 @@ public final class BukkitSyntaxInfos {
 			 * @see Event#events()
 			 */
 			@Contract("_ -> this")
-			B addEvent(Class<? extends org.bukkit.event.Event> event);
+			B addEvent(Class<? extends org.skriptlang.skript.lang.event.PlatformEvent> event);
 
 			/**
 			 * Adds events to the event's documentation.
@@ -344,7 +344,7 @@ public final class BukkitSyntaxInfos {
 			 * @see Event#events()
 			 */
 			@Contract("_ -> this")
-			B addEvents(Class<? extends org.bukkit.event.Event>[] events);
+			B addEvents(Class<? extends org.skriptlang.skript.lang.event.PlatformEvent>[] events);
 
 			/**
 			 * Adds events to the event's documentation.
@@ -353,7 +353,7 @@ public final class BukkitSyntaxInfos {
 			 * @see Event#events()
 			 */
 			@Contract("_ -> this")
-			B addEvents(Collection<Class<? extends org.bukkit.event.Event>> events);
+			B addEvents(Collection<Class<? extends org.skriptlang.skript.lang.event.PlatformEvent>> events);
 
 			/**
 			 * Removes all events from the event's documentation.

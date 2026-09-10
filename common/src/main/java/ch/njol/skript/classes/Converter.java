@@ -20,7 +20,7 @@ package ch.njol.skript.classes;
 
 import ch.njol.skript.lang.Debuggable;
 import ch.njol.skript.registrations.Classes;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.eclipse.jdt.annotation.Nullable;
 import org.skriptlang.skript.lang.converter.Converters;
 
@@ -97,7 +97,7 @@ public interface Converter<F, T> {
 		}
 
 		@Override
-		public String toString(@Nullable Event event, boolean debug) {
+		public String toString(@Nullable PlatformEvent event, boolean debug) {
 			if (debug) {
 				String str = Arrays.stream(chain).map(c -> Classes.getExactClassName(c)).collect(Collectors.joining(" -> "));
 				assert str != null;

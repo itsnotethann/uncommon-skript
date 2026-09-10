@@ -3,7 +3,7 @@ package org.skriptlang.skript.bukkit.lang.eventvalue;
 import ch.njol.skript.Skript;
 import ch.njol.skript.SkriptAPIException;
 import com.google.common.base.Preconditions;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.jetbrains.annotations.Unmodifiable;
 import org.skriptlang.skript.lang.converter.Converter;
 import org.skriptlang.skript.lang.converter.Converters;
@@ -27,7 +27,7 @@ final class EventValueRegistryImpl implements EventValueRegistry {
 	}
 
 	@Override
-	public <E extends Event> void register(EventValue<E, ?> eventValue) {
+	public <E extends PlatformEvent> void register(EventValue<E, ?> eventValue) {
 		if (isRegistered(eventValue))
 			throw new SkriptAPIException(eventValue + " is already registered");
 		List<EventValue<?, ?>> eventValues = eventValues(eventValue.time());
@@ -53,7 +53,7 @@ final class EventValueRegistryImpl implements EventValueRegistry {
 	}
 
 	@Override
-	public boolean isRegistered(Class<? extends Event> eventClass, Class<?> valueClass, EventValue.Time time) {
+	public boolean isRegistered(Class<? extends PlatformEvent> eventClass, Class<?> valueClass, EventValue.Time time) {
 		for (EventValue<?, ?> eventValue : eventValues(time)) {
 			if (eventValue.matches(eventClass, valueClass))
 				return true;
@@ -62,17 +62,17 @@ final class EventValueRegistryImpl implements EventValueRegistry {
 	}
 
 	@Override
-	public <E extends Event, V> Resolution<E, V> resolve(Class<E> eventClass, String identifier) {
+	public <E extends PlatformEvent, V> Resolution<E, V> resolve(Class<E> eventClass, String identifier) {
 		return resolve(eventClass, identifier, EventValue.Time.NOW);
 	}
 
 	@Override
-	public <E extends Event, V> Resolution<E, V> resolve(Class<E> eventClass, String identifier, EventValue.Time time) {
+	public <E extends PlatformEvent, V> Resolution<E, V> resolve(Class<E> eventClass, String identifier, EventValue.Time time) {
 		return resolve(eventClass, identifier, time, Flags.DEFAULT);
 	}
 
 	@Override
-	public <E extends Event, V> Resolution<E, V> resolve(
+	public <E extends PlatformEvent, V> Resolution<E, V> resolve(
 		Class<E> eventClass,
 		String identifier,
 		EventValue.Time time,
@@ -111,17 +111,17 @@ final class EventValueRegistryImpl implements EventValueRegistry {
 	}
 
 	@Override
-	public <E extends Event, V> Resolution<E, ? extends V> resolve(Class<E> eventClass, Class<V> valueClass) {
+	public <E extends PlatformEvent, V> Resolution<E, ? extends V> resolve(Class<E> eventClass, Class<V> valueClass) {
 		return resolve(eventClass, valueClass, EventValue.Time.NOW);
 	}
 
 	@Override
-	public <E extends Event, V> Resolution<E, ? extends V> resolve(Class<E> eventClass, Class<V> valueClass, EventValue.Time time) {
+	public <E extends PlatformEvent, V> Resolution<E, ? extends V> resolve(Class<E> eventClass, Class<V> valueClass, EventValue.Time time) {
 		return resolve(eventClass, valueClass, time, Flags.DEFAULT);
 	}
 
 	@Override
-	public <E extends Event, V> Resolution<E, ? extends V> resolve(
+	public <E extends PlatformEvent, V> Resolution<E, ? extends V> resolve(
 		Class<E> eventClass,
 		Class<V> valueClass,
 		EventValue.Time time,
@@ -177,7 +177,7 @@ final class EventValueRegistryImpl implements EventValueRegistry {
 	}
 
 	@Override
-	public <E extends Event, V> Resolution<E, V> resolveExact(
+	public <E extends PlatformEvent, V> Resolution<E, V> resolveExact(
 		Class<E> eventClass,
 		Class<V> valueClass,
 		EventValue.Time time
@@ -192,7 +192,7 @@ final class EventValueRegistryImpl implements EventValueRegistry {
 	/**
 	 * Resolves to the nearest event and value class without conversion.
 	 */
-	private <E extends Event, V> Resolution<E, ? extends V> resolveNearest(
+	private <E extends PlatformEvent, V> Resolution<E, ? extends V> resolveNearest(
 		Class<E> eventClass,
 		Class<V> valueClass,
 		EventValue.Time time
@@ -209,7 +209,7 @@ final class EventValueRegistryImpl implements EventValueRegistry {
 	 * Resolves using downcast conversion when the desired value class is a supertype
 	 * of the registered value class.
 	 */
-	private <E extends Event, V> Resolution<E, V> resolveWithDowncastConversion(
+	private <E extends PlatformEvent, V> Resolution<E, V> resolveWithDowncastConversion(
 		Class<E> eventClass,
 		Class<V> valueClass,
 		EventValue.Time time
@@ -228,7 +228,7 @@ final class EventValueRegistryImpl implements EventValueRegistry {
 	/**
 	 * Resolves using {@link Converters} to convert value type when needed.
 	 */
-	private <E extends Event, V> Resolution<E, V> resolveWithConversion(
+	private <E extends PlatformEvent, V> Resolution<E, V> resolveWithConversion(
 		Class<E> eventClass,
 		Class<V> valueClass,
 		EventValue.Time time
@@ -257,7 +257,7 @@ final class EventValueRegistryImpl implements EventValueRegistry {
 	}
 
 	@Override
-	public @Unmodifiable <E extends Event> List<EventValue<? extends E, ?>> elements(Class<E> event) {
+	public @Unmodifiable <E extends PlatformEvent> List<EventValue<? extends E, ?>> elements(Class<E> event) {
 		//noinspection unchecked,rawtypes
 		return (List) eventValues.values().stream()
 			.flatMap(List::stream)
@@ -265,13 +265,13 @@ final class EventValueRegistryImpl implements EventValueRegistry {
 			.toList();
 	}
 
-	private record Input<E extends Event, I>(
+	private record Input<E extends PlatformEvent, I>(
 		Class<E> eventClass,
 		I input,
 		EventValue.Time time,
 		Flags flags
 	) {
-		static <E extends Event> Input<E, String> of(
+		static <E extends PlatformEvent> Input<E, String> of(
 			Class<E> eventClass,
 			String input,
 			EventValue.Time time,
@@ -280,7 +280,7 @@ final class EventValueRegistryImpl implements EventValueRegistry {
 			return new Input<>(eventClass, input, time, flags);
 		}
 
-		static <E extends Event> Input<E, Class<?>> of(
+		static <E extends PlatformEvent> Input<E, Class<?>> of(
 			Class<E> eventClass,
 			Class<?> input,
 			EventValue.Time time,
@@ -299,7 +299,7 @@ final class EventValueRegistryImpl implements EventValueRegistry {
 		}
 
 		@Override
-		public <E extends Event> void register(EventValue<E, ?> eventValue) {
+		public <E extends PlatformEvent> void register(EventValue<E, ?> eventValue) {
 			throw new UnsupportedOperationException("Cannot register event values with an unmodifiable event value registry.");
 		}
 
@@ -314,42 +314,42 @@ final class EventValueRegistryImpl implements EventValueRegistry {
 		}
 
 		@Override
-		public boolean isRegistered(Class<? extends Event> eventClass, Class<?> valueClass, EventValue.Time time) {
+		public boolean isRegistered(Class<? extends PlatformEvent> eventClass, Class<?> valueClass, EventValue.Time time) {
 			return delegate.isRegistered(eventClass, valueClass, time);
 		}
 
 		@Override
-		public <E extends Event, V> Resolution<E, V> resolve(Class<E> eventClass, String identifier) {
+		public <E extends PlatformEvent, V> Resolution<E, V> resolve(Class<E> eventClass, String identifier) {
 			return delegate.resolve(eventClass, identifier);
 		}
 
 		@Override
-		public <E extends Event, V> Resolution<E, V> resolve(Class<E> eventClass, String identifier, EventValue.Time time) {
+		public <E extends PlatformEvent, V> Resolution<E, V> resolve(Class<E> eventClass, String identifier, EventValue.Time time) {
 			return delegate.resolve(eventClass, identifier, time);
 		}
 
 		@Override
-		public <E extends Event, V> Resolution<E, V> resolve(Class<E> eventClass, String identifier, EventValue.Time time, Flags flags) {
+		public <E extends PlatformEvent, V> Resolution<E, V> resolve(Class<E> eventClass, String identifier, EventValue.Time time, Flags flags) {
 			return delegate.resolve(eventClass, identifier, time, flags);
 		}
 
 		@Override
-		public <E extends Event, V> Resolution<E, ? extends V> resolve(Class<E> eventClass, Class<V> valueClass) {
+		public <E extends PlatformEvent, V> Resolution<E, ? extends V> resolve(Class<E> eventClass, Class<V> valueClass) {
 			return delegate.resolve(eventClass, valueClass);
 		}
 
 		@Override
-		public <E extends Event, V> Resolution<E, ? extends V> resolve(Class<E> eventClass, Class<V> valueClass, EventValue.Time time) {
+		public <E extends PlatformEvent, V> Resolution<E, ? extends V> resolve(Class<E> eventClass, Class<V> valueClass, EventValue.Time time) {
 			return delegate.resolve(eventClass, valueClass, time);
 		}
 
 		@Override
-		public <E extends Event, V> Resolution<E, ? extends V> resolve(Class<E> eventClass, Class<V> valueClass, EventValue.Time time, Flags flags) {
+		public <E extends PlatformEvent, V> Resolution<E, ? extends V> resolve(Class<E> eventClass, Class<V> valueClass, EventValue.Time time, Flags flags) {
 			return delegate.resolve(eventClass, valueClass, time, flags);
 		}
 
 		@Override
-		public <E extends Event, V> Resolution<E, V> resolveExact(Class<E> eventClass, Class<V> valueClass, EventValue.Time time) {
+		public <E extends PlatformEvent, V> Resolution<E, V> resolveExact(Class<E> eventClass, Class<V> valueClass, EventValue.Time time) {
 			return delegate.resolveExact(eventClass, valueClass, time);
 		}
 
@@ -364,7 +364,7 @@ final class EventValueRegistryImpl implements EventValueRegistry {
 		}
 
 		@Override
-		public @Unmodifiable <E extends Event> List<EventValue<? extends E, ?>> elements(Class<E> event) {
+		public @Unmodifiable <E extends PlatformEvent> List<EventValue<? extends E, ?>> elements(Class<E> event) {
 			return delegate.elements(event);
 		}
 

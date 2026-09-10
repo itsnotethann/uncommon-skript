@@ -29,7 +29,7 @@ import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.skript.lang.util.SimpleExpression;
 import ch.njol.util.Kleenean;
 import ch.njol.util.Math2;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.eclipse.jdt.annotation.Nullable;
 
 import java.util.Random;
@@ -66,7 +66,7 @@ public class ExprRandomNumber extends SimpleExpression<Number> {
 
 	@Override
 	@Nullable
-	protected Number[] get(Event event) {
+	protected Number[] get(PlatformEvent event) {
 		Number from = this.from.getSingle(event);
 		Number to = this.to.getSingle(event);
 
@@ -99,7 +99,7 @@ public class ExprRandomNumber extends SimpleExpression<Number> {
 	}
 
 	@Override
-	public String toString(@Nullable Event event, boolean debug) {
+	public String toString(@Nullable PlatformEvent event, boolean debug) {
 		return "a random " + (isInteger ? "integer" : "number") + " between " + from.toString(event, debug) + " and " + to.toString(event, debug);
 	}
 

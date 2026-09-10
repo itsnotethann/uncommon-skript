@@ -6,7 +6,7 @@ import ch.njol.skript.lang.Condition;
 import ch.njol.skript.lang.Expression;
 import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.util.Kleenean;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.skriptlang.skript.registration.SyntaxInfo;
@@ -26,7 +26,7 @@ import java.util.function.Predicate;
  *
  * The gains of using this class:
  * <ul>
- *     <li>The {@link ch.njol.skript.lang.Debuggable#toString(Event, boolean)} method is already implemented,
+ *     <li>The {@link ch.njol.skript.lang.Debuggable#toString(PlatformEvent, boolean)} method is already implemented,
  *     and it works well with the plural and negated forms</li>
  *     <li>You can use the {@link PropertyCondition#register(Class, PropertyType, String, String)}
  *     method for an easy registration</li>
@@ -169,7 +169,7 @@ public abstract class PropertyCondition<T> extends Condition implements Predicat
 	}
 
 	@Override
-	public boolean check(Event event) {
+	public boolean check(PlatformEvent event) {
 		return expr.check(event, this, isNegated());
 	}
 
@@ -203,11 +203,11 @@ public abstract class PropertyCondition<T> extends Condition implements Predicat
 	}
 
 	@Override
-	public String toString(@Nullable Event event, boolean debug) {
+	public String toString(@Nullable PlatformEvent event, boolean debug) {
 		return toString(this, getPropertyType(), event, debug, expr, getPropertyName());
 	}
 
-	public static String toString(Condition condition, PropertyType propertyType, @Nullable Event event,
+	public static String toString(Condition condition, PropertyType propertyType, @Nullable PlatformEvent event,
 								  boolean debug, Expression<?> expr, String property) {
 		switch (propertyType) {
 			case BE:

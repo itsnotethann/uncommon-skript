@@ -10,7 +10,7 @@ import ch.njol.skript.lang.*;
 import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.skript.lang.util.SimpleExpression;
 import ch.njol.util.Kleenean;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.eclipse.jdt.annotation.Nullable;
 
 import java.util.Map;
@@ -74,7 +74,7 @@ public class ExprAmount extends SimpleExpression<Long> {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	protected Long[] get(Event e) {
+	protected Long[] get(PlatformEvent e) {
 		if (recursive) {
 			int currentSize = 0;
 			for (Expression<?> expr : exprs.getExpressions()) {
@@ -112,7 +112,7 @@ public class ExprAmount extends SimpleExpression<Long> {
 	}
 
 	@Override
-	public String toString(@Nullable Event e, boolean debug) {
+	public String toString(@Nullable PlatformEvent e, boolean debug) {
 		return (recursive ? "recursive size of " : "amount of ") + exprs.toString(e, debug);
 	}
 

@@ -20,6 +20,7 @@ package ch.njol.skript.lang.util;
 
 import ch.njol.skript.lang.parser.ParserInstance;
 import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
 

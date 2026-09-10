@@ -5,7 +5,7 @@ import ch.njol.skript.expressions.base.EventValueExpression;
 import ch.njol.util.Kleenean;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
@@ -80,7 +80,7 @@ public class EventValues {
 	 * @deprecated Use {@link EventValueRegistry#register(EventValue)} instead.
 	 * Build an {@link EventValue} using {@link EventValue#builder(Class, Class)}.
 	 */
-	public static <T, E extends Event> void registerEventValue(
+	public static <T, E extends PlatformEvent> void registerEventValue(
 		Class<E> eventClass, Class<T> valueClass,
 		Converter<E, T> converter
 	) {
@@ -99,7 +99,7 @@ public class EventValues {
 	 * @deprecated Use {@link EventValueRegistry#register(EventValue)} instead.
 	 * Build an {@link EventValue} using {@link EventValue#builder(Class, Class)}.
 	 */
-	public static <T, E extends Event> void registerEventValue(
+	public static <T, E extends PlatformEvent> void registerEventValue(
 		Class<E> eventClass, Class<T> valueClass,
 		Converter<E, T> converter, int time
 	) {
@@ -122,7 +122,7 @@ public class EventValues {
 	 * Build an {@link EventValue} using {@link EventValue#builder(Class, Class)}.
 	 */
 	@SafeVarargs
-	public static <T, E extends Event> void registerEventValue(
+	public static <T, E extends PlatformEvent> void registerEventValue(
 		Class<E> eventClass, Class<T> valueClass,
 		Converter<E, T> converter, int time,
 		@Nullable String excludeErrorMessage,
@@ -138,7 +138,7 @@ public class EventValues {
 		registry.register(builder.build());
 	}
 
-	public static <E extends Event, T> void registerEventValueMarker(Class<E> marker, Class<T> type, Converter<E, T> converter, int time) {
+	public static <E extends PlatformEvent, T> void registerEventValueMarker(Class<E> marker, Class<T> type, Converter<E, T> converter, int time) {
 		registerEventValue(marker, type, converter, time, null, (Class<? extends E>[]) null);
 	}
 
@@ -155,7 +155,7 @@ public class EventValues {
 	 * @see #registerEventValue(Class, Class, Converter, int)
 	 * @deprecated Use {@link EventValueRegistry#resolve(Class, Class, EventValue.Time)} instead.
 	 */
-	public static <T, E extends Event> @Nullable T getEventValue(E event, Class<T> valueClass, int time) {
+	public static <T, E extends PlatformEvent> @Nullable T getEventValue(E event, Class<T> valueClass, int time) {
 		//noinspection unchecked
 		return registry.resolve(event.getClass(), valueClass, EventValue.Time.of(time)).uniqueOptional()
 			.map(eventValue -> ((EventValue<E, T>) eventValue).get(event))
@@ -174,7 +174,7 @@ public class EventValues {
 	 * @deprecated Use {@link EventValueRegistry#resolveExact(Class, Class, EventValue.Time)} instead.
 	 */
 	@Nullable
-	public static <E extends Event, T> Converter<? super E, ? extends T> getExactEventValueConverter(
+	public static <E extends PlatformEvent, T> Converter<? super E, ? extends T> getExactEventValueConverter(
 		Class<E> eventClass, Class<T> valueClass, int time
 	) {
 		return registry.resolveExact(eventClass, valueClass, EventValue.Time.of(time)).anyOptional()
@@ -190,7 +190,7 @@ public class EventValues {
 	 * @param time the event-value's time.
 	 * @return true or false if the event and type have multiple {@link Converter}s.
 	 */
-	public static <T, E extends Event> Kleenean hasMultipleConverters(Class<E> eventClass, Class<T> valueClass, int time) {
+	public static <T, E extends PlatformEvent> Kleenean hasMultipleConverters(Class<E> eventClass, Class<T> valueClass, int time) {
 		List<Converter<? super E, ? extends T>> getters = getEventValueConverters(eventClass, valueClass, time, true, false);
 		if (getters == null)
 			return Kleenean.UNKNOWN;
@@ -210,14 +210,14 @@ public class EventValues {
 	 * @see EventValueExpression#EventValueExpression(Class)
 	 * @deprecated Use {@link EventValueRegistry#resolve(Class, Class, EventValue.Time)} instead.
 	 */
-	public static <T, E extends Event> @Nullable Converter<? super E, ? extends T> getEventValueConverter(
+	public static <T, E extends PlatformEvent> @Nullable Converter<? super E, ? extends T> getEventValueConverter(
 		Class<E> eventClass, Class<T> valueClass, int time
 	) {
 		return getEventValueConverter(eventClass, valueClass, time, true);
 	}
 
 	@Nullable
-	private static <T, E extends Event> Converter<? super E, ? extends T> getEventValueConverter(
+	private static <T, E extends PlatformEvent> Converter<? super E, ? extends T> getEventValueConverter(
 		Class<E> eventClass, Class<T> valueClass, int time, boolean allowDefault
 	) {
 		List<Converter<? super E, ? extends T>> list = getEventValueConverters(eventClass, valueClass, time, allowDefault);
@@ -227,7 +227,7 @@ public class EventValues {
 	}
 
 	@Nullable
-	private static <T, E extends Event> List<Converter<? super E, ? extends T>> getEventValueConverters(
+	private static <T, E extends PlatformEvent> List<Converter<? super E, ? extends T>> getEventValueConverters(
 		Class<E> eventClass, Class<T> valueClass, int time, boolean allowDefault
 	) {
 		return getEventValueConverters(eventClass, valueClass, time, allowDefault, true);
@@ -237,7 +237,7 @@ public class EventValues {
 	 * We need to be able to collect all possible event-values to a list for determining problematic collisions.
 	 * Always return after the loop check if the list is not empty.
 	 */
-	private static <T, E extends Event> @Nullable List<Converter<? super E, ? extends T>> getEventValueConverters(
+	private static <T, E extends PlatformEvent> @Nullable List<Converter<? super E, ? extends T>> getEventValueConverters(
 		Class<E> eventClass, Class<T> valueClass, int time,
 		boolean allowDefault, boolean allowConverting
 	) {
@@ -255,12 +255,12 @@ public class EventValues {
 			.toList();
 	}
 
-	public static boolean doesExactEventValueHaveTimeStates(Class<? extends Event> eventClass, Class<?> valueClass) {
+	public static boolean doesExactEventValueHaveTimeStates(Class<? extends PlatformEvent> eventClass, Class<?> valueClass) {
 		return getExactEventValueConverter(eventClass, valueClass, TIME_PAST) != null
 			|| getExactEventValueConverter(eventClass, valueClass, TIME_FUTURE) != null;
 	}
 
-	public static boolean doesEventValueHaveTimeStates(Class<? extends Event> eventClass, Class<?> valueClass) {
+	public static boolean doesEventValueHaveTimeStates(Class<? extends PlatformEvent> eventClass, Class<?> valueClass) {
 		return getEventValueConverter(eventClass, valueClass, TIME_PAST, false) != null
 			|| getEventValueConverter(eventClass, valueClass, TIME_FUTURE, false) != null;
 	}
@@ -276,8 +276,8 @@ public class EventValues {
 	/**
 	 * @return All the event values for each registered event's class.
 	 */
-	public static Multimap<Class<? extends Event>, EventValueInfo<?, ?>> getPerEventEventValues() {
-		Multimap<Class<? extends Event>, EventValueInfo<?, ?>> eventValues = MultimapBuilder
+	public static Multimap<Class<? extends PlatformEvent>, EventValueInfo<?, ?>> getPerEventEventValues() {
+		Multimap<Class<? extends PlatformEvent>, EventValueInfo<?, ?>> eventValues = MultimapBuilder
 			.hashKeys()
 			.hashSetValues()
 			.build();
@@ -292,7 +292,7 @@ public class EventValues {
 		return eventValues;
 	}
 
-	public record EventValueInfo<E extends Event, T>(
+	public record EventValueInfo<E extends PlatformEvent, T>(
 		Class<E> eventClass, Class<T> valueClass, Converter<E, T> converter,
 		@Nullable String excludeErrorMessage,
 		@Nullable Class<? extends E>[] excludes, int time
@@ -303,7 +303,7 @@ public class EventValues {
 			assert converter != null;
 		}
 
-		public static <E extends Event, T> EventValueInfo<E, T> fromModern(EventValue<E, T> eventValue) {
+		public static <E extends PlatformEvent, T> EventValueInfo<E, T> fromModern(EventValue<E, T> eventValue) {
 			return new EventValueInfo<>(
 				eventValue.eventClass(),
 				eventValue.valueClass(),

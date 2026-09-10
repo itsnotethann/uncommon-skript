@@ -33,7 +33,7 @@ import ch.njol.skript.lang.util.SimpleLiteral;
 import ch.njol.skript.log.SkriptLogger;
 import ch.njol.util.Kleenean;
 import com.google.common.collect.Iterators;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.eclipse.jdt.annotation.Nullable;
 
 import java.util.Iterator;
@@ -93,7 +93,7 @@ public class ExprTimes extends SimpleExpression<Long> {
 
 	@Nullable
 	@Override
-	protected Long[] get(final Event e) {
+	protected Long[] get(final PlatformEvent e) {
 		Iterator<? extends Long> iter = iterator(e);
 		if (iter == null) {
 			return null;
@@ -103,7 +103,7 @@ public class ExprTimes extends SimpleExpression<Long> {
 
 	@Nullable
 	@Override
-	public Iterator<? extends Long> iterator(final Event e) {
+	public Iterator<? extends Long> iterator(final PlatformEvent e) {
 		Number end = this.end.getSingle(e);
 		if (end == null)
 			return null;
@@ -122,7 +122,7 @@ public class ExprTimes extends SimpleExpression<Long> {
 	}
 
 	@Override
-	public String toString(final @Nullable Event e, final boolean debug) {
+	public String toString(final @Nullable PlatformEvent e, final boolean debug) {
 		return end.toString(e, debug) + " times";
 	}
 

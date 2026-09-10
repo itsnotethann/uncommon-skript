@@ -7,7 +7,7 @@ import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.skript.lang.parser.ParserInstance;
 import ch.njol.skript.lang.util.SimpleExpression;
 import ch.njol.util.Kleenean;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -109,7 +109,7 @@ public abstract class SectionExpression<Value> extends SimpleExpression<Value> {
 	 */
 	@Deprecated(since = "2.12", forRemoval = true)
 	protected Trigger loadCode(SectionNode sectionNode, String name,
-							   @Nullable Runnable afterLoading, Class<? extends Event>... events) {
+							   @Nullable Runnable afterLoading, Class<? extends PlatformEvent>... events) {
 		return loadCode(sectionNode, name, null, afterLoading, events);
 	}
 
@@ -135,7 +135,7 @@ public abstract class SectionExpression<Value> extends SimpleExpression<Value> {
 	 */
 	@SafeVarargs
 	protected final Trigger loadCode(SectionNode sectionNode, String name,
-									 @Nullable Runnable beforeLoading, @Nullable Runnable afterLoading, Class<? extends Event>... events) {
+									 @Nullable Runnable beforeLoading, @Nullable Runnable afterLoading, Class<? extends PlatformEvent>... events) {
 		return section.loadCodeTask(sectionNode, name, beforeLoading, afterLoading, events);
 	}
 
@@ -178,7 +178,7 @@ public abstract class SectionExpression<Value> extends SimpleExpression<Value> {
 	 * @param event The event to pass as context.
 	 * @return False if an exception occurred while executing the section.
 	 */
-	protected boolean runSection(Event event) {
+	protected boolean runSection(PlatformEvent event) {
 		return this.section.runSection(event);
 	}
 

@@ -13,7 +13,7 @@ import ch.njol.skript.structures.StructEvent.EventData;
 import ch.njol.skript.util.Utils;
 import ch.njol.util.coll.iterator.ConsumingIterator;
 import org.bukkit.event.Cancellable;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.bukkit.event.EventPriority;
 import org.jetbrains.annotations.Nullable;
 import org.skriptlang.skript.bukkit.registration.BukkitSyntaxInfos;
@@ -80,7 +80,7 @@ public abstract class SkriptEvent extends Structure {
 			return false;
 
 		// evaluate whether this event supports listening to cancelled events
-		for (Class<? extends Event> eventClass : getEventClasses()) {
+		for (Class<? extends PlatformEvent> eventClass : getEventClasses()) {
 			if (Cancellable.class.isAssignableFrom(eventClass)) {
 				supportsListeningBehavior = true;
 				break;
@@ -124,7 +124,7 @@ public abstract class SkriptEvent extends Structure {
 		if (Skript.debug() || source.debug())
 			Skript.debug(expr + " (" + this + "):");
 
-		Class<? extends Event>[] eventClasses = getEventClasses();
+		Class<? extends PlatformEvent>[] eventClasses = getEventClasses();
 
 		try {
 			getParser().setCurrentEvent(skriptEventInfo.getName().toLowerCase(Locale.ENGLISH), eventClasses);
@@ -182,7 +182,7 @@ public abstract class SkriptEvent extends Structure {
 	 * will only be called for events this SkriptEvent is registered for.
 	 * @return true if this is SkriptEvent is represented by the Bukkit Event or false if not
 	 */
-	public abstract boolean check(Event event);
+	public abstract boolean check(PlatformEvent event);
 
 	/**
 	 * Script loader checks this before loading items in event. If false is
@@ -196,7 +196,7 @@ public abstract class SkriptEvent extends Structure {
 	/**
 	 * @return the Event classes to use in {@link ch.njol.skript.lang.parser.ParserInstance}.
 	 */
-	public Class<? extends Event>[] getEventClasses() {
+	public Class<? extends PlatformEvent>[] getEventClasses() {
 		return skriptEventInfo.events;
 	}
 

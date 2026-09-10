@@ -1,6 +1,6 @@
 package ch.njol.skript.registrations;
 
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.jetbrains.annotations.Nullable;
 import org.skriptlang.skript.lang.converter.Converter;
 
@@ -10,7 +10,7 @@ import org.skriptlang.skript.lang.converter.Converter;
  * @param <E> Event class to change value
  * @param <T> Type of value to change
  */
-public interface EventConverter<E extends Event, T> extends Converter<E, T> {
+public interface EventConverter<E extends PlatformEvent, T> extends Converter<E, T> {
 
 	/**
 	 * Set the value of something in an event

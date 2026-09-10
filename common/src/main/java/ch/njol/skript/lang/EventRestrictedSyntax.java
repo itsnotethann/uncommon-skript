@@ -2,7 +2,7 @@ package ch.njol.skript.lang;
 
 import ch.njol.util.Kleenean;
 import ch.njol.util.coll.CollectionUtils;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 
 /**
  * A syntax element that restricts the events it can be used in.
@@ -20,6 +20,6 @@ public interface EventRestrictedSyntax {
 	 * @return All supported event classes.
 	 * @see CollectionUtils#array(Object[])
 	 */
-	Class<? extends Event>[] supportedEvents();
+	Class<? extends PlatformEvent>[] supportedEvents();
 
 }

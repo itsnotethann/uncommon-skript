@@ -32,7 +32,7 @@ import ch.njol.skript.util.Utils;
 import ch.njol.util.Kleenean;
 import ch.njol.util.coll.CollectionUtils;
 import ch.njol.util.coll.iterator.NonNullIterator;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.jetbrains.annotations.Nullable;
 import org.skriptlang.skript.lang.converter.Converters;
 
@@ -113,7 +113,7 @@ public class SimpleLiteral<T> implements Literal<T>, DefaultExpression<T> {
 	}
 
 	@Override
-	public T[] getArray(Event event) {
+	public T[] getArray(PlatformEvent event) {
 		return this.data();
 	}
 
@@ -123,7 +123,7 @@ public class SimpleLiteral<T> implements Literal<T>, DefaultExpression<T> {
 	}
 
 	@Override
-	public T[] getAll(Event event) {
+	public T[] getAll(PlatformEvent event) {
 		return this.data();
 	}
 
@@ -133,7 +133,7 @@ public class SimpleLiteral<T> implements Literal<T>, DefaultExpression<T> {
 	}
 
 	@Override
-	public T getSingle(Event event) {
+	public T getSingle(PlatformEvent event) {
 		return getSingle();
 	}
 
@@ -154,7 +154,7 @@ public class SimpleLiteral<T> implements Literal<T>, DefaultExpression<T> {
 	}
 
 	@Override
-	public String toString(@Nullable Event event, boolean debug) {
+	public String toString(@Nullable PlatformEvent event, boolean debug) {
 		if (debug)
 			return "[" + Classes.toString(data, getAnd(), StringMode.DEBUG) + "]";
 		return Classes.toString(data, getAnd());
@@ -176,12 +176,12 @@ public class SimpleLiteral<T> implements Literal<T>, DefaultExpression<T> {
 	}
 
 	@Override
-	public boolean check(Event event, Predicate<? super T> checker, boolean negated) {
+	public boolean check(PlatformEvent event, Predicate<? super T> checker, boolean negated) {
 		return SimpleExpression.check(data, checker, negated, getAnd());
 	}
 
 	@Override
-	public boolean check(Event event, Predicate<? super T> checker) {
+	public boolean check(PlatformEvent event, Predicate<? super T> checker) {
 		return SimpleExpression.check(data, checker, false, getAnd());
 	}
 
@@ -198,7 +198,7 @@ public class SimpleLiteral<T> implements Literal<T>, DefaultExpression<T> {
 	}
 
 	@Override
-	public void change(final Event event, final Object @Nullable [] delta, final ChangeMode mode) throws UnsupportedOperationException {
+	public void change(final PlatformEvent event, final Object @Nullable [] delta, final ChangeMode mode) throws UnsupportedOperationException {
 		final ClassInfo<? super T> returnTypeInfo = this.returnTypeInfo;
 		if (returnTypeInfo == null)
 			throw new UnsupportedOperationException();
@@ -224,7 +224,7 @@ public class SimpleLiteral<T> implements Literal<T>, DefaultExpression<T> {
 	}
 
 	@Override
-	public NonNullIterator<T> iterator(final Event event) {
+	public NonNullIterator<T> iterator(final PlatformEvent event) {
 		return new NonNullIterator<>() {
 			private int i = 0;
 

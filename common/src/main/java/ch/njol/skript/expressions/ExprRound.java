@@ -11,7 +11,7 @@ import ch.njol.skript.lang.ExpressionType;
 import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.util.Kleenean;
 import ch.njol.util.Math2;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.eclipse.jdt.annotation.Nullable;
 
 /**
@@ -42,7 +42,7 @@ public class ExprRound extends PropertyExpression<Number, Long> {
 	}
 
 	@Override
-	protected Long[] get(final Event e, final Number[] source) {
+	protected Long[] get(final PlatformEvent e, final Number[] source) {
 		return get(source, n -> {
 			if (n instanceof Integer)
 				return n.longValue();
@@ -58,7 +58,7 @@ public class ExprRound extends PropertyExpression<Number, Long> {
 	}
 
 	@Override
-	public String toString(final @Nullable Event e, final boolean debug) {
+	public String toString(final @Nullable PlatformEvent e, final boolean debug) {
 		return (action == -1 ? "floor" : action == 0 ? "round" : "ceil") + "(" + getExpr().toString(e, debug) + ")";
 	}
 

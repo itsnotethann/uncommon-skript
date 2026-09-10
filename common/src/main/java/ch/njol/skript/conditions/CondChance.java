@@ -9,7 +9,7 @@ import ch.njol.skript.lang.Condition;
 import ch.njol.skript.lang.Expression;
 import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.util.Kleenean;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.eclipse.jdt.annotation.Nullable;
 
 /**
@@ -42,7 +42,7 @@ public class CondChance extends Condition {
 	}
 
 	@Override
-	public boolean check(final Event e) {
+	public boolean check(final PlatformEvent e) {
 		final Number n = chance.getSingle(e);
 		if (n == null)
 			return false;
@@ -50,7 +50,7 @@ public class CondChance extends Condition {
 	}
 
 	@Override
-	public String toString(final @Nullable Event e, final boolean debug) {
+	public String toString(final @Nullable PlatformEvent e, final boolean debug) {
 		return "chance of " + chance.toString(e, debug) + (percent ? "%" : "");
 	}
 

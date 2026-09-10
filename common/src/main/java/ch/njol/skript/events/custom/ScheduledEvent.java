@@ -1,6 +1,7 @@
 package ch.njol.skript.events.custom;
 
 import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.bukkit.event.HandlerList;
 
 /**

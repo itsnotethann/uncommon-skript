@@ -3,7 +3,7 @@ package org.skriptlang.skript.bukkit.lang.eventvalue;
 import ch.njol.skript.classes.Changer.ChangeMode;
 import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.util.coll.CollectionUtils;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 import org.skriptlang.skript.lang.converter.Converter;
@@ -14,7 +14,7 @@ import java.util.function.BiPredicate;
 import java.util.function.Function;
 
 /**
- * Describes a single "event value" available in a specific {@link org.bukkit.event.Event} context.
+ * Describes a single "event value" available in a specific {@link org.skriptlang.skript.lang.event.PlatformEvent} context.
  * An event value provides a typed value (e.g. the player, entity, location) for a given event and
  * can optionally support changing that value via Skript's {@link ch.njol.skript.classes.Changer} API.
  * <p>
@@ -25,7 +25,7 @@ import java.util.function.Function;
  * Instances should be created using {@link #builder(Class, Class)} and registered via
  * {@link EventValueRegistry#register(EventValue)}.
  */
-public sealed interface EventValue<E extends Event, V> permits EventValueImpl, ConvertedEventValue {
+public sealed interface EventValue<E extends PlatformEvent, V> permits EventValueImpl, ConvertedEventValue {
 
 	/**
 	 * Creates a new builder for an {@link EventValue}.
@@ -35,7 +35,7 @@ public sealed interface EventValue<E extends Event, V> permits EventValueImpl, C
 	 * @return a builder to configure and build the event value
 	 * @see #simple(Class, Class, Converter)
 	 */
-	static <E extends Event, V> EventValue.Builder<E, V> builder(Class<E> eventClass, Class<V> valueClass) {
+	static <E extends PlatformEvent, V> EventValue.Builder<E, V> builder(Class<E> eventClass, Class<V> valueClass) {
 		return new EventValueImpl.BuilderImpl<>(eventClass, valueClass);
 	}
 
@@ -48,7 +48,7 @@ public sealed interface EventValue<E extends Event, V> permits EventValueImpl, C
 	 * @return the constructed event value
 	 * @see #builder(Class, Class)
 	 */
-	static <E extends Event, V> EventValue<E, V> simple(Class<E> eventClass, Class<V> valueClass, Converter<E, V> converter) {
+	static <E extends PlatformEvent, V> EventValue<E, V> simple(Class<E> eventClass, Class<V> valueClass, Converter<E, V> converter) {
 		return builder(eventClass, valueClass).getter(converter).build();
 	}
 
@@ -162,7 +162,7 @@ public sealed interface EventValue<E extends Event, V> permits EventValueImpl, C
 	 * @param patterns the patterns to compare against
 	 * @return {@code true} if they match
 	 */
-	default boolean matches(Class<? extends Event> eventClass, Class<?> valueClass, String[] patterns) {
+	default boolean matches(Class<? extends PlatformEvent> eventClass, Class<?> valueClass, String[] patterns) {
 		return matches(eventClass, valueClass) && Arrays.equals(patterns(), patterns);
 	}
 
@@ -173,7 +173,7 @@ public sealed interface EventValue<E extends Event, V> permits EventValueImpl, C
 	 * @param valueClass the value class to compare against
 	 * @return {@code true} if they match
 	 */
-	default boolean matches(Class<? extends Event> eventClass, Class<?> valueClass) {
+	default boolean matches(Class<? extends PlatformEvent> eventClass, Class<?> valueClass) {
 		return eventClass().equals(eventClass) && valueClass().equals(valueClass);
 	}
 
@@ -189,7 +189,7 @@ public sealed interface EventValue<E extends Event, V> permits EventValueImpl, C
 	 * @param <ConvertedValue> the new value type
 	 * @return a new converted event value, or {@code null} if no converter was found
 	 */
-	@Nullable <ConvertedEvent extends Event, ConvertedValue> EventValue<ConvertedEvent, ConvertedValue> getConverted(
+	@Nullable <ConvertedEvent extends PlatformEvent, ConvertedValue> EventValue<ConvertedEvent, ConvertedValue> getConverted(
 		Class<ConvertedEvent> newEventClass,
 		Class<ConvertedValue> newValueClass
 	);
@@ -206,7 +206,7 @@ public sealed interface EventValue<E extends Event, V> permits EventValueImpl, C
 	 * @return a new converted event value
 	 * @see #getConverted(Class, Class, Converter, Converter)
 	 */
-	default @Nullable <NewEvent extends Event, NewValue> EventValue<NewEvent, NewValue> getConverted(
+	default @Nullable <NewEvent extends PlatformEvent, NewValue> EventValue<NewEvent, NewValue> getConverted(
 		Class<NewEvent> newEventClass,
 		Class<NewValue> newValueClass,
 		Converter<V, NewValue> converter
@@ -226,7 +226,7 @@ public sealed interface EventValue<E extends Event, V> permits EventValueImpl, C
 	 * @param <NewValue> the new value type
 	 * @return a new converted event value
 	 */
-	<NewEvent extends Event, NewValue> EventValue<NewEvent, NewValue> getConverted(
+	<NewEvent extends PlatformEvent, NewValue> EventValue<NewEvent, NewValue> getConverted(
 		Class<NewEvent> newEventClass,
 		Class<NewValue> newValueClass,
 		Converter<V, NewValue> converter,
@@ -307,7 +307,7 @@ public sealed interface EventValue<E extends Event, V> permits EventValueImpl, C
 	 * @param <V> the value type
 	 */
 	@FunctionalInterface
-	interface Changer<E extends Event, V> {
+	interface Changer<E extends PlatformEvent, V> {
 
 		/**
 		 * Applies a change to the value for the given event instance.
@@ -326,7 +326,7 @@ public sealed interface EventValue<E extends Event, V> permits EventValueImpl, C
 	 * @param <V> the value type
 	 */
 	@FunctionalInterface
-	interface NoValueChanger<E extends Event, V> extends Changer<E, V> {
+	interface NoValueChanger<E extends PlatformEvent, V> extends Changer<E, V> {
 
 		/**
 		 * Applies a change to the given event instance without a value.
@@ -338,7 +338,7 @@ public sealed interface EventValue<E extends Event, V> permits EventValueImpl, C
 		/**
 		 * {@inheritDoc}
 		 * <p>
-		 * This implementation ignores the provided value and calls {@link #change(Event)}.
+		 * This implementation ignores the provided value and calls {@link #change(PlatformEvent)}.
 		 *
 		 * @param event the event instance
 		 * @param value the value (ignored)
@@ -356,7 +356,7 @@ public sealed interface EventValue<E extends Event, V> permits EventValueImpl, C
 	 * @param <E> the event type
 	 * @param <V> the value type
 	 */
-	interface Builder<E extends Event, V> {
+	interface Builder<E extends PlatformEvent, V> {
 
 		/**
 		 * Adds one or more patterns matched against user input.

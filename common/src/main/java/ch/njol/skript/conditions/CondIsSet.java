@@ -12,7 +12,7 @@ import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.skript.lang.VerboseAssert;
 import ch.njol.skript.localization.Language;
 import ch.njol.util.Kleenean;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.eclipse.jdt.annotation.Nullable;
 
 /**
@@ -40,7 +40,7 @@ public class CondIsSet extends Condition implements VerboseAssert {
 		return true;
 	}
 
-	private boolean check(final Expression<?> expr, final Event e) {
+	private boolean check(final Expression<?> expr, final PlatformEvent e) {
 		if (expr instanceof ExpressionList) {
 			for (final Expression<?> ex : ((ExpressionList<?>) expr).getExpressions()) {
 				assert ex != null;
@@ -56,23 +56,23 @@ public class CondIsSet extends Condition implements VerboseAssert {
 	}
 
 	@Override
-	public boolean check(final Event e) {
+	public boolean check(final PlatformEvent e) {
 		return check(expr, e);
 	}
 
 	@Override
-	public String getExpectedMessage(Event event) {
+	public String getExpectedMessage(PlatformEvent event) {
 		return isNegated() ? Language.get("none") : "a value";
 	}
 
 	@Override
-	public String getReceivedMessage(Event event) {
+	public String getReceivedMessage(PlatformEvent event) {
 		// TODO: may need to make this enumerate each value: "a, b, <none>, and d"
 		return VerboseAssert.getExpressionValue(expr,event);
 	}
 
 	@Override
-	public String toString(final @Nullable Event e, final boolean debug) {
+	public String toString(final @Nullable PlatformEvent e, final boolean debug) {
 		return expr.toString(e, debug) + (isNegated() ? " isn't" : " is") + " set";
 	}
 

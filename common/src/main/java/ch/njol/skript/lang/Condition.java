@@ -6,7 +6,7 @@ import ch.njol.skript.config.Node;
 import ch.njol.skript.lang.simplification.Simplifiable;
 import ch.njol.skript.lang.util.SimpleExpression;
 import ch.njol.util.Kleenean;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.skriptlang.skript.lang.condition.Conditional;
@@ -19,7 +19,7 @@ import java.util.function.Predicate;
 /**
  * A condition which must be fulfilled for the trigger to continue. If the condition is in a section the behaviour depends on the section.
  */
-public abstract class Condition extends Statement implements Conditional<Event>, Simplifiable<Condition> {
+public abstract class Condition extends Statement implements Conditional<PlatformEvent>, Simplifiable<Condition> {
 
 	/**
 	 * @deprecated This has been replaced by {@link Priority}.
@@ -79,25 +79,25 @@ public abstract class Condition extends Statement implements Conditional<Event>,
 	 * Checks whether this condition is satisfied with the given event. This should not alter the event or the world in any way, as conditions are only checked until one returns
 	 * false. All subsequent conditions of the same trigger will then be omitted.<br/>
 	 * <br/>
-	 * You might want to use {@link SimpleExpression#check(Event, Predicate)}
+	 * You might want to use {@link SimpleExpression#check(PlatformEvent, Predicate)}
 	 *
 	 * @param event the event to check
 	 * @return <code>true</code> if the condition is satisfied, <code>false</code> otherwise or if the condition doesn't apply to this event.
 	 */
-	public abstract boolean check(Event event);
+	public abstract boolean check(PlatformEvent event);
 
 	@Override
-	public Kleenean evaluate(Event event) {
+	public Kleenean evaluate(PlatformEvent event) {
 		return Kleenean.get(check(event));
 	}
 
 	@Override
-	public final boolean run(Event event) {
+	public final boolean run(PlatformEvent event) {
 		return check(event);
 	}
 
 	/**
-	 * Sets the negation state of this condition. This will change the behaviour of {@link Expression#check(Event, Predicate, boolean)}.
+	 * Sets the negation state of this condition. This will change the behaviour of {@link Expression#check(PlatformEvent, Predicate, boolean)}.
 	 */
 	protected final void setNegated(boolean invert) {
 		negated = invert;

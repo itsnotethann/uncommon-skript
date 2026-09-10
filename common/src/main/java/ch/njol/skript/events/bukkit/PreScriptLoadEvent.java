@@ -5,6 +5,7 @@ import ch.njol.skript.config.Config;
 import com.google.common.base.Preconditions;
 import org.bukkit.Bukkit;
 import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.bukkit.event.HandlerList;
 
 import java.util.List;

@@ -19,7 +19,7 @@
 package ch.njol.skript.expressions.arithmetic;
 
 import ch.njol.skript.lang.Expression;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 
 @Deprecated
 public class NumberExpressionInfo implements ArithmeticGettable<Number> {
@@ -30,12 +30,12 @@ public class NumberExpressionInfo implements ArithmeticGettable<Number> {
 		this.expression = expression;
 	}
 
-	public Number get(Event event, boolean integer) {
+	public Number get(PlatformEvent event, boolean integer) {
 		return get(event);
 	}
 
 	@Override
-	public Number get(Event event) {
+	public Number get(PlatformEvent event) {
 		Number number = expression.getSingle(event);
 		return number != null ? number : 0;
 	}

@@ -11,7 +11,7 @@ import ch.njol.skript.lang.util.SimpleExpression;
 import ch.njol.skript.log.ErrorQuality;
 import ch.njol.skript.registrations.Classes;
 import ch.njol.skript.variables.Variables;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,27 +35,27 @@ public interface Expression<T> extends SyntaxElement, Debuggable, Loopable<T>, S
 	/**
 	 * Get the single value of this expression.
 	 * <p>
-	 * This method may only return null if it always returns null for the given event, i.e. it is equivalent to getting a random element out of {@link #getAll(Event)} or null iff
+	 * This method may only return null if it always returns null for the given event, i.e. it is equivalent to getting a random element out of {@link #getAll(PlatformEvent)} or null iff
 	 * that array is empty.
 	 * <p>
-	 * Do not use this in conditions, use {@link #check(Event, Predicate, boolean)} instead.
+	 * Do not use this in conditions, use {@link #check(PlatformEvent, Predicate, boolean)} instead.
 	 *
 	 * @param event The event
 	 * @return The value or null if this expression doesn't have any value for the event
 	 * @throws UnsupportedOperationException (optional) if this was called on a non-single expression
 	 */
-	@Nullable T getSingle(Event event);
+	@Nullable T getSingle(PlatformEvent event);
 
 	/**
 	 * Get an optional of the single value of this expression.
 	 * <p>
-	 * Do not use this in conditions, use {@link #check(Event, Predicate, boolean)} instead.
+	 * Do not use this in conditions, use {@link #check(PlatformEvent, Predicate, boolean)} instead.
 	 *
 	 * @param event the event
-	 * @return an {@link Optional} containing the {@link #getSingle(Event) single value} of this expression for this event.
-	 * @see #getSingle(Event)
+	 * @return an {@link Optional} containing the {@link #getSingle(PlatformEvent) single value} of this expression for this event.
+	 * @see #getSingle(PlatformEvent)
 	 */
-	default Optional<T> getOptionalSingle(Event event) {
+	default Optional<T> getOptionalSingle(PlatformEvent event) {
 		return Optional.ofNullable(getSingle(event));
 	}
 
@@ -64,21 +64,21 @@ public interface Expression<T> extends SyntaxElement, Debuggable, Loopable<T>, S
 	 * <p>
 	 * The returned array must not contain any null values.
 	 * <p>
-	 * Do not use this in conditions, use {@link #check(Event, Predicate, boolean)} instead.
+	 * Do not use this in conditions, use {@link #check(PlatformEvent, Predicate, boolean)} instead.
 	 *
 	 * @param event The event
 	 * @return An array of values of this expression which must neither be null nor contain nulls, and which must not be an internal array.
 	 */
-	T[] getArray(Event event);
+	T[] getArray(PlatformEvent event);
 
 	/**
-	 * Gets all possible return values of this expression, i.e. it returns the same as {@link #getArray(Event)} if {@link #getAnd()} is true, otherwise all possible values for
-	 * {@link #getSingle(Event)}.
+	 * Gets all possible return values of this expression, i.e. it returns the same as {@link #getArray(PlatformEvent)} if {@link #getAnd()} is true, otherwise all possible values for
+	 * {@link #getSingle(PlatformEvent)}.
 	 *
 	 * @param event The event
 	 * @return An array of all possible values of this expression for the given event which must neither be null nor contain nulls, and which must not be an internal array.
 	 */
-	T[] getAll(Event event);
+	T[] getAll(PlatformEvent event);
 
 	/**
 	 * Gets a non-null stream of this expression's values.
@@ -86,7 +86,7 @@ public interface Expression<T> extends SyntaxElement, Debuggable, Loopable<T>, S
 	 * @param event The event
 	 * @return A non-null stream of this expression's non-null values
 	 */
-	default Stream<? extends @NotNull T> stream(Event event) {
+	default Stream<? extends @NotNull T> stream(PlatformEvent event) {
 		Iterator<? extends T> iterator = iterator(event);
 		if (iterator == null) {
 			return Stream.empty();
@@ -95,10 +95,10 @@ public interface Expression<T> extends SyntaxElement, Debuggable, Loopable<T>, S
 	}
 
 	/**
-	 * Gets a non-null stream for all values of this expression via {@link #getAll(Event)}.
+	 * Gets a non-null stream for all values of this expression via {@link #getAll(PlatformEvent)}.
 	 * @param event The event.
 	 */
-	default Stream<? extends @NotNull T> streamAll(Event event) {
+	default Stream<? extends @NotNull T> streamAll(PlatformEvent event) {
 		Iterator<? extends T> iterator = Arrays.stream(getAll(event)).iterator();
 		return StreamSupport.stream(Spliterators.spliteratorUnknownSize(iterator, 0), false);
 	}
@@ -116,7 +116,7 @@ public interface Expression<T> extends SyntaxElement, Debuggable, Loopable<T>, S
 	 * Ideally, this will return {@link #isSingle()} based on its known inputs at initialisation, but for some syntax
 	 * this may not be known (or a syntax may be intentionally vague in its permissible returns).
 	 * @return Whether this can be used by single changers
-	 * @see #getSingle(Event)
+	 * @see #getSingle(PlatformEvent)
 	 */
 	default boolean canBeSingle() {
 		return this.isSingle();
@@ -129,7 +129,7 @@ public interface Expression<T> extends SyntaxElement, Debuggable, Loopable<T>, S
 	 * Usual implementation (may differ, e.g. may return false for nonexistent values independent of <tt>negated</tt>):
 	 *
 	 * <pre>
-	 * return negated ^ {@link #check(Event, Predicate)};
+	 * return negated ^ {@link #check(PlatformEvent, Predicate)};
 	 * </pre>
 	 *
 	 * @param event The event to be used for evaluation
@@ -138,10 +138,10 @@ public interface Expression<T> extends SyntaxElement, Debuggable, Loopable<T>, S
 	 * @return Whether this expression matches or doesn't match the given checker depending on the condition's negated state.
 	 * @see SimpleExpression#check(Object[], Predicate, boolean, boolean)
 	 */
-	boolean check(Event event, Predicate<? super T> checker, boolean negated);
+	boolean check(PlatformEvent event, Predicate<? super T> checker, boolean negated);
 
 	/**
-	 * Checks this expression against the given checker. This method must only be used around other checks, use {@link #check(Event, Predicate, boolean)} for a simple check or the
+	 * Checks this expression against the given checker. This method must only be used around other checks, use {@link #check(PlatformEvent, Predicate, boolean)} for a simple check or the
 	 * innermost check of a nested check.
 	 *
 	 * @param event The event to be used for evaluation
@@ -149,7 +149,7 @@ public interface Expression<T> extends SyntaxElement, Debuggable, Loopable<T>, S
 	 * @return Whether this expression matches the given checker
 	 * @see SimpleExpression#check(Object[], Predicate, boolean, boolean)
 	 */
-	boolean check(Event event, Predicate<? super T> checker);
+	boolean check(PlatformEvent event, Predicate<? super T> checker);
 
 	/**
 	 * Tries to convert this expression to the given type. This method can print an error prior to returning null to specify the cause.
@@ -172,7 +172,7 @@ public interface Expression<T> extends SyntaxElement, Debuggable, Loopable<T>, S
 	/**
 	 * Gets the return type of this expression.
 	 *
-	 * @return A supertype of any objects returned by {@link #getSingle(Event)} and the component type of any arrays returned by {@link #getArray(Event)}
+	 * @return A supertype of any objects returned by {@link #getSingle(PlatformEvent)} and the component type of any arrays returned by {@link #getArray(PlatformEvent)}
 	 */
 	Class<? extends T> getReturnType();
 
@@ -218,7 +218,7 @@ public interface Expression<T> extends SyntaxElement, Debuggable, Loopable<T>, S
 	/**
 	 * Returns true if this expression returns all possible values, false if it only returns some of them.
 	 * <p>
-	 * This method significantly influences {@link #check(Event, Predicate)}, {@link #check(Event, Predicate, boolean)} and {@link CondIsSet} and thus breaks conditions that use this
+	 * This method significantly influences {@link #check(PlatformEvent, Predicate)}, {@link #check(PlatformEvent, Predicate, boolean)} and {@link CondIsSet} and thus breaks conditions that use this
 	 * expression if it returns a wrong value.
 	 * <p>
 	 * This method must return true if this is a {@link #isSingle() single} expression. // TODO make this method irrelevant for single expressions
@@ -255,9 +255,9 @@ public interface Expression<T> extends SyntaxElement, Debuggable, Loopable<T>, S
 	 * Allows the expression to return nested structures, i.e. lists of lists.
 	 * <p>
 	 * <b>Note</b>:
-	 * Nested structures must be flattened in {@link #getArray(Event)} and {@link #getAll(Event)},
+	 * Nested structures must be flattened in {@link #getArray(PlatformEvent)} and {@link #getAll(PlatformEvent)},
 	 * i.e. if this expression returns a list of lists of players,
-	 * {@link #getArray(Event)} must return a single array containing all players of all lists
+	 * {@link #getArray(PlatformEvent)} must return a single array containing all players of all lists
 	 *
 	 * @return Whether this expression supports nested structures.
 	 * @see #returnsNestedStructures()
@@ -301,13 +301,13 @@ public interface Expression<T> extends SyntaxElement, Debuggable, Loopable<T>, S
 	 * <b>Use {@link ChangerUtils#acceptsChange(Expression, ChangeMode, Class...)} to test whether an expression supports changing</b>, don't directly use this method!
 	 * <p>
 	 * Please note that if a changer is registered for this expression's {@link #getReturnType() returnType} this method does not have to be overridden. If you override it though
-	 * make sure to return <tt>super.acceptChange(mode)</tt>, and to handle the appropriate ChangeMode(s) in {@link #change(Event, Object[], ChangeMode)} with
+	 * make sure to return <tt>super.acceptChange(mode)</tt>, and to handle the appropriate ChangeMode(s) in {@link #change(PlatformEvent, Object[], ChangeMode)} with
 	 * <tt>super.change(...)</tt>.
 	 * <p>
 	 * Unlike {@link Changer#acceptChange(ChangeMode)} this method may print errors.
 	 *
 	 * @param mode The mode to check
-	 * @return An array of types that {@link #change(Event, Object[], ChangeMode)} accepts as its <code>delta</code> parameter (which can be arrays to denote that multiple of
+	 * @return An array of types that {@link #change(PlatformEvent, Object[], ChangeMode)} accepts as its <code>delta</code> parameter (which can be arrays to denote that multiple of
 	 *         that type are accepted), or null if the given mode is not supported. For {@link ChangeMode#DELETE} and {@link ChangeMode#RESET} this can return any non-null array to
 	 *         mark them as supported.
 	 */
@@ -337,7 +337,7 @@ public interface Expression<T> extends SyntaxElement, Debuggable, Loopable<T>, S
 	 * @param mode The {@link ChangeMode} of the attempted change
 	 * @throws UnsupportedOperationException (optional) - If this method was called on an unsupported ChangeMode.
 	 */
-	void change(Event event, Object @Nullable [] delta, ChangeMode mode);
+	void change(PlatformEvent event, Object @Nullable [] delta, ChangeMode mode);
 
 	/**
 	 * Changes the contents of an expression using the given {@link Function}.
@@ -361,7 +361,7 @@ public interface Expression<T> extends SyntaxElement, Debuggable, Loopable<T>, S
 	 *              by {{@link #acceptChange(ChangeMode)}} for {@link ChangeMode#SET}.
 	 */
 	@ApiStatus.Internal
-	default <R> void changeInPlace(Event event, Function<T, R> changeFunction) {
+	default <R> void changeInPlace(PlatformEvent event, Function<T, R> changeFunction) {
 		changeInPlace(event, changeFunction, false);
 	}
 
@@ -383,12 +383,12 @@ public interface Expression<T> extends SyntaxElement, Debuggable, Loopable<T>, S
 	 *                       Returning null will remove the element.
 	 *                       Returning a type not accepted by {@link #acceptChange(ChangeMode)} for {@link ChangeMode#SET}
 	 *                       will depend on the implementer. The default implementation will remove the element.
-	 * @param getAll Whether to evaluate with {@link #getAll(Event)} or {@link #getArray(Event)}.
+	 * @param getAll Whether to evaluate with {@link #getAll(PlatformEvent)} or {@link #getArray(PlatformEvent)}.
 	 * @param <R> The output type of the change function. Must be a type returned
 	 *              by {{@link #acceptChange(ChangeMode)}} for {@link ChangeMode#SET}.
 	 */
 	@ApiStatus.Internal
-	default <R> void changeInPlace(Event event, Function<T, R> changeFunction, boolean getAll) {
+	default <R> void changeInPlace(PlatformEvent event, Function<T, R> changeFunction, boolean getAll) {
 		T[] values = getAll ? getAll(event) : getArray(event);
 		if (values.length == 0)
 			return;

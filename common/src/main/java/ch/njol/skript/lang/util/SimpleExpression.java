@@ -15,7 +15,7 @@ import ch.njol.util.Kleenean;
 import ch.njol.util.coll.CollectionUtils;
 import ch.njol.util.coll.iterator.ArrayIterator;
 import com.google.common.collect.PeekingIterator;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.skriptlang.skript.lang.converter.Converter;
@@ -45,7 +45,7 @@ public abstract class SimpleExpression<T> implements Expression<T>, SyntaxRuntim
 	}
 
 	@Override
-	public final @Nullable T getSingle(Event event) {
+	public final @Nullable T getSingle(PlatformEvent event) {
 		T[] values = getArray(event);
 		if (values.length == 0)
 			return null;
@@ -55,7 +55,7 @@ public abstract class SimpleExpression<T> implements Expression<T>, SyntaxRuntim
 	}
 
 	@Override
-	public T[] getAll(Event event) {
+	public T[] getAll(PlatformEvent event) {
 		T[] values = get(event);
 		if (values == null) {
 			//noinspection unchecked
@@ -82,7 +82,7 @@ public abstract class SimpleExpression<T> implements Expression<T>, SyntaxRuntim
 	}
 
 	@Override
-	public final T[] getArray(Event event) {
+	public final T[] getArray(PlatformEvent event) {
 		T[] values = get(event);
 		if (values == null) {
 			//noinspection unchecked
@@ -127,20 +127,20 @@ public abstract class SimpleExpression<T> implements Expression<T>, SyntaxRuntim
 
 	/**
 	 * This is the internal method to get an expression's values.<br>
-	 * To get the expression's value from the outside use {@link #getSingle(Event)} or {@link #getArray(Event)}.
+	 * To get the expression's value from the outside use {@link #getSingle(PlatformEvent)} or {@link #getArray(PlatformEvent)}.
 	 *
 	 * @param event The event with which this expression is evaluated.
 	 * @return An array of values for this event. May not contain nulls.
 	 */
-	protected abstract T @Nullable [] get(Event event);
+	protected abstract T @Nullable [] get(PlatformEvent event);
 
 	@Override
-	public final boolean check(Event event, Predicate<? super T> checker) {
+	public final boolean check(PlatformEvent event, Predicate<? super T> checker) {
 		return check(event, checker, false);
 	}
 
 	@Override
-	public final boolean check(Event event, Predicate<? super T> checker, boolean negated) {
+	public final boolean check(PlatformEvent event, Predicate<? super T> checker, boolean negated) {
 		return check(get(event), checker, negated, getAnd());
 	}
 
@@ -212,7 +212,7 @@ public abstract class SimpleExpression<T> implements Expression<T>, SyntaxRuntim
 	}
 
 	@Override
-	public void change(Event event, Object @Nullable [] delta, ChangeMode mode) {
+	public void change(PlatformEvent event, Object @Nullable [] delta, ChangeMode mode) {
 		ClassInfo<?> returnTypeInfo = this.returnTypeInfo;
 		if (returnTypeInfo == null)
 			throw new UnsupportedOperationException();
@@ -241,7 +241,7 @@ public abstract class SimpleExpression<T> implements Expression<T>, SyntaxRuntim
 		return false;
 	}
 
-	protected final boolean setTime(int time, Class<? extends Event> applicableEvent) {
+	protected final boolean setTime(int time, Class<? extends PlatformEvent> applicableEvent) {
 		if (getParser().getHasDelayBefore() == Kleenean.TRUE && time != 0) {
 			Skript.error("Can't use time states after the event has already passed.");
 			return false;
@@ -253,7 +253,7 @@ public abstract class SimpleExpression<T> implements Expression<T>, SyntaxRuntim
 	}
 
 	@SafeVarargs
-	protected final boolean setTime(int time, Class<? extends Event>... applicableEvents) {
+	protected final boolean setTime(int time, Class<? extends PlatformEvent>... applicableEvents) {
 		if (getParser().getHasDelayBefore() == Kleenean.TRUE && time != 0) {
 			Skript.error("Can't use time states after the event has already passed.");
 			return false;
@@ -264,7 +264,7 @@ public abstract class SimpleExpression<T> implements Expression<T>, SyntaxRuntim
 		return true;
 	}
 
-	protected final boolean setTime(int time, Class<? extends Event> applicableEvent, @NotNull Expression<?>... mustbeDefaultVars) {
+	protected final boolean setTime(int time, Class<? extends PlatformEvent> applicableEvent, @NotNull Expression<?>... mustbeDefaultVars) {
 		if (getParser().getHasDelayBefore() == Kleenean.TRUE && time != 0) {
 			Skript.error("Can't use time states after the event has already passed.");
 			return false;
@@ -281,7 +281,7 @@ public abstract class SimpleExpression<T> implements Expression<T>, SyntaxRuntim
 	}
 
 	@SafeVarargs
-	protected final boolean setTime(int time, Expression<?> mustbeDefaultVar, Class<? extends Event>... applicableEvents) {
+	protected final boolean setTime(int time, Expression<?> mustbeDefaultVar, Class<? extends PlatformEvent>... applicableEvents) {
 		if (getParser().getHasDelayBefore() == Kleenean.TRUE && time != 0) {
 			Skript.error("Can't use time states after the event has already passed.");
 			return false;
@@ -324,7 +324,7 @@ public abstract class SimpleExpression<T> implements Expression<T>, SyntaxRuntim
 	 * @return {@link ArrayIterator}
 	 */
 	@Override
-	public @Nullable Iterator<? extends T> iterator(Event event) {
+	public @Nullable Iterator<? extends T> iterator(PlatformEvent event) {
 		return new ArrayIterator<>(getArray(event));
 	}
 

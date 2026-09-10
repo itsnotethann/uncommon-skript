@@ -9,7 +9,7 @@ import ch.njol.skript.lang.Effect;
 import ch.njol.skript.lang.Expression;
 import ch.njol.skript.lang.SkriptParser;
 import ch.njol.util.Kleenean;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.eclipse.jdt.annotation.Nullable;
 import org.skriptlang.skript.lang.script.ScriptWarning;
 
@@ -48,10 +48,10 @@ public class EffSuppressWarnings extends Effect {
 	}
 
 	@Override
-	protected void execute(Event event) { }
+	protected void execute(PlatformEvent event) { }
 
 	@Override
-	public String toString(@Nullable Event event, boolean debug) {
+	public String toString(@Nullable PlatformEvent event, boolean debug) {
 		String word;
 		switch (mark) {
 			case CONFLICT:

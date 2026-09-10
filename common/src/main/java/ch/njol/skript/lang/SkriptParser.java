@@ -37,7 +37,7 @@ import ch.njol.util.coll.CollectionUtils;
 import ch.njol.util.coll.iterator.CheckedIterator;
 import com.google.common.base.Preconditions;
 import com.google.common.primitives.Booleans;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.skriptlang.skript.platform.AddonHandle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -288,7 +288,7 @@ public final class SkriptParser {
 	 */
 	private static boolean checkRestrictedEvents(SyntaxElement element, ParseResult parseResult) {
 		if (element instanceof EventRestrictedSyntax eventRestrictedSyntax) {
-			Class<? extends Event>[] supportedEvents = eventRestrictedSyntax.supportedEvents();
+			Class<? extends PlatformEvent>[] supportedEvents = eventRestrictedSyntax.supportedEvents();
 			if (!getParser().isCurrentEvent(supportedEvents)) {
 				Skript.error("'" + parseResult.expr + "' can only be used in " + supportedEventsNames(supportedEvents));
 				return false;
@@ -303,12 +303,12 @@ public final class SkriptParser {
 	 * @param supportedEvents The array of supported event classes.
 	 * @return A string with the names of the supported skript events, or an empty string if none are found.
 	 */
-	private static @NotNull String supportedEventsNames(Class<? extends Event>[] supportedEvents) {
+	private static @NotNull String supportedEventsNames(Class<? extends PlatformEvent>[] supportedEvents) {
 		List<String> names = new ArrayList<>();
 
 		for (SkriptEventInfo<?> eventInfo : Skript.getEvents()) {
-			for (Class<? extends Event> eventClass : supportedEvents) {
-				for (Class<? extends Event> event : eventInfo.events) {
+			for (Class<? extends PlatformEvent> eventClass : supportedEvents) {
+				for (Class<? extends PlatformEvent> event : eventInfo.events) {
 					if (event.isAssignableFrom(eventClass)) {
 						names.add("the %s event".formatted(eventInfo.getName().toLowerCase()));
 					}

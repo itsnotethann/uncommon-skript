@@ -37,7 +37,7 @@ import ch.njol.util.StringUtils;
 import ch.njol.util.coll.CollectionUtils;
 import ch.njol.util.coll.iterator.SingleItemIterator;
 import com.google.common.collect.Lists;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.skriptlang.skript.lang.script.Script;
@@ -368,7 +368,7 @@ public class VariableString implements Expression<String> {
 	 * @param event Event to pass to the expressions.
 	 * @return The input string with all expressions replaced.
 	 */
-	public String toUnformattedString(Event event) {
+	public String toUnformattedString(PlatformEvent event) {
 		if (isSimple) {
 			assert simpleUnformatted != null;
 			return simpleUnformatted;
@@ -398,7 +398,7 @@ public class VariableString implements Expression<String> {
 	 * @param event Event to pass to the expressions.
 	 * @return The input string with all expressions replaced.
 	 */
-	public String toString(@Nullable Event event) {
+	public String toString(@Nullable PlatformEvent event) {
 		if (isSimple) {
 			assert simple != null;
 			return simple;
@@ -430,10 +430,10 @@ public class VariableString implements Expression<String> {
 	}
 
 	/**
-	 * Use {@link #toString(Event)} to get the actual string. This method is for debugging.
+	 * Use {@link #toString(PlatformEvent)} to get the actual string. This method is for debugging.
 	 */
 	@Override
-	public String toString(@Nullable Event event, boolean debug) {
+	public String toString(@Nullable PlatformEvent event, boolean debug) {
 		if (isSimple) {
 			assert simple != null;
 			return '"' + simple + '"';
@@ -458,7 +458,7 @@ public class VariableString implements Expression<String> {
 	 * @return List<String> of all possible super class code names.
 	 */
 	@NotNull
-	public List<String> getDefaultVariableNames(String variableName, Event event) {
+	public List<String> getDefaultVariableNames(String variableName, PlatformEvent event) {
 		if (script == null || mode != StringMode.VARIABLE_NAME)
 			return Lists.newArrayList();
 
@@ -525,17 +525,17 @@ public class VariableString implements Expression<String> {
 	}
 
 	@Override
-	public String getSingle(Event event) {
+	public String getSingle(PlatformEvent event) {
 		return toString(event);
 	}
 
 	@Override
-	public String[] getArray(Event event) {
+	public String[] getArray(PlatformEvent event) {
 		return new String[] {toString(event)};
 	}
 
 	@Override
-	public String[] getAll(Event event) {
+	public String[] getAll(PlatformEvent event) {
 		return new String[] {toString(event)};
 	}
 
@@ -545,12 +545,12 @@ public class VariableString implements Expression<String> {
 	}
 
 	@Override
-	public boolean check(Event event, Predicate<? super String> checker, boolean negated) {
+	public boolean check(PlatformEvent event, Predicate<? super String> checker, boolean negated) {
 		return SimpleExpression.check(getAll(event), checker, negated, false);
 	}
 
 	@Override
-	public boolean check(Event event, Predicate<? super String> checker) {
+	public boolean check(PlatformEvent event, Predicate<? super String> checker) {
 		return SimpleExpression.check(getAll(event), checker, false, false);
 	}
 
@@ -575,7 +575,7 @@ public class VariableString implements Expression<String> {
 	}
 
 	@Override
-	public void change(Event event, @Nullable Object[] delta, ChangeMode mode) throws UnsupportedOperationException {
+	public void change(PlatformEvent event, @Nullable Object[] delta, ChangeMode mode) throws UnsupportedOperationException {
 		throw new UnsupportedOperationException();
 	}
 
@@ -600,7 +600,7 @@ public class VariableString implements Expression<String> {
 	}
 
 	@Override
-	public Iterator<? extends String> iterator(Event event) {
+	public Iterator<? extends String> iterator(PlatformEvent event) {
 		return new SingleItemIterator<>(toString(event));
 	}
 

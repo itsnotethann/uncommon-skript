@@ -15,7 +15,7 @@ import ch.njol.skript.lang.util.SimpleExpression;
 import ch.njol.skript.util.Utils;
 import ch.njol.util.Kleenean;
 import com.google.common.collect.Lists;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.eclipse.jdt.annotation.Nullable;
 
 import java.lang.reflect.Array;
@@ -61,14 +61,14 @@ public class ExprSets extends SimpleExpression<Object> {
 	}
 
 	@Override
-	protected Object[] get(Event event) {
+	protected Object[] get(PlatformEvent event) {
 		List<?> objects = Lists.newArrayList(supplier.get());
 		return objects.toArray((Object[]) Array.newInstance(classInfo.getC(), objects.size()));
 	}
 
 	@Override
 	@Nullable
-	public Iterator<?> iterator(Event event) {
+	public Iterator<?> iterator(PlatformEvent event) {
 		return supplier.get();
 	}
 
@@ -83,7 +83,7 @@ public class ExprSets extends SimpleExpression<Object> {
 	}
 
 	@Override
-	public String toString(@Nullable Event event, boolean debug) {
+	public String toString(@Nullable PlatformEvent event, boolean debug) {
 		return "all of the " + classInfo.getName().getPlural();
 	}
 

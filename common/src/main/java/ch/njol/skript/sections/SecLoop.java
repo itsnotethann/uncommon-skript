@@ -16,7 +16,7 @@ import ch.njol.skript.util.LiteralUtils;
 import ch.njol.util.Kleenean;
 import com.google.common.collect.MapMaker;
 import com.google.common.collect.PeekingIterator;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.UnknownNullability;
 
@@ -82,19 +82,19 @@ public class SecLoop extends LoopSection {
 
 	protected @UnknownNullability Expression<?> expression;
 
-	private final transient Map<Event, Object> current = new MapMaker()
+	private final transient Map<PlatformEvent, Object> current = new MapMaker()
 		.concurrencyLevel(8)
 		.weakKeys()
 		.makeMap();
-	private final transient Map<Event, Iterator<?>> iteratorMap = new MapMaker()
+	private final transient Map<PlatformEvent, Iterator<?>> iteratorMap = new MapMaker()
 		.concurrencyLevel(8)
 		.weakKeys()
 		.makeMap();
-	private final transient Map<Event, Object> previous = new MapMaker()
+	private final transient Map<PlatformEvent, Object> previous = new MapMaker()
 		.concurrencyLevel(8)
 		.weakKeys()
 		.makeMap();
-	private final transient Map<Event, Object> next = new MapMaker()
+	private final transient Map<PlatformEvent, Object> next = new MapMaker()
 		.concurrencyLevel(8)
 		.weakKeys()
 		.makeMap();
@@ -141,7 +141,7 @@ public class SecLoop extends LoopSection {
 	}
 
 	@Override
-	protected @Nullable TriggerItem walk(Event event) {
+	protected @Nullable TriggerItem walk(PlatformEvent event) {
 		Iterator<?> iter = iteratorMap.get(event);
 		if (iter == null) {
 			if (iterableSingle) {
@@ -183,7 +183,7 @@ public class SecLoop extends LoopSection {
 		}
 	}
 
-	protected void store(Event event, Object next) {
+	protected void store(PlatformEvent event, Object next) {
 		this.current.put(event, next);
 		this.currentLoopCounter.put(event, (currentLoopCounter.getOrDefault(event, 0L)) + 1);
 	}
@@ -194,15 +194,15 @@ public class SecLoop extends LoopSection {
 	}
 
 	@Override
-	public String toString(@Nullable Event event, boolean debug) {
+	public String toString(@Nullable PlatformEvent event, boolean debug) {
 		return "loop " + expression.toString(event, debug);
 	}
 
-	public @Nullable Object getCurrent(Event event) {
+	public @Nullable Object getCurrent(PlatformEvent event) {
 		return current.get(event);
 	}
 
-	public @Nullable Object getNext(Event event) {
+	public @Nullable Object getNext(PlatformEvent event) {
 		if (!loopPeeking)
 			return null;
 		Object nextValue = next.get(event);
@@ -219,7 +219,7 @@ public class SecLoop extends LoopSection {
 		return nextValue;
 	}
 
-	public @Nullable Object getPrevious(Event event) {
+	public @Nullable Object getPrevious(PlatformEvent event) {
 		return previous.get(event);
 	}
 
@@ -251,7 +251,7 @@ public class SecLoop extends LoopSection {
 	}
 
 	@Override
-	public void exit(Event event) {
+	public void exit(PlatformEvent event) {
 		iteratorMap.remove(event);
 		previous.remove(event);
 		current.remove(event);

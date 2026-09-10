@@ -15,7 +15,7 @@ import ch.njol.skript.registrations.Classes;
 import ch.njol.skript.sections.SecLoop;
 import ch.njol.skript.util.Utils;
 import ch.njol.util.Kleenean;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Array;
@@ -172,7 +172,7 @@ public class ExprLoopValue extends SimpleExpression<Object> {
 	}
 
 	@Override
-	protected Object @Nullable [] get(Event event) {
+	protected Object @Nullable [] get(PlatformEvent event) {
 		if (isKeyedLoop) {
 			//noinspection unchecked
 			KeyedValue<Object> value = (KeyedValue<Object>) switch (selectedState) {
@@ -199,7 +199,7 @@ public class ExprLoopValue extends SimpleExpression<Object> {
 	}
 
 	@Override
-	public String toString(@Nullable Event event, boolean debug) {
+	public String toString(@Nullable PlatformEvent event, boolean debug) {
 		if (event == null)
 			return name;
 		if (isKeyedLoop) {

@@ -13,7 +13,7 @@ import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.skript.lang.util.SimpleExpression;
 import ch.njol.util.Kleenean;
 import ch.njol.util.StringUtils;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.eclipse.jdt.annotation.Nullable;
 
 import java.util.regex.Pattern;
@@ -61,7 +61,7 @@ public class ExprJoinSplit extends SimpleExpression<String> {
 
 	@Override
 	@Nullable
-	protected String[] get(Event event) {
+	protected String[] get(PlatformEvent event) {
 		String[] strings = this.strings.getArray(event);
 		String delimiter = this.delimiter != null ? this.delimiter.getSingle(event) : "";
 		if (strings.length == 0 || delimiter == null)
@@ -84,7 +84,7 @@ public class ExprJoinSplit extends SimpleExpression<String> {
 	}
 
 	@Override
-	public String toString(@Nullable Event event, boolean debug) {
+	public String toString(@Nullable PlatformEvent event, boolean debug) {
 		if (join)
 			return "join " + strings.toString(event, debug) + (delimiter != null ? " with " + delimiter.toString(event, debug) : "");
 		return (regex ? "regex " : "") + "split " + strings.toString(event, debug) + (delimiter != null ? " at " + delimiter.toString(event, debug) : "")

@@ -23,7 +23,7 @@ import ch.njol.skript.lang.Literal;
 import ch.njol.skript.registrations.Classes;
 import ch.njol.util.coll.CollectionUtils;
 import ch.njol.util.coll.iterator.ArrayIterator;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.eclipse.jdt.annotation.Nullable;
 import org.skriptlang.skript.lang.converter.ConverterInfo;
 import org.skriptlang.skript.lang.converter.Converters;
@@ -55,7 +55,7 @@ public class ConvertedLiteral<F, T> extends ConvertedExpression<F, T> implements
 	}
 
 	@Override
-	public String toString(@Nullable Event event, boolean debug) {
+	public String toString(@Nullable PlatformEvent event, boolean debug) {
 		return Classes.toString(data, getAnd());
 	}
 
@@ -70,7 +70,7 @@ public class ConvertedLiteral<F, T> extends ConvertedExpression<F, T> implements
 	}
 
 	@Override
-	public T[] getArray(Event event) {
+	public T[] getArray(PlatformEvent event) {
 		return getArray();
 	}
 
@@ -82,23 +82,23 @@ public class ConvertedLiteral<F, T> extends ConvertedExpression<F, T> implements
 	}
 
 	@Override
-	public T getSingle(Event event) {
+	public T getSingle(PlatformEvent event) {
 		return getSingle();
 	}
 
 	@Override
 	@Nullable
-	public Iterator<T> iterator(Event event) {
+	public Iterator<T> iterator(PlatformEvent event) {
 		return new ArrayIterator<>(data);
 	}
 
 	@Override
-	public boolean check(Event event, Predicate<? super T> checker) {
+	public boolean check(PlatformEvent event, Predicate<? super T> checker) {
 		return SimpleExpression.check(data, checker, false, getAnd());
 	}
 
 	@Override
-	public boolean check(Event event, Predicate<? super T> checker, boolean negated) {
+	public boolean check(PlatformEvent event, Predicate<? super T> checker, boolean negated) {
 		return SimpleExpression.check(data, checker, negated, getAnd());
 	}
 

@@ -11,7 +11,7 @@ import ch.njol.skript.lang.Variable;
 import ch.njol.skript.registrations.Classes;
 import ch.njol.skript.variables.Variables;
 import ch.njol.util.Kleenean;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.eclipse.jdt.annotation.Nullable;
 
 import java.util.*;
@@ -65,7 +65,7 @@ public class EffCopy extends Effect {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	protected void execute(Event event) {
+	protected void execute(PlatformEvent event) {
 		if (!(source instanceof Variable) || source.isSingle()) {
 			ChangeMode mode = ChangeMode.SET;
 			Object[] clone = (Object[]) Classes.clone(source.getArray(event));
@@ -94,7 +94,7 @@ public class EffCopy extends Effect {
 	}
 
 	@Override
-	public String toString(@Nullable Event event, boolean debug) {
+	public String toString(@Nullable PlatformEvent event, boolean debug) {
 		return "copy " + source.toString(event, debug) + " into " + rawDestination.toString(event, debug);
 	}
 
@@ -115,7 +115,7 @@ public class EffCopy extends Effect {
 	}
 
 	@SuppressWarnings("unchecked")
-	private static void set(Event event, String targetName, Map<String, Object> source, boolean local) {
+	private static void set(PlatformEvent event, String targetName, Map<String, Object> source, boolean local) {
 		source.forEach((key, value) -> {
 			String node = targetName + (key == null ? "" : Variable.SEPARATOR + key);
 			if (value instanceof Map) {

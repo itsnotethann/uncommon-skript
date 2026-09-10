@@ -3,7 +3,7 @@ package org.skriptlang.skript.bukkit.lang.eventvalue;
 import ch.njol.skript.classes.ClassInfo;
 import ch.njol.skript.registrations.Classes;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.jetbrains.annotations.Nullable;
 import org.skriptlang.skript.util.ClassUtils;
 
@@ -20,7 +20,7 @@ import java.util.function.Predicate;
  * @param <E> The event type.
  * @param <V> The value type.
  */
-class Resolver<E extends Event, V> {
+class Resolver<E extends PlatformEvent, V> {
 
 	/**
 	 * A comparator factory that creates a comparator that compares {@link EventValue}s based on the distance
@@ -129,7 +129,7 @@ class Resolver<E extends Event, V> {
 	 * @param <V> The value type.
 	 * @return The filtered list of event values.
 	 */
-	private static <E extends Event, V> List<EventValue<E, V>> filterEventValues(
+	private static <E extends PlatformEvent, V> List<EventValue<E, V>> filterEventValues(
 		Class<V> valueClass,
 		List<EventValue<E, V>> eventValues
 	) {
@@ -154,7 +154,7 @@ class Resolver<E extends Event, V> {
 	 * @param <V> The value type.
 	 * @return The builder.
 	 */
-	static <E extends Event, V> Builder<E, V> builder(Class<E> eventClass) {
+	static <E extends PlatformEvent, V> Builder<E, V> builder(Class<E> eventClass) {
 		return new Builder<>(eventClass, null);
 	}
 
@@ -167,7 +167,7 @@ class Resolver<E extends Event, V> {
 	 * @param <V> The value type.
 	 * @return The builder.
 	 */
-	static <E extends Event, V> Builder<E, V> builder(Class<E> eventClass, Class<V> valueClass) {
+	static <E extends PlatformEvent, V> Builder<E, V> builder(Class<E> eventClass, Class<V> valueClass) {
 		return new Builder<>(eventClass, valueClass);
 	}
 
@@ -177,7 +177,7 @@ class Resolver<E extends Event, V> {
 	 * @param <E> The event type.
 	 * @param <V> The value type.
 	 */
-	static class Builder<E extends Event, V> {
+	static class Builder<E extends PlatformEvent, V> {
 
 		private final Class<E> eventClass;
 		private final @Nullable Class<V> valueClass;
@@ -286,7 +286,7 @@ class Resolver<E extends Event, V> {
 		 * @param eventClass The event class.
 		 * @return The comparator.
 		 */
-		Comparator<EventValue<?, ?>> create(Class<? extends Event> eventClass);
+		Comparator<EventValue<?, ?>> create(Class<? extends PlatformEvent> eventClass);
 
 	}
 
@@ -303,7 +303,7 @@ class Resolver<E extends Event, V> {
 		 * @param valueClass The value class.
 		 * @return The comparator.
 		 */
-		Comparator<EventValue<?, ?>> create(Class<? extends Event> eventClass, Class<?> valueClass);
+		Comparator<EventValue<?, ?>> create(Class<? extends PlatformEvent> eventClass, Class<?> valueClass);
 
 	}
 

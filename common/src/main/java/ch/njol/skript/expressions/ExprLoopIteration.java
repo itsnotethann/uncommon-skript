@@ -30,7 +30,7 @@ import ch.njol.skript.lang.LoopSection;
 import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.skript.lang.util.SimpleExpression;
 import ch.njol.util.Kleenean;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.eclipse.jdt.annotation.Nullable;
 
 @Name("Loop Iteration")
@@ -92,7 +92,7 @@ public class ExprLoopIteration extends SimpleExpression<Long> {
 	}
 
 	@Override
-	protected Long[] get(Event event) {
+	protected Long[] get(PlatformEvent event) {
 		return new Long[]{loop.getLoopCounter(event)};
 	}
 
@@ -107,7 +107,7 @@ public class ExprLoopIteration extends SimpleExpression<Long> {
 	}
 
 	@Override
-	public String toString(@Nullable Event event, boolean debug) {
+	public String toString(@Nullable PlatformEvent event, boolean debug) {
 		return "loop-iteration" + (loopNumber != -1 ? ("-" + loopNumber) : "");
 	}
 

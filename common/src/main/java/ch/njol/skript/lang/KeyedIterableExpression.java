@@ -1,6 +1,6 @@
 package ch.njol.skript.lang;
 
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 
 import java.util.Iterator;
 import java.util.Spliterators;
@@ -24,9 +24,9 @@ public interface KeyedIterableExpression<T> extends Expression<T> {
 	 * @param event The event context
 	 * @return An iterator over the key-value pairs of this expression
 	 */
-	Iterator<KeyedValue<T>> keyedIterator(Event event);
+	Iterator<KeyedValue<T>> keyedIterator(PlatformEvent event);
 
-	default Stream<KeyedValue<T>> keyedStream(Event event) {
+	default Stream<KeyedValue<T>> keyedStream(PlatformEvent event) {
 		return StreamSupport.stream(Spliterators.spliteratorUnknownSize(keyedIterator(event), 0), false);
 	}
 

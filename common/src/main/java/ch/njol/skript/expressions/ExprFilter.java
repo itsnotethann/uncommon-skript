@@ -14,7 +14,7 @@ import ch.njol.skript.lang.util.SimpleExpression;
 import ch.njol.skript.util.LiteralUtils;
 import ch.njol.util.Kleenean;
 import com.google.common.collect.Iterators;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.UnknownNullability;
@@ -43,7 +43,7 @@ public class ExprFilter extends SimpleExpression<Object> implements InputSource,
 			ParserInstance.registerData(InputData.class, InputData::new);
 	}
 
-	private final Map<Event, List<String>> cache = new WeakHashMap<>();
+	private final Map<PlatformEvent, List<String>> cache = new WeakHashMap<>();
 
 	private boolean keyed;
 	private @UnknownNullability Condition filterCondition;
@@ -70,7 +70,7 @@ public class ExprFilter extends SimpleExpression<Object> implements InputSource,
 	}
 
 	@Override
-	public @NotNull Iterator<?> iterator(Event event) {
+	public @NotNull Iterator<?> iterator(PlatformEvent event) {
 		if (keyed)
 			return Iterators.transform(keyedIterator(event), KeyedValue::value);
 
@@ -87,7 +87,7 @@ public class ExprFilter extends SimpleExpression<Object> implements InputSource,
 	}
 
 	@Override
-	public Iterator<KeyedValue<Object>> keyedIterator(Event event) {
+	public Iterator<KeyedValue<Object>> keyedIterator(PlatformEvent event) {
 		//noinspection unchecked
 		Iterator<KeyedValue<Object>> keyedIterator = ((KeyProviderExpression<Object>) unfilteredObjects).keyedIterator(event);
 		return StreamSupport.stream(Spliterators.spliteratorUnknownSize(keyedIterator, Spliterator.ORDERED), false)
@@ -100,7 +100,7 @@ public class ExprFilter extends SimpleExpression<Object> implements InputSource,
 	}
 
 	@Override
-	protected Object @Nullable [] get(Event event) {
+	protected Object @Nullable [] get(PlatformEvent event) {
 		if (!keyed)
 			return Converters.convertStrictly(Iterators.toArray(iterator(event), Object.class), getReturnType());
 		UnzippedKeyValues<Object> unzipped = KeyedValue.unzip(keyedIterator(event));
@@ -109,7 +109,7 @@ public class ExprFilter extends SimpleExpression<Object> implements InputSource,
 	}
 
 	@Override
-	public @NotNull String @NotNull [] getArrayKeys(Event event) throws IllegalStateException {
+	public @NotNull String @NotNull [] getArrayKeys(PlatformEvent event) throws IllegalStateException {
 		if (!cache.containsKey(event))
 			throw new IllegalStateException();
 		return cache.remove(event).toArray(new String[0]);
@@ -146,7 +146,7 @@ public class ExprFilter extends SimpleExpression<Object> implements InputSource,
 	}
 
 	@Override
-	public String toString(@Nullable Event event, boolean debug) {
+	public String toString(@Nullable PlatformEvent event, boolean debug) {
 		return unfilteredObjects.toString(event, debug) + " that match [" + unparsedCondition + "]";
 	}
 

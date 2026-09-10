@@ -27,7 +27,7 @@ import ch.njol.skript.lang.UnparsedLiteral;
 import ch.njol.skript.lang.util.SimpleExpression;
 import ch.njol.skript.lang.util.SimpleLiteral;
 import ch.njol.util.Kleenean;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
 
@@ -85,7 +85,7 @@ public final class ClassInfoReference {
 
 			@Override
 			@Nullable
-			protected ClassInfoReference[] get(Event event) {
+			protected ClassInfoReference[] get(PlatformEvent event) {
 				if (classInfoExpression.isSingle()) {
 					ClassInfo<?> classInfo = classInfoExpression.getSingle(event);
 					if (classInfo == null) {
@@ -109,7 +109,7 @@ public final class ClassInfoReference {
 			}
 
 			@Override
-			public String toString(@Nullable Event event, boolean debug) {
+			public String toString(@Nullable PlatformEvent event, boolean debug) {
 				if (debug) {
 					return classInfoExpression.toString(event, true) + "(wrapped by " + getClass().getSimpleName() + ")";
 				}

@@ -20,7 +20,7 @@ package ch.njol.skript.lang;
 
 import ch.njol.skript.Skript;
 import ch.njol.util.StringUtils;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.eclipse.jdt.annotation.Nullable;
 import org.skriptlang.skript.lang.script.Script;
 
@@ -50,13 +50,13 @@ public abstract class TriggerItem implements Debuggable {
 	/**
 	 * Executes this item and returns the next item to run.
 	 * <p>
-	 * Overriding classes must call {@link #debug(Event, boolean)}. If this method is overridden, {@link #run(Event)} is not used anymore and can be ignored.
+	 * Overriding classes must call {@link #debug(PlatformEvent, boolean)}. If this method is overridden, {@link #run(PlatformEvent)} is not used anymore and can be ignored.
 	 * 
 	 * @param event The event
 	 * @return The next item to run or null to stop execution
 	 */
 	@Nullable
-	protected TriggerItem walk(Event event) {
+	protected TriggerItem walk(PlatformEvent event) {
 		if (run(event)) {
 			debug(event, true);
 			return next;
@@ -73,14 +73,14 @@ public abstract class TriggerItem implements Debuggable {
 	 * @param event The event to run this item with
 	 * @return True if the next item should be run, or false for the item following this item's parent.
 	 */
-	protected abstract boolean run(Event event);
+	protected abstract boolean run(PlatformEvent event);
 
 	/**
 	 * @param start The item to start at
 	 * @param event The event to run the items with
 	 * @return false if an exception occurred
 	 */
-	public static boolean walk(TriggerItem start, Event event) {
+	public static boolean walk(TriggerItem start, PlatformEvent event) {
 		TriggerItem triggerItem = start;
 		try {
 			while (triggerItem != null)
@@ -145,7 +145,7 @@ public abstract class TriggerItem implements Debuggable {
 		return indentation;
 	}
 
-	protected final void debug(Event event, boolean run) {
+	protected final void debug(PlatformEvent event, boolean run) {
 		if (!Skript.debug())
 			return;
 		Skript.debug(getIndentation() + (run ? "" : "-") + toString(event, true));

@@ -2,7 +2,7 @@ package ch.njol.skript.lang;
 
 import ch.njol.skript.classes.Changer;
 import ch.njol.skript.classes.Changer.ChangeMode;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -26,6 +26,6 @@ public interface KeyReceiverExpression<T> extends Expression<T> {
 	 * @param mode  The key-safe change mode {@link ChangeMode#SET}
 	 * @param keys  The keys, matching the length and order of the values array
 	 */
-	void change(Event event, Object @NotNull [] delta, ChangeMode mode, @NotNull String @NotNull [] keys);
+	void change(PlatformEvent event, Object @NotNull [] delta, ChangeMode mode, @NotNull String @NotNull [] keys);
 
 }

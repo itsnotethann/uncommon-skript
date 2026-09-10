@@ -16,7 +16,7 @@ import ch.njol.skript.util.Container.ContainerType;
 import ch.njol.skript.util.LiteralUtils;
 import ch.njol.skript.variables.HintManager;
 import ch.njol.util.Kleenean;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -136,7 +136,7 @@ public class SecFor extends SecLoop {
 	}
 
 	@Override
-	protected void store(Event event, Object next) {
+	protected void store(PlatformEvent event, Object next) {
 		super.store(event, next);
 		//<editor-fold desc="Store the loop index/value in the variables" defaultstate="collapsed">
 		if (next instanceof KeyedValue<?> keyedValue) {
@@ -154,7 +154,7 @@ public class SecFor extends SecLoop {
 	}
 
 	@Override
-	public String toString(@Nullable Event event, boolean debug) {
+	public String toString(@Nullable PlatformEvent event, boolean debug) {
 		if (keyStore != null && valueStore != null) {
 			return "for each key " + keyStore.toString(event, debug)
 				+ " and value " + valueStore.toString(event, debug) + " in "

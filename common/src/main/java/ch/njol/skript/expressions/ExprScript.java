@@ -9,7 +9,7 @@ import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.skript.lang.parser.ParserInstance;
 import ch.njol.skript.lang.util.SimpleExpression;
 import ch.njol.util.Kleenean;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.eclipse.jdt.annotation.Nullable;
 
 @Name("Script Name")
@@ -49,7 +49,7 @@ public class ExprScript extends SimpleExpression<String> {
 	}
 
 	@Override
-	protected String[] get(Event event) {
+	protected String[] get(PlatformEvent event) {
 		return new String[]{name};
 	}
 
@@ -64,7 +64,7 @@ public class ExprScript extends SimpleExpression<String> {
 	}
 
 	@Override
-	public String toString(@Nullable Event event, boolean debug) {
+	public String toString(@Nullable PlatformEvent event, boolean debug) {
 		return "the script's name";
 	}
 

@@ -14,7 +14,7 @@ import ch.njol.skript.lang.VariableString;
 import ch.njol.skript.lang.util.SimpleExpression;
 import ch.njol.util.Kleenean;
 import ch.njol.util.StringUtils;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.eclipse.jdt.annotation.Nullable;
 
 import java.util.ArrayList;
@@ -55,7 +55,7 @@ public class ExprRawString extends SimpleExpression<String> {
 	}
 
 	@Override
-	protected String[] get(Event event) {
+	protected String[] get(PlatformEvent event) {
 		List<String> strings = new ArrayList<>();
 		for (Expression<? extends String> message : messages) {
 			if (message instanceof VariableString) {
@@ -85,7 +85,7 @@ public class ExprRawString extends SimpleExpression<String> {
 	}
 
 	@Override
-	public String toString(@Nullable Event e, boolean debug) {
+	public String toString(@Nullable PlatformEvent e, boolean debug) {
 		return "raw " + expr.toString(e, debug);
 	}
 

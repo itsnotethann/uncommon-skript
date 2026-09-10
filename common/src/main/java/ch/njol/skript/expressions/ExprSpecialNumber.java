@@ -10,7 +10,7 @@ import ch.njol.skript.lang.ExpressionType;
 import ch.njol.skript.lang.SkriptParser;
 import ch.njol.skript.lang.util.SimpleExpression;
 import ch.njol.util.Kleenean;
-import org.bukkit.event.Event;
+import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.eclipse.jdt.annotation.Nullable;
 
 @Name("Special Number")
@@ -37,7 +37,7 @@ public class ExprSpecialNumber extends SimpleExpression<Number> {
 	}
 
 	@Override
-	protected Number[] get(Event e) {
+	protected Number[] get(PlatformEvent e) {
 		return new Number[]{value == 0 ? Double.NaN : value == 1 ? Double.POSITIVE_INFINITY : Double.NEGATIVE_INFINITY};
 	}
 
@@ -52,7 +52,7 @@ public class ExprSpecialNumber extends SimpleExpression<Number> {
 	}
 
 	@Override
-	public String toString(@Nullable Event e, boolean debug) {
+	public String toString(@Nullable PlatformEvent e, boolean debug) {
 		return value == 0 ? "NaN value" : value == 1 ? "infinity value" : "-infinity value";
 	}
 }
