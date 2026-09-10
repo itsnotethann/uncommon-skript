@@ -20,6 +20,8 @@ public interface AddonHandle {
 
 	org.slf4j.Logger logger();
 
+	PlatformScheduler scheduler();
+
 	boolean isEnabled();
 
 	void setEnabled(boolean enabled);

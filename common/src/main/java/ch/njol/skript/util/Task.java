@@ -44,6 +44,27 @@ public abstract class Task implements Runnable, Closeable {
 	@Nullable
 	private PlatformTask task;
 
+	public Task(final long delay, final long period) {
+		this(delay, period, false);
+	}
+
+	public Task(final long delay, final long period, final boolean async) {
+		this.scheduler = Skript.scheduler();
+		this.period = period;
+		this.async = async;
+		schedule(delay);
+	}
+
+	public Task(final long delay) {
+		this(delay, false);
+	}
+
+	public Task(final long delay, final boolean async) {
+		this.scheduler = Skript.scheduler();
+		this.async = async;
+		schedule(delay);
+	}
+
 	public Task(final Plugin plugin, final long delay, final long period) {
 		this(plugin, delay, period, false);
 	}
@@ -137,7 +158,33 @@ public abstract class Task implements Runnable, Closeable {
 	 */
 	@Nullable
 	public static <T> T callSync(final Callable<T> c) {
-		return callSync(c, Skript.getInstance());
+		return callSync(c, Skript.scheduler());
+	}
+
+	@Nullable
+	public static <T> T callSync(final Callable<T> c, final PlatformScheduler scheduler) {
+		if (Skript.ENVIRONMENT.isPrimaryThread()) {
+			try {
+				return c.call();
+			} catch (final Exception e) {
+				Skript.exception(e);
+			}
+		}
+		return await(scheduler.callSync(c));
+	}
+
+	@Nullable
+	private static <T> T await(final Future<T> f) {
+		try {
+			while (true) {
+				try {
+					return f.get();
+				} catch (final InterruptedException e) {}
+			}
+		} catch (final ExecutionException e) {
+			Skript.exception(e);
+		} catch (final CancellationException e) {}
+		return null;
 	}
 	
 	/**
@@ -158,17 +205,7 @@ public abstract class Task implements Runnable, Closeable {
 				Skript.exception(e);
 			}
 		}
-		final Future<T> f = new BukkitPlatformScheduler(Bukkit.getScheduler(), p).callSync(c);
-		try {
-			while (true) {
-				try {
-					return f.get();
-				} catch (final InterruptedException e) {}
-			}
-		} catch (final ExecutionException e) {
-			Skript.exception(e);
-		} catch (final CancellationException e) {}
-		return null;
+		return await(new BukkitPlatformScheduler(Bukkit.getScheduler(), p).callSync(c));
 	}
 	
 }

@@ -3,15 +3,19 @@ package org.skriptlang.skript.platform.bukkit;
 import java.io.File;
 import java.io.InputStream;
 
+import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.Nullable;
 import org.skriptlang.skript.platform.AddonHandle;
+import org.skriptlang.skript.platform.PlatformScheduler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public final class BukkitAddonHandle implements AddonHandle {
 
 	private final JavaPlugin plugin;
+
+	private PlatformScheduler scheduler;
 
 	public BukkitAddonHandle(JavaPlugin plugin) {
 		this.plugin = plugin;
@@ -54,6 +58,14 @@ public final class BukkitAddonHandle implements AddonHandle {
 	@Override
 	public Logger logger() {
 		return LoggerFactory.getLogger(plugin.getClass());
+	}
+
+	@Override
+	public PlatformScheduler scheduler() {
+		PlatformScheduler current = scheduler;
+		if (current == null)
+			scheduler = current = new BukkitPlatformScheduler(Bukkit.getScheduler(), plugin);
+		return current;
 	}
 
 	@Override

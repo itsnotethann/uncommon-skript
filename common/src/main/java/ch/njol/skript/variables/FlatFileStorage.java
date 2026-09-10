@@ -238,7 +238,7 @@ public class FlatFileStorage extends VariablesStorage {
 		connect();
 
 		// Start the save task
-		saveTask = new Task(Skript.getInstance(), SAVE_TASK_DELAY, SAVE_TASK_PERIOD, true) {
+		saveTask = new Task(SAVE_TASK_DELAY, SAVE_TASK_PERIOD, true) {
 			@Override
 			public void run() {
 				// Due to concurrency, the amount of changes may change between the get and set call
