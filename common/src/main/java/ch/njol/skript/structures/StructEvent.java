@@ -10,7 +10,7 @@ import ch.njol.skript.lang.SkriptEvent.ListeningBehavior;
 import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.skript.lang.parser.ParserInstance;
 import org.skriptlang.skript.lang.event.PlatformEvent;
-import org.bukkit.event.EventPriority;
+import org.skriptlang.skript.lang.event.EventPriority;
 import org.jetbrains.annotations.Nullable;
 import org.skriptlang.skript.lang.entry.EntryContainer;
 import org.skriptlang.skript.lang.structure.Structure;

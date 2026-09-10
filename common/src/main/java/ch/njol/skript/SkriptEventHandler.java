@@ -25,12 +25,11 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import org.bukkit.event.Event;
 import org.skriptlang.skript.lang.event.PlatformEvent;
-import org.bukkit.event.EventPriority;
+import org.skriptlang.skript.lang.event.EventPriority;
 import org.bukkit.event.HandlerList;
 import org.skriptlang.skript.lang.event.Cancellable;
 import org.eclipse.jdt.annotation.Nullable;
 import org.skriptlang.skript.platform.Registration;
-import org.skriptlang.skript.platform.bukkit.BukkitEventPriorities;
 
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
@@ -257,7 +256,7 @@ public final class SkriptEventHandler {
 		Map<EventPriority, Registration> byPriority = registrations.computeIfAbsent(event, key -> new EnumMap<>(EventPriority.class));
 		if (!byPriority.containsKey(priority)) { // Check if event is registered
 			Registration registration = Skript.eventBus().channelFor(event)
-				.register(BukkitEventPriorities.toPlatform(priority), platformEvent -> check(platformEvent, priority));
+				.register(priority, platformEvent -> check(platformEvent, priority));
 			byPriority.put(priority, registration);
 		}
 	}

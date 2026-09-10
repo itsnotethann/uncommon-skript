@@ -30,7 +30,7 @@ import ch.njol.skript.util.FileUtils;
 import ch.njol.skript.util.Timespan;
 import ch.njol.skript.util.Version;
 import ch.njol.skript.variables.Variables;
-import org.bukkit.event.EventPriority;
+import org.skriptlang.skript.lang.event.EventPriority;
 import org.eclipse.jdt.annotation.Nullable;
 
 import java.io.File;
