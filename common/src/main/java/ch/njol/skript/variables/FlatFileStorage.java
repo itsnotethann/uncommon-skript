@@ -10,7 +10,6 @@ import ch.njol.skript.util.FileUtils;
 import ch.njol.skript.util.Task;
 import ch.njol.skript.util.Version;
 import ch.njol.util.NotifyingReference;
-import org.bukkit.Bukkit;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
@@ -267,7 +266,7 @@ public class FlatFileStorage extends VariablesStorage {
 	@Override
 	protected File getFile(String fileName) {
 		File file = new File(fileName);
-		return file.isAbsolute() ? file : new File(Bukkit.getServerDirectory(), fileName);
+		return file.isAbsolute() ? file : new File(Skript.ENVIRONMENT.serverDirectory(), fileName);
 	}
 
 	@Override

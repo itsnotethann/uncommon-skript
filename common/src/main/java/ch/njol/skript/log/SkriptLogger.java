@@ -22,7 +22,6 @@ import ch.njol.skript.Skript;
 import ch.njol.skript.config.Node;
 import ch.njol.skript.lang.parser.ParserInstance;
 import ch.njol.skript.log.LogHandler.LogResult;
-import org.bukkit.Bukkit;
 import org.eclipse.jdt.annotation.Nullable;
 import org.skriptlang.skript.platform.LogSink;
 import org.skriptlang.skript.platform.bukkit.LoggerLogSink;
@@ -47,7 +46,7 @@ public abstract class SkriptLogger {
 	public final static Level DEBUG = Level.INFO; // CraftBukkit 1.7+ uses the worst logging library I've ever encountered
 
 	@SuppressWarnings("null")
-	public final static Logger LOGGER = Bukkit.getBetterLogger();
+	public final static Logger LOGGER = Skript.ENVIRONMENT.logger();
 
 	public final static LogSink SINK = LoggerLogSink.platformDefault();
 
