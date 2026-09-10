@@ -23,16 +23,14 @@ import ch.njol.skript.lang.Trigger;
 import ch.njol.skript.util.Task;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
-import org.bukkit.event.Event;
 import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.skriptlang.skript.lang.event.EventPriority;
-import org.bukkit.event.HandlerList;
 import org.skriptlang.skript.lang.event.Cancellable;
 import org.eclipse.jdt.annotation.Nullable;
+import org.skriptlang.skript.platform.EventBus;
+import org.skriptlang.skript.platform.EventChannel;
 import org.skriptlang.skript.platform.Registration;
 
-import java.lang.ref.WeakReference;
-import java.lang.reflect.Method;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
@@ -58,10 +56,11 @@ public final class SkriptEventHandler {
 	 * @return A List containing all Triggers registered under the provided Event class.
 	 */
 	private static List<Trigger> getTriggers(Class<? extends PlatformEvent> event) {
-		HandlerList eventHandlerList = getHandlerList(event);
-		assert eventHandlerList != null; // It had one at some point so this should remain true
+		EventBus eventBus = Skript.eventBus();
+		EventChannel eventChannel = eventBus.channelFor(event);
+		assert eventChannel != null; // It had one at some point so this should remain true
 		return triggers.asMap().entrySet().stream()
-			.filter(entry -> entry.getKey().isAssignableFrom(event) && getHandlerList(entry.getKey()) == eventHandlerList)
+			.filter(entry -> entry.getKey().isAssignableFrom(event) && eventBus.channelFor(entry.getKey()) == eventChannel)
 			.flatMap(entry -> entry.getValue().stream())
 			.collect(Collectors.toList()); // forces evaluation now and prevents us from having to call getTriggers again if very high logging is enabled
 	}
@@ -245,8 +244,8 @@ public final class SkriptEventHandler {
 	 * @see #unregisterBukkitEvents(Trigger)
 	 */
 	public static void registerBukkitEvent(Trigger trigger, Class<? extends PlatformEvent> event) {
-		HandlerList handlerList = getHandlerList(event);
-		if (handlerList == null)
+		EventChannel channel = Skript.eventBus().channelFor(event);
+		if (channel == null)
 			return;
 
 		triggers.put(event, trigger);
@@ -255,8 +254,7 @@ public final class SkriptEventHandler {
 
 		Map<EventPriority, Registration> byPriority = registrations.computeIfAbsent(event, key -> new EnumMap<>(EventPriority.class));
 		if (!byPriority.containsKey(priority)) { // Check if event is registered
-			Registration registration = Skript.eventBus().channelFor(event)
-				.register(priority, platformEvent -> check(platformEvent, priority));
+			Registration registration = channel.register(priority, platformEvent -> check(platformEvent, priority));
 			byPriority.put(priority, registration);
 		}
 	}
@@ -301,72 +299,5 @@ public final class SkriptEventHandler {
 	 */
 	@Deprecated
 	public static final Set<Class<? extends PlatformEvent>> listenCancelled = new HashSet<>();
-
-	/**
-	 * A cache for the getHandlerList methods of Event classes.
-	 */
-	private static final Map<Class<? extends PlatformEvent>, Method> handlerListMethods = new HashMap<>();
-
-	/**
-	 * A cache for obtained HandlerLists.
-	 */
-	private static final Map<Method, WeakReference<HandlerList>> handlerListCache = new HashMap<>();
-
-	@Nullable
-	private static HandlerList getHandlerList(Class<? extends PlatformEvent> eventClass) {
-		try {
-			Method method = getHandlerListMethod(eventClass);
-
-			WeakReference<HandlerList> handlerListReference = handlerListCache.get(method);
-			HandlerList handlerList = handlerListReference != null ? handlerListReference.get() : null;
-			if (handlerList == null) {
-				method.setAccessible(true);
-				handlerList = (HandlerList) method.invoke(null);
-				handlerListCache.put(method, new WeakReference<>(handlerList));
-			}
-
-			return handlerList;
-		} catch (Exception ex) {
-			//noinspection ThrowableNotThrown
-			Skript.exception(ex, "Failed to get HandlerList for event " + eventClass.getName());
-			return null;
-		}
-	}
-
-	private static Method getHandlerListMethod(Class<? extends PlatformEvent> eventClass) {
-		Method method;
-
-		synchronized (handlerListMethods) {
-			method = handlerListMethods.get(eventClass);
-			if (method == null) {
-				method = getHandlerListMethod_i(eventClass);
-				if (method != null)
-					method.setAccessible(true);
-				handlerListMethods.put(eventClass, method);
-			}
-		}
-
-		if (method == null)
-			throw new RuntimeException("No getHandlerList method found");
-
-		return method;
-	}
-
-	@Nullable
-	private static Method getHandlerListMethod_i(Class<? extends PlatformEvent> eventClass) {
-		try {
-			return eventClass.getDeclaredMethod("getHandlerList");
-		} catch (NoSuchMethodException e) {
-			if (
-				eventClass.getSuperclass() != null
-					&& !eventClass.getSuperclass().equals(Event.class)
-					&& Event.class.isAssignableFrom(eventClass.getSuperclass())
-			) {
-				return getHandlerListMethod(eventClass.getSuperclass().asSubclass(PlatformEvent.class));
-			} else {
-				return null;
-			}
-		}
-	}
 
 }

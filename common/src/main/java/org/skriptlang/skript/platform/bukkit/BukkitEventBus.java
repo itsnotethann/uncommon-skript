@@ -6,6 +6,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
+import org.jetbrains.annotations.Nullable;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.SimplePluginManager;
@@ -26,22 +27,27 @@ public final class BukkitEventBus implements EventBus {
 	}
 
 	@Override
-	public EventChannel channelFor(Class<? extends PlatformEvent> eventClass) {
-		return channelsByClass.computeIfAbsent(eventClass, key -> {
-			if (!Event.class.isAssignableFrom(key))
-				throw new IllegalArgumentException("Not a Bukkit-shim event: " + key);
-			Class<? extends Event> bukkitClass = key.asSubclass(Event.class);
-			HandlerList handlerList;
-			try {
-				handlerList = SimplePluginManager.getHandlerList(bukkitClass);
-			} catch (ReflectiveOperationException exception) {
-				throw new IllegalArgumentException("No getHandlerList() on " + bukkitClass, exception);
-			}
-			synchronized (channelsByHandlerList) {
-				return channelsByHandlerList.computeIfAbsent(handlerList,
-					list -> new BukkitEventChannel(list, owner));
-			}
-		});
+	public @Nullable EventChannel channelFor(Class<? extends PlatformEvent> eventClass) {
+		EventChannel cached = channelsByClass.get(eventClass);
+		if (cached != null)
+			return cached;
+		if (!Event.class.isAssignableFrom(eventClass))
+			return null;
+		HandlerList handlerList;
+		try {
+			handlerList = SimplePluginManager.getHandlerList(eventClass.asSubclass(Event.class));
+		} catch (ReflectiveOperationException exception) {
+			return null;
+		}
+		if (handlerList == null)
+			return null;
+		BukkitEventChannel channel;
+		synchronized (channelsByHandlerList) {
+			channel = channelsByHandlerList.computeIfAbsent(handlerList,
+				list -> new BukkitEventChannel(list, owner));
+		}
+		EventChannel raced = channelsByClass.putIfAbsent(eventClass, channel);
+		return raced != null ? raced : channel;
 	}
 
 	@Override
