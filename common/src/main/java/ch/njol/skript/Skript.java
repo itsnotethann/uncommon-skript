@@ -988,16 +988,17 @@ public final class Skript {
 	@ApiStatus.Internal
 	@Deprecated(since = "INSERT VERSION", forRemoval = true)
 	public static Origin getSyntaxOrigin(Class<?> source) {
-		JavaPlugin plugin;
+		AddonHandle handle;
 		try {
-			plugin = JavaPlugin.getProvidingPlugin(source);
-		} catch (IllegalArgumentException e) { // Occurs when the method fails to determine the providing plugin
+			handle = addonRegistry().providingAddon(source);
+		} catch (Throwable ignored) {
 			return Origin.UNKNOWN;
 		}
-		SkriptAddon addon = getAddon(plugin);
-		if (addon != null) {
+		if (handle == null)
+			return Origin.UNKNOWN;
+		SkriptAddon addon = getAddon(handle.name());
+		if (addon != null)
 			return Origin.of(addon);
-		}
 		return Origin.UNKNOWN;
 	}
 
