@@ -24,7 +24,6 @@ import ch.njol.util.coll.iterator.CheckedIterator;
 import ch.njol.util.coll.iterator.EnumerationIterable;
 import org.bukkit.Bukkit;
 import org.skriptlang.skript.lang.event.PlatformEvent;
-import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.eclipse.jdt.annotation.Nullable;
 import org.jetbrains.annotations.ApiStatus;
@@ -102,7 +101,7 @@ import java.util.zip.ZipFile;
  * @see Comparators#registerComparator(Class, Class, Comparator)
  * @see Converters#registerConverter(Class, Class, Converter)
  */
-public final class Skript extends JavaPlugin implements Listener {
+public final class Skript extends JavaPlugin {
 
 	// ================ PLUGIN ================
 
@@ -310,7 +309,6 @@ public final class Skript extends JavaPlugin implements Listener {
 	@Override
 	public void onEnable() {
 		updateMinecraftVersion();
-		Bukkit.getPluginManager().registerEvents(this, this);
 		if (disabled) {
 			Skript.error(m_invalid_reload.toString());
 			setEnabled(false);
