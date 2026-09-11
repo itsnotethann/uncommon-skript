@@ -182,7 +182,7 @@ public abstract class SkriptLogger {
 			}
 		}
 		entry.logged();
-		SINK.log(Level.INFO, "<skript_minestom_tag> " + entry.toFormattedString(), null);
+		SINK.log(entry.getLevel(), "<skript_minestom_tag> " + entry.toFormattedString(), null);
 	}
 	
 	public static void logAll(Collection<LogEntry> entries) {
