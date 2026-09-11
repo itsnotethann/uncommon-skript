@@ -24,7 +24,7 @@ import ch.njol.skript.lang.parser.ParserInstance;
 import ch.njol.skript.log.LogHandler.LogResult;
 import org.eclipse.jdt.annotation.Nullable;
 import org.skriptlang.skript.platform.LogSink;
-import org.skriptlang.skript.platform.bukkit.LoggerLogSink;
+import org.skriptlang.skript.platform.Platform;
 import org.slf4j.Logger;
 
 import java.util.Collection;
@@ -48,7 +48,7 @@ public abstract class SkriptLogger {
 	@SuppressWarnings("null")
 	public final static Logger LOGGER = Skript.ENVIRONMENT.logger();
 
-	public final static LogSink SINK = LoggerLogSink.platformDefault();
+	public final static LogSink SINK = Platform.provider().logSink();
 
 	private static HandlerList getHandlers() {
 		return ParserInstance.get().getHandlers();

@@ -45,12 +45,9 @@ import org.skriptlang.skript.lang.structure.StructureInfo;
 import org.skriptlang.skript.platform.AddonHandle;
 import org.skriptlang.skript.platform.AddonRegistry;
 import org.skriptlang.skript.platform.EventBus;
+import org.skriptlang.skript.platform.Platform;
 import org.skriptlang.skript.platform.PlatformEnvironment;
 import org.skriptlang.skript.platform.PlatformScheduler;
-import org.skriptlang.skript.platform.bukkit.BukkitAddonRegistry;
-import org.skriptlang.skript.platform.bukkit.BukkitEventBus;
-import org.skriptlang.skript.platform.bukkit.BukkitPlatformEnvironment;
-import org.skriptlang.skript.platform.bukkit.BukkitPlatformScheduler;
 import org.skriptlang.skript.registration.SyntaxInfo;
 import org.skriptlang.skript.registration.SyntaxRegistry;
 
@@ -164,7 +161,7 @@ public final class Skript extends JavaPlugin {
 	private static Version minecraftVersion = new Version(666), UNKNOWN_VERSION = new Version(666);
 	private static ServerPlatform serverPlatform = getServerPlatform(); // Start with unknown... onLoad changes this
 
-	public static final PlatformEnvironment ENVIRONMENT = new BukkitPlatformEnvironment();
+	public static final PlatformEnvironment ENVIRONMENT = Platform.provider().environment();
 
 	@Nullable
 	private static PlatformScheduler scheduler;
@@ -172,7 +169,7 @@ public final class Skript extends JavaPlugin {
 	public static PlatformScheduler scheduler() {
 		PlatformScheduler s = scheduler;
 		if (s == null)
-			scheduler = s = new BukkitPlatformScheduler(Bukkit.getScheduler(), getInstance());
+			scheduler = s = Platform.provider().scheduler();
 		return s;
 	}
 
@@ -182,7 +179,7 @@ public final class Skript extends JavaPlugin {
 	public static EventBus eventBus() {
 		EventBus b = eventBus;
 		if (b == null)
-			eventBus = b = new BukkitEventBus(Bukkit.getPluginManager(), getInstance());
+			eventBus = b = Platform.provider().eventBus();
 		return b;
 	}
 
@@ -192,7 +189,7 @@ public final class Skript extends JavaPlugin {
 	public static AddonRegistry addonRegistry() {
 		AddonRegistry r = addonRegistry;
 		if (r == null)
-			addonRegistry = r = new BukkitAddonRegistry(Bukkit.getPluginManager());
+			addonRegistry = r = Platform.provider().addonRegistry();
 		return r;
 	}
 
