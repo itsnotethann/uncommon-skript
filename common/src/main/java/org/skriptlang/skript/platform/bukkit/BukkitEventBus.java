@@ -52,8 +52,7 @@ public final class BukkitEventBus implements EventBus {
 
 	@Override
 	public void fire(PlatformEvent event) {
-		if (!(event instanceof Event bukkitEvent))
-			throw new IllegalArgumentException("Not a Bukkit-shim event: " + event);
-		pluginManager.callEvent(bukkitEvent);
+		if (event instanceof Event bukkitEvent)
+			pluginManager.callEvent(bukkitEvent);
 	}
 }

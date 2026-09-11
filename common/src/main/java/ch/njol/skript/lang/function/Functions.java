@@ -484,5 +484,10 @@ public abstract class Functions {
 		}
 
 		callFunctionEvents = true;
+		if (Skript.eventBus().channelFor(FunctionEvent.class) == null) {
+			Skript.warning(addon.getName() + " enabled function events, but this build of Skript cannot"
+				+ " dispatch them to platform listeners. Subscribe through"
+				+ " Skript.eventBus().channelFor(FunctionEvent.class) instead.");
+		}
 	}
 }
