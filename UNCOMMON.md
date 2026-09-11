@@ -6,11 +6,28 @@
 
 | Path | Built | Owner |
 |---|---|---|
-| `common/` | yes | tracking fork of upstream's `common/`. Keep fork deltas small and enumerable |
+| `spi/` | yes | fork-owned. The platform interfaces — `platform/*`, `lang/event/*`, `MapSerializable`. 17 files, zero dependencies on the rest of Skript |
+| `compat/` | yes | fork-owned. The `org/bukkit/**` shim plus `platform/bukkit/**`, the Bukkit implementation of `spi`. Takes `spi` as `api` |
+| `common/` | yes | tracking fork of upstream's `common/`. Takes `spi` as `api` and `compat` as `compileOnly`. Keep fork deltas small and enumerable |
 | `domain/` | yes | fork-owned. Domain interfaces under `org.skriptlang.skript.domain`. No upstream occupant |
 | `minestom/` | **no** | inert. Present only so `git merge upstream` never hits modify/delete conflicts. Do not edit it here — it is stale by design and nothing compiles it |
 
-`settings.gradle.kts` includes `common` and `domain` only, which is what makes `minestom/` inert.
+`settings.gradle.kts` includes `spi`, `compat`, `common` and `domain`, which is what makes
+`minestom/` inert.
+
+**Three modules, not two, and the third is not optional.** `compat` needs the SPI and `common`
+needs `compat`, which is a Gradle project cycle; extracting `spi` underneath both is what breaks
+it:
+
+```
+spi  <--(api)--  compat
+ ^                 |
+ |                 | (compileOnly)
+ +---(api)---  common
+```
+
+`spi` is transitive through `common`'s POM so consumers get it for free. `compat` is `compileOnly`
+and therefore absent from the POM, so a consumer that wants the shim has to name it explicitly.
 
 That inert module is the trap worth knowing about: it looks like source, it is tracked, and it is
 pre-migration. A green build does not prove anything about it, because nothing builds it. When a
@@ -47,7 +64,7 @@ These conflict on most merges, so they are listed rather than rediscovered:
 | File | Delta |
 |---|---|
 | `build.gradle.kts` | fork coordinates (`com.github.itsnotethann.uncommonskript`) |
-| `settings.gradle.kts` | includes `common` + `domain` only |
+| `settings.gradle.kts` | includes `spi` + `compat` + `common` + `domain`; excludes `minestom` |
 | `README.md` | replaced; upstream's identifies itself as skript-minestom |
 
 ## Branches
@@ -102,5 +119,16 @@ Some `org.bukkit` references are deliberate and permanent:
 - `ch/njol/skript/Main.java` — a standalone launcher kept to avoid a permanent delta on an
   upstream-hot file.
 
-The residue target is not zero. The goal is for `common/` to stop *compiling against* Bukkit,
-after which the shim becomes an optional additive module.
+**`compat` deliberately does not register a `PlatformProvider`.** It has no
+`META-INF/services/org.skriptlang.skript.platform.PlatformProvider`, and adding one back is a
+regression, not a fix. `BukkitPlatformProvider` still ships; a Bukkit host installs it by calling
+`Platform.install` explicitly. Advertising it meant two providers on a shadowed classpath, where
+the winner is whichever copy the shadow plugin happens to keep.
+
+`common/src/main/resources/plugin.yml` still says `main: ch.njol.skript.Skript`, which is stale on
+both branches — `Skript` stopped extending `JavaPlugin`, so neither build loads as a Bukkit plugin.
+It is kept to avoid a delta on an upstream-hot file, the same reason as `Main.java`.
+
+The residue target is not zero. `common/` no longer compiles against Bukkit, and the shim is now
+additive: it ships, nothing in a host drives it, and it wakes up only when an actual addon jar
+needs loading.
