@@ -50,6 +50,35 @@ These conflict on most merges, so they are listed rather than rediscovered:
 | `settings.gradle.kts` | includes `common` + `domain` only |
 | `README.md` | replaced; upstream's identifies itself as skript-minestom |
 
+## Branches
+
+| Branch | `FunctionEvent` / `PreScriptLoadEvent` | For |
+|---|---|---|
+| `main` | `implements PlatformEvent` | the platform-free build. Nothing in `common/` eagerly references the shim, so it runs without `org/bukkit/**` on the classpath at all |
+| `bukkit-compat` | `extends Event`, with `HandlerList` | consumers who need addons to register Bukkit listeners for those two events |
+
+**The delta is exactly two files, and it must stay that way.** Both branches are built and boot
+tested; every other difference belongs on `main`.
+
+Why a branch rather than a build variant: a variant would compile `common` twice, and the only
+difference is a supertype, which Java resolves eagerly and therefore cannot be swapped at runtime.
+
+To update the compat branch after work lands on `main`:
+
+```
+git checkout bukkit-compat
+git merge main
+```
+
+Conflicts are only possible in those two files. If `main` changes either one, port the change and
+keep the Bukkit supertype. **A clean merge is not proof of correctness here** — the two branches
+can agree textually while differing in behaviour, so re-run the boot test after merging.
+
+Everything else is shared, including the graceful `BukkitEventBus.fire()` (it ignores platform
+events that are not Bukkit events) and the warning `Functions.enableFunctionEvents` emits when the
+running build cannot dispatch function events to Bukkit listeners. Both are correct on either
+branch, which is what keeps the delta at two files.
+
 ## Gates
 
 ```
