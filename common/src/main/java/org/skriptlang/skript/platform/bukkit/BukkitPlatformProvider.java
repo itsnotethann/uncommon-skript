@@ -1,6 +1,5 @@
 package org.skriptlang.skript.platform.bukkit;
 
-import ch.njol.skript.Skript;
 import org.bukkit.Bukkit;
 import org.skriptlang.skript.platform.AddonRegistry;
 import org.skriptlang.skript.platform.EventBus;
@@ -29,7 +28,7 @@ public final class BukkitPlatformProvider implements PlatformProvider {
 	public PlatformScheduler scheduler() {
 		PlatformScheduler current = scheduler;
 		if (current == null)
-			scheduler = current = new BukkitPlatformScheduler(Bukkit.getScheduler(), Skript.getInstance());
+			scheduler = current = new BukkitPlatformScheduler(Bukkit.getScheduler(), SkriptPluginOwner.get());
 		return current;
 	}
 
@@ -37,7 +36,7 @@ public final class BukkitPlatformProvider implements PlatformProvider {
 	public EventBus eventBus() {
 		EventBus current = eventBus;
 		if (current == null)
-			eventBus = current = new BukkitEventBus(Bukkit.getPluginManager(), Skript.getInstance());
+			eventBus = current = new BukkitEventBus(Bukkit.getPluginManager(), SkriptPluginOwner.get());
 		return current;
 	}
 

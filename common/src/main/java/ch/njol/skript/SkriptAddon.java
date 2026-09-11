@@ -115,7 +115,10 @@ public final class SkriptAddon implements org.skriptlang.skript.addon.SkriptAddo
 	//
 
 	static SkriptAddon fromModern(org.skriptlang.skript.addon.SkriptAddon addon) {
-		return new SkriptAddon(JavaPlugin.getProvidingPlugin(addon.source()), addon);
+		JavaPlugin plugin = JavaPlugin.getProvidingPlugin(addon.source());
+		if (plugin == null)
+			plugin = org.skriptlang.skript.platform.bukkit.SkriptPluginOwner.get();
+		return new SkriptAddon(plugin, addon);
 	}
 
 	@Override

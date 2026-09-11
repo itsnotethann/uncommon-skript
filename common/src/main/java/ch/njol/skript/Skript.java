@@ -97,7 +97,7 @@ import java.util.zip.ZipFile;
  * @see Comparators#registerComparator(Class, Class, Comparator)
  * @see Converters#registerConverter(Class, Class, Converter)
  */
-public final class Skript extends JavaPlugin {
+public final class Skript {
 
 	// ================ PLUGIN ================
 
@@ -116,6 +116,62 @@ public final class Skript extends JavaPlugin {
 		if (instance == null)
 			throw new IllegalStateException();
 		return instance;
+	}
+
+	private static final String NAME = "Skript";
+
+	private boolean enabled;
+
+	@Nullable
+	private File dataFolder;
+
+	@Nullable
+	private File jarFile;
+
+	public String getName() {
+		return NAME;
+	}
+
+	public boolean isEnabled() {
+		return enabled;
+	}
+
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
+	}
+
+	public File getDataFolder() {
+		File current = dataFolder;
+		if (current == null)
+			dataFolder = current = new File(ENVIRONMENT.serverDirectory(), NAME);
+		return current;
+	}
+
+	public @Nullable File getFile() {
+		File current = jarFile;
+		if (current == null) {
+			try {
+				jarFile = current = new File(
+					getClass().getProtectionDomain().getCodeSource().getLocation().toURI());
+			} catch (URISyntaxException e) {
+				return null;
+			}
+		}
+		return current;
+	}
+
+	public @Nullable InputStream getResource(String filename) {
+		return getClass().getResourceAsStream("/" + filename);
+	}
+
+	public String getPluginVersion() {
+		try (InputStream in = getResource("version")) {
+			if (in == null)
+				return "unknown";
+			return new String(in.readAllBytes(), StandardCharsets.UTF_8).trim();
+		} catch (IOException e) {
+			return "unknown";
+		}
 	}
 
 	@ApiStatus.Internal
@@ -302,7 +358,6 @@ public final class Skript extends JavaPlugin {
 		}
 	}
 
-	@Override
 	public void onEnable() {
 		updateMinecraftVersion();
 		if (disabled) {
@@ -313,7 +368,7 @@ public final class Skript extends JavaPlugin {
 
 		handleJvmArguments(); // JVM arguments
 
-		version = new Version("" + getDescription().getVersion()); // Skript version
+		version = new Version(getPluginVersion()); // Skript version
 
 		// Start the updater
 		// Note: if config prohibits update checks, it will NOT do network connections
@@ -757,7 +812,6 @@ public final class Skript extends JavaPlugin {
 		ScriptLoader.unloadScripts(ScriptLoader.getLoadedScripts());
 	}
 
-	@Override
 	public void onDisable() {
 		if (disabled)
 			return;
@@ -879,7 +933,7 @@ public final class Skript extends JavaPlugin {
 	}
 
 	public static @Nullable SkriptAddon getAddon(JavaPlugin plugin) {
-		if (plugin == Skript.getInstance()) {
+		if (plugin == (Object) Skript.getInstance()) {
 			return Skript.getAddonInstance();
 		}
 		for (SkriptAddon addon : getAddons()) {
@@ -1363,7 +1417,7 @@ public final class Skript extends JavaPlugin {
 		if (tainted) {
 			logEx("Skript is running with developer command-line options.");
 			logEx("If you are not a developer, consider disabling them.");
-		} else if (getInstance().getDescription().getVersion().contains("nightly")) {
+		} else if (getInstance().getPluginVersion().contains("nightly")) {
 			logEx("You're running a (buggy) nightly version of Skript.");
 			logEx("If this is not a test server, switch to a more stable release NOW!");
 			logEx("Your players are unlikely to appreciate crashes and/or data loss due to Skript bugs.");
