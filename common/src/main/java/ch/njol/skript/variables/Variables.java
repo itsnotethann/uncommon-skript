@@ -4,7 +4,6 @@ import ch.njol.skript.Skript;
 import ch.njol.skript.SkriptAPIException;
 import ch.njol.skript.SkriptConfig;
 import ch.njol.skript.classes.ClassInfo;
-import ch.njol.skript.classes.ConfigurationSerializer;
 import ch.njol.skript.config.Config;
 import ch.njol.skript.config.Node;
 import ch.njol.skript.config.SectionNode;
@@ -17,8 +16,6 @@ import ch.njol.util.coll.iterator.EmptyIterator;
 import ch.njol.yggdrasil.Yggdrasil;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
-import org.bukkit.configuration.serialization.ConfigurationSerializable;
-import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -61,48 +58,12 @@ public class Variables {
 	 */
 	public static boolean caseInsensitiveVariables = true;
 
-	/**
-	 * The {@link ch.njol.yggdrasil.ClassResolver#getID(Class) ID} prefix
-	 * for {@link ConfigurationSerializable} classes.
-	 */
-	private static final String CONFIGURATION_SERIALIZABLE_PREFIX = "ConfigurationSerializable_";
-
 	private final static Multimap<Class<? extends VariablesStorage>, String> TYPES = HashMultimap.create();
 
 	// Register some things with Yggdrasil
 	static {
 		registerStorage(FlatFileStorage.class, "csv", "file", "flatfile");
 		yggdrasil.registerSingleClass(Kleenean.class, "Kleenean");
-		// Register ConfigurationSerializable, Bukkit's serialization system
-		yggdrasil.registerClassResolver(new ConfigurationSerializer<ConfigurationSerializable>() {
-			{
-				//noinspection unchecked
-				info = (ClassInfo<? extends ConfigurationSerializable>) (ClassInfo<?>) Classes.getExactClassInfo(Object.class);
-				// Info field is mostly unused in superclass, due to methods overridden below,
-				//  so this illegal cast is fine
-			}
-
-			@Override
-			@Nullable
-			public String getID(@NotNull Class<?> c) {
-				if (ConfigurationSerializable.class.isAssignableFrom(c)
-					&& Classes.getSuperClassInfo(c) == Classes.getExactClassInfo(Object.class))
-					return CONFIGURATION_SERIALIZABLE_PREFIX +
-						ConfigurationSerialization.getAlias(c.asSubclass(ConfigurationSerializable.class));
-
-				return null;
-			}
-
-			@Override
-			@Nullable
-			public Class<? extends ConfigurationSerializable> getClass(@NotNull String id) {
-				if (id.startsWith(CONFIGURATION_SERIALIZABLE_PREFIX))
-					return ConfigurationSerialization.getClassByAlias(
-						id.substring(CONFIGURATION_SERIALIZABLE_PREFIX.length()));
-
-				return null;
-			}
-		});
 	}
 
 	private static final Map<Class<?>, Function<Object, Object>> intermediaryMap = new ConcurrentHashMap<>();
