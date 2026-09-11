@@ -36,6 +36,11 @@ public final class BukkitAddonHandle implements AddonHandle {
 	}
 
 	@Override
+	public @Nullable String website() {
+		return plugin.getDescription().getWebsite();
+	}
+
+	@Override
 	public File dataFolder() {
 		return plugin.getDataFolder();
 	}

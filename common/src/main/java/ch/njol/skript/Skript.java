@@ -25,8 +25,6 @@ import ch.njol.util.coll.iterator.EnumerationIterable;
 import org.bukkit.Bukkit;
 import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.bukkit.event.Listener;
-import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.eclipse.jdt.annotation.Nullable;
 import org.jetbrains.annotations.ApiStatus;
@@ -69,7 +67,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.Map.Entry;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
@@ -1289,12 +1286,39 @@ public final class Skript extends JavaPlugin implements Listener {
 		return exception(cause, null, item, info);
 	}
 
-	/**
-	 * Maps Java packages of plugins to descriptions of said plugins.
-	 * This is only done for plugins that depend or soft-depend on Skript.
-	 */
-	private static Map<String, PluginDescriptionFile> pluginPackages = new HashMap<>();
-	private static boolean checkedPlugins = false;
+	private static Set<AddonHandle> addonsInStack() {
+		Set<AddonHandle> found = new LinkedHashSet<>();
+		try {
+			AddonRegistry registry = addonRegistry();
+			StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE).forEach(frame -> {
+				AddonHandle handle = registry.providingAddon(frame.getDeclaringClass());
+				if (handle != null && !handle.name().equals("Skript"))
+					found.add(handle);
+			});
+		} catch (Throwable ignored) {}
+		return found;
+	}
+
+	private static Set<AddonHandle> registeredAddons() {
+		Set<AddonHandle> found = new LinkedHashSet<>();
+		try {
+			AddonRegistry registry = addonRegistry();
+			for (org.skriptlang.skript.addon.SkriptAddon addon : instance().addons()) {
+				AddonHandle handle = registry.providingAddon(addon.source());
+				if (handle != null && !handle.name().equals("Skript"))
+					found.add(handle);
+			}
+		} catch (Throwable ignored) {}
+		return found;
+	}
+
+	private static String describe(AddonHandle addon, boolean withVersion) {
+		StringBuilder builder = new StringBuilder(withVersion ? addon.name() + " v" + addon.version() : addon.name());
+		String website = addon.website();
+		if (website != null && !website.isEmpty())
+			builder.append(" (").append(website).append(')');
+		return builder.toString();
+	}
 
 	/**
 	 * Set by Skript when doing something that users shouldn't do.
@@ -1329,31 +1353,6 @@ public final class Skript extends JavaPlugin implements Listener {
 			return new EmptyStacktraceException();
 		}
 
-		// First error: gather plugin package information
-		if (!checkedPlugins) {
-			for (Plugin plugin : Bukkit.getPluginManager().getPlugins()) {
-				if (plugin.getName().equals("Skript")) // Don't track myself!
-					continue;
-
-				PluginDescriptionFile desc = plugin.getDescription();
-				if (desc.getDepend().contains("Skript") || desc.getSoftDepend().contains("Skript")) {
-					// Take actual main class out from the qualified name
-					String[] parts = desc.getMain().split("\\."); // . is special in regexes...
-					StringBuilder name = new StringBuilder(desc.getMain().length());
-					for (int i = 0; i < parts.length - 1; i++) {
-						name.append(parts[i]).append('.');
-					}
-
-					// Put this to map
-					pluginPackages.put(name.toString(), desc);
-					if (Skript.debug())
-						Skript.info("Identified potential addon: " + desc.getFullName() + " (" + name.toString() + ")");
-				}
-			}
-
-			checkedPlugins = true; // No need to do this next time
-		}
-
 		String issuesUrl = "https://github.com/SkriptLang/Skript/issues";
 
 		logEx();
@@ -1361,15 +1360,8 @@ public final class Skript extends JavaPlugin implements Listener {
 		logEx(info);
 		logEx();
 
-		// Parse something useful out of the stack trace
-		StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
-		Set<PluginDescriptionFile> stackPlugins = new HashSet<>();
-		for (StackTraceElement s : stackTrace) { // Look through stack trace
-			for (Entry<String,PluginDescriptionFile> e : pluginPackages.entrySet()) { // Look through plugins
-				if (s.getClassName().contains(e.getKey())) // Hey, is this plugin in that stack trace?
-					stackPlugins.add(e.getValue()); // Yes? Add it to list
-			}
-		}
+		Set<AddonHandle> stackAddons = addonsInStack();
+		Set<AddonHandle> allAddons = registeredAddons();
 
 		SkriptUpdater updater = Skript.getInstance().getUpdater();
 
@@ -1395,35 +1387,23 @@ public final class Skript extends JavaPlugin implements Listener {
 		} else {
 			logEx("Something went horribly wrong with Skript.");
 			logEx("This issue is NOT your fault! You probably can't fix it yourself, either.");
-			if (pluginPackages.isEmpty()) {
+			if (allAddons.isEmpty() && stackAddons.isEmpty()) {
 				logEx("You should report it at " + issuesUrl + ". Please copy paste this report there (or use paste service).");
 				logEx("This ensures that your issue is noticed and will be fixed as soon as possible.");
 			} else {
 				logEx("It looks like you are using some plugin(s) that alter how Skript works (addons).");
-				if (stackPlugins.isEmpty()) {
+				if (stackAddons.isEmpty()) {
 					logEx("Here is full list of them:");
 					StringBuilder pluginsMessage = new StringBuilder();
-					for (PluginDescriptionFile desc : pluginPackages.values()) {
-						pluginsMessage.append(desc.getFullName());
-						String website = desc.getWebsite();
-						if (website != null && !website.isEmpty()) // Add website if found
-							pluginsMessage.append(" (").append(desc.getWebsite()).append(")");
-
-						pluginsMessage.append(" ");
-					}
+					for (AddonHandle addon : allAddons)
+						pluginsMessage.append(describe(addon, true)).append(" ");
 					logEx(pluginsMessage.toString());
 					logEx("We could not identify which of those are specially related, so this might also be Skript issue.");
 				} else {
 					logEx("Following plugins are probably related to this error in some way:");
 					StringBuilder pluginsMessage = new StringBuilder();
-					for (PluginDescriptionFile desc : stackPlugins) {
-						pluginsMessage.append(desc.getName());
-						String website = desc.getWebsite();
-						if (website != null && !website.isEmpty()) // Add website if found
-							pluginsMessage.append(" (").append(desc.getWebsite()).append(")");
-
-						pluginsMessage.append(" ");
-					}
+					for (AddonHandle addon : stackAddons)
+						pluginsMessage.append(describe(addon, false)).append(" ");
 					logEx(pluginsMessage.toString());
 				}
 

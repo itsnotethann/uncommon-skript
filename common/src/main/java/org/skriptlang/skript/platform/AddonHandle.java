@@ -10,6 +10,8 @@ public interface AddonHandle {
 
 	String version();
 
+	@Nullable String website();
+
 	File dataFolder();
 
 	File jarFile();
