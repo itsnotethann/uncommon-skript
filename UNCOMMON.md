@@ -116,8 +116,15 @@ Some `org.bukkit` references are deliberate and permanent:
   entire job.
 - `SkriptAddon`, `Utils`, `Task`, `ConfigurationSerializer` — addon-facing signatures that existing
   third-party jars are already compiled against.
-- `ch/njol/skript/Main.java` — a standalone launcher kept to avoid a permanent delta on an
-  upstream-hot file.
+`ch/njol/skript/Main.java` used to be on that list. It now lives in `compat`, keeping its package,
+so it still ships and `application { mainClass }` in `common/build.gradle` is untouched. It was
+unreferenced from anywhere and had been non-functional since `Skript` stopped extending
+`JavaPlugin` — it calls `pluginManager.loadPlugin` on a jar that no longer declares a plugin.
+Dead Bukkit code does not belong in the platform-free module.
+
+`ConfigurationSerializer` cannot follow it. It extends `Serializer<T>` and uses
+`ch.njol.yggdrasil.Fields`, both in `common`, so moving it would make `compat` depend on `common`
+while `common` already depends on `compat` — a Gradle project cycle. It stays put.
 
 **`compat` deliberately does not register a `PlatformProvider`.** It has no
 `META-INF/services/org.skriptlang.skript.platform.PlatformProvider`, and adding one back is a
@@ -129,6 +136,14 @@ the winner is whichever copy the shadow plugin happens to keep.
 both branches — `Skript` stopped extending `JavaPlugin`, so neither build loads as a Bukkit plugin.
 It is kept to avoid a delta on an upstream-hot file, the same reason as `Main.java`.
 
-The residue target is not zero. `common/` no longer compiles against Bukkit, and the shim is now
-additive: it ships, nothing in a host drives it, and it wakes up only when an actual addon jar
-needs loading.
+The residue target is not zero, and "`common/` no longer compiles against Bukkit" — which this
+document used to say — is false. `common/build.gradle` declares `compileOnly project(':compat')`
+and five files still import `org.bukkit`; take compat off the compile classpath and `common` does
+not build.
+
+What is true is narrower and is the part that matters: nothing in `common/` references the shim
+*eagerly*, so it class-loads and runs with no Bukkit anywhere on the classpath. The clearest case
+is `ConfigurationSerializer<T extends ConfigurationSerializable>` — a Bukkit type in the class
+signature that never loads, because generic bounds resolve lazily. The shim is additive at
+runtime, not absent at compile time: it ships, nothing in a host drives it, and it wakes up only
+when an actual addon jar needs loading.
