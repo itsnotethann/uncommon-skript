@@ -24,10 +24,6 @@ import java.util.regex.Pattern;
 @Deprecated(since = "2.14", forRemoval = true)
 public final class SkriptAddon implements org.skriptlang.skript.addon.SkriptAddon {
 
-	/**
-	 * The Bukkit plugin this addon was registered with, or null when it was registered through the
-	 * platform SPI rather than through {@link Skript#registerAddon(JavaPlugin)}.
-	 */
 	public final @Nullable JavaPlugin plugin;
 	public final Version version;
 	private final String name;
@@ -55,18 +51,36 @@ public final class SkriptAddon implements org.skriptlang.skript.addon.SkriptAddo
 	}
 
 	SkriptAddon(AddonHandle handle, org.skriptlang.skript.addon.SkriptAddon addon) {
-		this(handle.name(), handle.version(), handle.source(), handle.dataFolder(), handle.jarFile(), addon);
+		this(nativePlugin(handle), handle.name(), handle.version(), handle.source(), handle.dataFolder(),
+			handle.jarFile(), addon);
 	}
 
-	SkriptAddon(String name, String version, Class<?> sourceClass, File dataFolder, @Nullable File jarFile,
-			org.skriptlang.skript.addon.SkriptAddon addon) {
+	SkriptAddon(@Nullable JavaPlugin plugin, String name, String version, Class<?> sourceClass, File dataFolder,
+			@Nullable File jarFile, org.skriptlang.skript.addon.SkriptAddon addon) {
 		this.addon = addon;
-		this.plugin = null;
+		this.plugin = plugin;
 		this.name = name;
 		this.sourceClass = sourceClass;
 		this.dataFolder = dataFolder;
 		this.jarFile = jarFile;
 		this.version = parseVersion(name, version);
+	}
+
+	private static @Nullable JavaPlugin nativePlugin(AddonHandle handle) {
+		try {
+			return handle.nativeHandle() instanceof JavaPlugin plugin ? plugin : null;
+		} catch (Throwable ignored) {
+			return null;
+		}
+	}
+
+	private static @Nullable JavaPlugin skriptPlugin() {
+		try {
+			Object owner = org.skriptlang.skript.platform.bukkit.SkriptPluginOwner.get();
+			return owner instanceof JavaPlugin plugin ? plugin : null;
+		} catch (Throwable ignored) {
+			return null;
+		}
 	}
 
 	private static Version parseVersion(String name, String raw) {
@@ -144,7 +158,7 @@ public final class SkriptAddon implements org.skriptlang.skript.addon.SkriptAddo
 		if (handle != null)
 			return new SkriptAddon(handle, addon);
 		Skript skript = Skript.getInstance();
-		return new SkriptAddon(skript.getName(), skript.getPluginVersion(), skript.getClass(),
+		return new SkriptAddon(skriptPlugin(), skript.getName(), skript.getPluginVersion(), skript.getClass(),
 			skript.getDataFolder(), skript.getFile(), addon);
 	}
 

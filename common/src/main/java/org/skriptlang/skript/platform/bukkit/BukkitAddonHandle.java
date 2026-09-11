@@ -26,6 +26,11 @@ public final class BukkitAddonHandle implements AddonHandle {
 	}
 
 	@Override
+	public Object nativeHandle() {
+		return plugin;
+	}
+
+	@Override
 	public String name() {
 		return plugin.getName();
 	}

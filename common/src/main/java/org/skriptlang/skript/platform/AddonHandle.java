@@ -20,6 +20,10 @@ public interface AddonHandle {
 
 	Class<?> source();
 
+	default @Nullable Object nativeHandle() {
+		return null;
+	}
+
 	org.slf4j.Logger logger();
 
 	PlatformScheduler scheduler();
