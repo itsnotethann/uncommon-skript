@@ -30,6 +30,8 @@ allprojects {
 }
 
 dependencies {
+	api project(':spi')
+	compileOnly project(':compat')
 	shadow "org.bstats:bstats-base:3.2.1"
 	shadow "org.bstats:bstats-bukkit:3.2.1"
 	api "net.kyori:adventure-text-serializer-bungeecord:4.3.2"

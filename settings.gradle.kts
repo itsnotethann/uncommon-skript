@@ -3,5 +3,7 @@ plugins {
 }
 
 rootProject.name = "uncommon-skript"
+include("spi")
+include("compat")
 include("common")
 include("domain")
