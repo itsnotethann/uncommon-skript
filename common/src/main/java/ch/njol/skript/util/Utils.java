@@ -190,6 +190,10 @@ public abstract class Utils {
 
 	@Deprecated
 	public static Class<?>[] getClasses(Plugin plugin, String basePackage, String... subPackages) throws IOException {
+		return getClasses(plugin.getClass(), getFile(plugin), basePackage, subPackages);
+	}
+
+	public static Class<?>[] getClasses(Class<?> source, @Nullable File jarFile, String basePackage, String... subPackages) throws IOException {
 		List<Class<?>> classes = new ArrayList<>();
 
 		ClassLoader loader = ClassLoader.builder()
@@ -199,11 +203,10 @@ public abstract class Utils {
 			.initialize(true)
 			.forEachClass(classes::add)
 			.build();
-		File jarFile = getFile(plugin);
 		if (jarFile != null) {
-			loader.loadClasses(plugin.getClass(), jarFile);
+			loader.loadClasses(source, jarFile);
 		} else {
-			loader.loadClasses(plugin.getClass());
+			loader.loadClasses(source);
 		}
 
 		return classes.toArray(new Class[0]);

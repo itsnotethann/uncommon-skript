@@ -5,6 +5,7 @@ import ch.njol.skript.util.Version;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.Nullable;
 import org.skriptlang.skript.localization.Localizer;
+import org.skriptlang.skript.platform.AddonHandle;
 import org.skriptlang.skript.registration.SyntaxRegistry;
 import org.skriptlang.skript.util.Registry;
 
@@ -23,9 +24,16 @@ import java.util.regex.Pattern;
 @Deprecated(since = "2.14", forRemoval = true)
 public final class SkriptAddon implements org.skriptlang.skript.addon.SkriptAddon {
 
-	public final JavaPlugin plugin;
+	/**
+	 * The Bukkit plugin this addon was registered with, or null when it was registered through the
+	 * platform SPI rather than through {@link Skript#registerAddon(JavaPlugin)}.
+	 */
+	public final @Nullable JavaPlugin plugin;
 	public final Version version;
 	private final String name;
+	private final Class<?> sourceClass;
+	private final File dataFolder;
+	private final @Nullable File jarFile;
 
 	private final org.skriptlang.skript.addon.SkriptAddon addon;
 
@@ -40,17 +48,38 @@ public final class SkriptAddon implements org.skriptlang.skript.addon.SkriptAddo
 		this.addon = addon;
 		this.plugin = plugin;
 		this.name = plugin.getName();
-		Version version;
+		this.sourceClass = plugin.getClass();
+		this.dataFolder = plugin.getDataFolder();
+		this.jarFile = Utils.getFile(plugin);
+		this.version = parseVersion(this.name, plugin.getDescription().getVersion());
+	}
+
+	SkriptAddon(AddonHandle handle, org.skriptlang.skript.addon.SkriptAddon addon) {
+		this(handle.name(), handle.version(), handle.source(), handle.dataFolder(), handle.jarFile(), addon);
+	}
+
+	SkriptAddon(String name, String version, Class<?> sourceClass, File dataFolder, @Nullable File jarFile,
+			org.skriptlang.skript.addon.SkriptAddon addon) {
+		this.addon = addon;
+		this.plugin = null;
+		this.name = name;
+		this.sourceClass = sourceClass;
+		this.dataFolder = dataFolder;
+		this.jarFile = jarFile;
+		this.version = parseVersion(name, version);
+	}
+
+	private static Version parseVersion(String name, String raw) {
 		try {
-			version = new Version(plugin.getDescription().getVersion());
+			return new Version(raw);
 		} catch (IllegalArgumentException e) {
-			final Matcher m = Pattern.compile("(\\d+)(?:\\.(\\d+)(?:\\.(\\d+))?)?").matcher(plugin.getDescription().getVersion());
+			final Matcher m = Pattern.compile("(\\d+)(?:\\.(\\d+)(?:\\.(\\d+))?)?").matcher(raw);
 			if (!m.find())
-				throw new IllegalArgumentException("The version of the plugin " + name + " does not contain any numbers: " + plugin.getDescription().getVersion());
-			version = new Version(Utils.parseInt(m.group(1)), m.group(2) == null ? 0 : Utils.parseInt(m.group(2)), m.group(3) == null ? 0 : Utils.parseInt(m.group(3)));
-			Skript.warning("The plugin " + name + " uses a non-standard version syntax: '" + plugin.getDescription().getVersion() + "'. Skript will use " + version + " instead.");
+				throw new IllegalArgumentException("The version of the plugin " + name + " does not contain any numbers: " + raw);
+			Version version = new Version(Utils.parseInt(m.group(1)), m.group(2) == null ? 0 : Utils.parseInt(m.group(2)), m.group(3) == null ? 0 : Utils.parseInt(m.group(3)));
+			Skript.warning("The plugin " + name + " uses a non-standard version syntax: '" + raw + "'. Skript will use " + version + " instead.");
+			return version;
 		}
-		this.version = version;
 	}
 
 	@Override
@@ -72,7 +101,7 @@ public final class SkriptAddon implements org.skriptlang.skript.addon.SkriptAddo
 	 * @return This SkriptAddon
 	 */
 	public SkriptAddon loadClasses(String basePackage, String... subPackages) throws IOException {
-		Utils.getClasses(plugin, basePackage, subPackages);
+		Utils.getClasses(sourceClass, jarFile, basePackage, subPackages);
 		return this;
 	}
 
@@ -84,7 +113,7 @@ public final class SkriptAddon implements org.skriptlang.skript.addon.SkriptAddo
 	 * @return This SkriptAddon
 	 */
 	public SkriptAddon setLanguageFileDirectory(String directory) {
-		localizer().setSourceDirectories(directory, plugin.getDataFolder().getAbsolutePath() + directory);
+		localizer().setSourceDirectories(directory, dataFolder.getAbsolutePath() + directory);
 		return this;
 	}
 
@@ -93,21 +122,14 @@ public final class SkriptAddon implements org.skriptlang.skript.addon.SkriptAddo
 		return localizer().languageFileDirectory();
 	}
 
-	@Nullable
-	private File file;
-
 	/**
-	 * The first invocation of this method uses reflection to invoke the protected method {@link JavaPlugin#getFile()} to get the plugin's jar file.
-	 * The file is then cached and returned upon subsequent calls to this method to reduce usage of reflection.
-	 * Only nullable if there was an exception thrown.
+	 * Only nullable if the addon's jar file could not be determined.
 	 *
-	 * @return The jar file of the plugin.
+	 * @return The jar file of the addon.
 	 */
 	@Nullable
 	public File getFile() {
-		if (file == null)
-			file = Utils.getFile(plugin);
-		return file;
+		return jarFile;
 	}
 
 	//
@@ -115,10 +137,15 @@ public final class SkriptAddon implements org.skriptlang.skript.addon.SkriptAddo
 	//
 
 	static SkriptAddon fromModern(org.skriptlang.skript.addon.SkriptAddon addon) {
-		JavaPlugin plugin = JavaPlugin.getProvidingPlugin(addon.source());
-		if (plugin == null)
-			plugin = org.skriptlang.skript.platform.bukkit.SkriptPluginOwner.get();
-		return new SkriptAddon(plugin, addon);
+		AddonHandle handle = null;
+		try {
+			handle = Skript.addonRegistry().providingAddon(addon.source());
+		} catch (Throwable ignored) {}
+		if (handle != null)
+			return new SkriptAddon(handle, addon);
+		Skript skript = Skript.getInstance();
+		return new SkriptAddon(skript.getName(), skript.getPluginVersion(), skript.getClass(),
+			skript.getDataFolder(), skript.getFile(), addon);
 	}
 
 	@Override
