@@ -43,7 +43,6 @@ import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
-import net.minestom.server.Auth;
 import net.minestom.server.Git;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.command.CommandManager;
