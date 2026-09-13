@@ -144,6 +144,7 @@ public abstract class Task implements Runnable, Closeable {
 				return c.call();
 			} catch (final Exception e) {
 				Skript.exception(e);
+				return null;
 			}
 		}
 		return await(scheduler.callSync(c));
