@@ -25,6 +25,8 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import java.nio.charset.StandardCharsets;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -48,6 +50,9 @@ public class PluginClassLoader extends URLClassLoader {
 	private static final String BUKKIT_CANCELLABLE_DESC = "L" + BUKKIT_CANCELLABLE + ";";
 	private static final String PLATFORM_CANCELLABLE_DESC = "L" + PLATFORM_CANCELLABLE + ";";
 	private static final String BUKKIT_ADDONS = "org/skriptlang/skript/platform/bukkit/BukkitAddons";
+	private static final String PRIORITIES = "org/skriptlang/skript/platform/bukkit/BukkitEventPriorities";
+	private static final String BUKKIT_PRIORITY_DESC = "Lorg/bukkit/event/EventPriority;";
+	private static final String PLATFORM_PRIORITY_DESC = "Lorg/skriptlang/skript/lang/event/EventPriority;";
 	private static final String SKRIPT = "ch/njol/skript/Skript";
 	private static final String REGISTER_ADDON_DESC =
 		"(Lorg/bukkit/plugin/java/JavaPlugin;)Lch/njol/skript/SkriptAddon;";
@@ -99,8 +104,30 @@ public class PluginClassLoader extends URLClassLoader {
 				retyped[i] = PLATFORM_EVENT;
 			else if (BUKKIT_CANCELLABLE.equals(retyped[i]))
 				retyped[i] = PLATFORM_CANCELLABLE;
+			else if (retyped[i] instanceof String entry && entry.startsWith("["))
+				retyped[i] = retype(entry);
 		}
 		return retyped;
+	}
+
+	private boolean declaredByShim(List<String> shimSupertypes, String name, String descriptor) {
+		for (String type : shimSupertypes) {
+			try {
+				Class<?> shim = Class.forName(type.replace('/', '.'), false, getParent());
+				for (Method method : shim.getMethods()) {
+					if (method.getName().equals(name) && Type.getMethodDescriptor(method).equals(descriptor))
+						return true;
+				}
+				for (Class<?> current = shim; current != null; current = current.getSuperclass()) {
+					for (Method method : current.getDeclaredMethods()) {
+						if (method.getName().equals(name) && Type.getMethodDescriptor(method).equals(descriptor))
+							return true;
+					}
+				}
+			} catch (ClassNotFoundException | LinkageError ignored) {
+			}
+		}
+		return false;
 	}
 
 	private byte[] retypeEvents(byte[] bytes) {
@@ -108,6 +135,21 @@ public class PluginClassLoader extends URLClassLoader {
 		ClassWriter writer = new ClassWriter(0);
 
 		reader.accept(new ClassVisitor(Opcodes.ASM9, writer) {
+			private final List<String> shimSupertypes = new ArrayList<>();
+
+			@Override
+			public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
+				if (superName != null && superName.startsWith("org/bukkit/"))
+					shimSupertypes.add(superName);
+				if (interfaces != null) {
+					for (String type : interfaces) {
+						if (type.startsWith("org/bukkit/"))
+							shimSupertypes.add(type);
+					}
+				}
+				super.visit(version, access, name, signature, superName, interfaces);
+			}
+
 			@Override
 			public FieldVisitor visitField(int access, String name, String descriptor, String signature, Object value) {
 				return super.visitField(access, name, retype(descriptor), retype(signature), value);
@@ -115,7 +157,11 @@ public class PluginClassLoader extends URLClassLoader {
 
 			@Override
 			public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
-				MethodVisitor delegate = super.visitMethod(access, name, retype(descriptor), retype(signature), exceptions);
+				boolean implementsShim = declaredByShim(shimSupertypes, name, descriptor);
+				String declared = implementsShim ? descriptor : retype(descriptor);
+				boolean retyped = !declared.equals(descriptor);
+				MethodVisitor delegate = super.visitMethod(access, name, declared,
+					implementsShim ? signature : retype(signature), exceptions);
 				return new MethodVisitor(Opcodes.ASM9, delegate) {
 					@Override
 					public void visitMethodInsn(int opcode, String owner, String method, String descriptor, boolean isInterface) {
@@ -136,8 +182,22 @@ public class PluginClassLoader extends URLClassLoader {
 								retype(descriptor), true);
 							return;
 						}
+						if ("getEventPriority".equals(method) && ("()" + BUKKIT_PRIORITY_DESC).equals(descriptor)) {
+							super.visitMethodInsn(opcode, owner, method, "()" + PLATFORM_PRIORITY_DESC, isInterface);
+							super.visitMethodInsn(Opcodes.INVOKESTATIC, PRIORITIES, "toBukkit",
+								"(" + PLATFORM_PRIORITY_DESC + ")" + BUKKIT_PRIORITY_DESC, false);
+							return;
+						}
 						if (SKRIPT.equals(owner) && "registerAddon".equals(method) && REGISTER_ADDON_DESC.equals(descriptor)) {
 							super.visitMethodInsn(Opcodes.INVOKESTATIC, BUKKIT_ADDONS, "registerAddon", descriptor, false);
+							return;
+						}
+						if (owner.startsWith("org/bukkit/")) {
+							Type[] arguments = Type.getArgumentTypes(descriptor);
+							if (retyped && arguments.length > 0
+								&& BUKKIT_EVENT.equals(arguments[arguments.length - 1].getInternalName()))
+								super.visitTypeInsn(Opcodes.CHECKCAST, BUKKIT_EVENT);
+							super.visitMethodInsn(opcode, owner, method, descriptor, isInterface);
 							return;
 						}
 						super.visitMethodInsn(opcode, owner, method, retype(descriptor), isInterface);
@@ -145,12 +205,24 @@ public class PluginClassLoader extends URLClassLoader {
 
 					@Override
 					public void visitTypeInsn(int opcode, String type) {
-						super.visitTypeInsn(opcode, BUKKIT_CANCELLABLE.equals(type) ? PLATFORM_CANCELLABLE : type);
+						if (BUKKIT_CANCELLABLE.equals(type))
+							type = PLATFORM_CANCELLABLE;
+						else if (retyped && BUKKIT_EVENT.equals(type) && opcode != Opcodes.NEW)
+							type = PLATFORM_EVENT;
+						else if (retyped && type.startsWith("["))
+							type = retype(type);
+						super.visitTypeInsn(opcode, type);
+					}
+
+					@Override
+					public void visitMultiANewArrayInsn(String descriptor, int dimensions) {
+						super.visitMultiANewArrayInsn(retype(descriptor), dimensions);
 					}
 
 					@Override
 					public void visitFieldInsn(int opcode, String owner, String field, String descriptor) {
-						super.visitFieldInsn(opcode, owner, field, retype(descriptor));
+						super.visitFieldInsn(opcode, owner, field,
+							owner.startsWith("org/bukkit/") ? descriptor : retype(descriptor));
 					}
 
 					@Override
@@ -164,11 +236,16 @@ public class PluginClassLoader extends URLClassLoader {
 
 					@Override
 					public void visitLocalVariable(String variable, String descriptor, String signature, Label start, Label end, int index) {
-						super.visitLocalVariable(variable, retype(descriptor), retype(signature), start, end, index);
+						super.visitLocalVariable(variable, retyped ? retype(descriptor) : descriptor,
+							retyped ? retype(signature) : signature, start, end, index);
 					}
 
 					@Override
 					public void visitFrame(int type, int numLocal, Object[] local, int numStack, Object[] stack) {
+						if (!retyped) {
+							super.visitFrame(type, numLocal, local, numStack, stack);
+							return;
+						}
 						super.visitFrame(type, numLocal, retypeFrame(local, numLocal), numStack, retypeFrame(stack, numStack));
 					}
 				};

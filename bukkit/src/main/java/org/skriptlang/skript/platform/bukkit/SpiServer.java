@@ -10,20 +10,23 @@ import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Nullable;
 import org.skriptlang.skript.platform.PlatformEnvironment;
+import org.skriptlang.skript.platform.PlatformProvider;
 
 public class SpiServer implements Server {
 
 	private final PlatformEnvironment environment;
+	private final ConsoleCommandSender console;
 	private File serverDirectory;
 
-	public SpiServer(PlatformEnvironment environment) {
-		this.environment = environment;
+	public SpiServer(PlatformProvider provider) {
+		this.environment = provider.environment();
+		this.console = new SpiConsoleSender(provider.logSink());
 		this.serverDirectory = environment.serverDirectory();
 	}
 
 	@Override
-	public @Nullable ConsoleCommandSender getConsoleSender() {
-		return null;
+	public ConsoleCommandSender getConsoleSender() {
+		return console;
 	}
 
 	@Override
