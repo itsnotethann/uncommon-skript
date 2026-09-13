@@ -43,6 +43,7 @@ import org.skriptlang.skript.lang.structure.StructureInfo;
 import org.skriptlang.skript.platform.AddonHandle;
 import org.skriptlang.skript.platform.AddonRegistry;
 import org.skriptlang.skript.platform.EventBus;
+import org.skriptlang.skript.platform.CompositeEventBus;
 import org.skriptlang.skript.platform.Platform;
 import org.skriptlang.skript.platform.PlatformEnvironment;
 import org.skriptlang.skript.platform.PlatformScheduler;
@@ -232,7 +233,7 @@ public final class Skript {
 	public static EventBus eventBus() {
 		EventBus b = eventBus;
 		if (b == null)
-			eventBus = b = Platform.provider().eventBus();
+			eventBus = b = CompositeEventBus.withExtensions(Platform.provider().eventBus());
 		return b;
 	}
 
