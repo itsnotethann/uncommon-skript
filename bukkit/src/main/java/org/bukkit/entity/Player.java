@@ -1,23 +1,10 @@
 package org.bukkit.entity;
 
-import java.util.UUID;
+import org.bukkit.OfflinePlayer;
 
-public class Player {
+public interface Player extends HumanEntity, OfflinePlayer {
 
-	private final String name;
-	private final UUID uuid;
+	String getDisplayName();
 
-	public Player(String name, UUID uuid) {
-		this.name = name;
-		this.uuid = uuid;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public UUID getUniqueId() {
-		return uuid;
-	}
-
+	void kickPlayer(String message);
 }

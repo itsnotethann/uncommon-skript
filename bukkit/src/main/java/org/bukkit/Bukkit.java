@@ -21,6 +21,8 @@ import java.util.UUID;
 import java.util.function.BooleanSupplier;
 import java.util.logging.Handler;
 import java.util.logging.LogRecord;
+import java.util.List;
+import org.jetbrains.annotations.Nullable;
 
 public class Bukkit {
 	private static final Thread primaryThread = Thread.currentThread();
@@ -94,6 +96,26 @@ public class Bukkit {
 
 	public static Player getPlayer(UUID uuid) {
 		return server.getPlayer(uuid);
+	}
+
+	public static @Nullable Player getPlayer(String name) {
+		return server.getPlayer(name);
+	}
+
+	public static @Nullable Player getPlayerExact(String name) {
+		return server.getPlayerExact(name);
+	}
+
+	public static List<World> getWorlds() {
+		return server.getWorlds();
+	}
+
+	public static @Nullable World getWorld(String name) {
+		return server.getWorld(name);
+	}
+
+	public static @Nullable World getWorld(UUID uid) {
+		return server.getWorld(uid);
 	}
 
 	public static ConsoleCommandSender getConsoleSender() {

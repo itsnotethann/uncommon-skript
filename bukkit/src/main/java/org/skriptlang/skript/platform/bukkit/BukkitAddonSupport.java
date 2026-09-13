@@ -1,5 +1,7 @@
 package org.skriptlang.skript.platform.bukkit;
 
+import java.util.ServiceLoader;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
 import org.skriptlang.skript.platform.AddonRegistry;
@@ -21,8 +23,14 @@ public final class BukkitAddonSupport {
 	}
 
 	static void installServer() {
-		if (Bukkit.getServer() == null)
-			installServer(new SpiServer(Platform.provider()));
+		if (Bukkit.getServer() != null)
+			return;
+		PlatformProvider provider = Platform.provider();
+		Server server = ServiceLoader.load(BukkitServerProvider.class, BukkitAddonSupport.class.getClassLoader())
+			.findFirst()
+			.map(serverProvider -> serverProvider.create(provider))
+			.orElseGet(() -> new SpiServer(provider));
+		installServer(server);
 	}
 
 	private static synchronized void installServer(Server server) {

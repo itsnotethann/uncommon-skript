@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.bukkit.Server;
+import org.bukkit.World;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Nullable;
@@ -52,6 +53,11 @@ public class SpiServer implements Server {
 	@Override
 	public @Nullable Player getPlayer(UUID uuid) {
 		return null;
+	}
+
+	@Override
+	public List<World> getWorlds() {
+		return List.of();
 	}
 
 	@Override
