@@ -14,8 +14,7 @@ for scheduling, addon lifecycle, logging and server state. That is replaced here
 - `org.skriptlang.skript.platform` — `EventBus`, `EventChannel`, `PlatformScheduler`,
   `AddonHandle`, `AddonRegistry`, `PlatformEnvironment`, `LogSink`
 
-There is no Bukkit implementation and no `org.bukkit.*` compatibility shim. Both existed here
-until they were removed; see *Bukkit addons* below for why.
+There is no Bukkit implementation and no `org.bukkit.*` compatibility shim in this repository.
 
 Two upstream defects were fixed along the way, both independent of the SPI:
 
@@ -37,20 +36,18 @@ inert. `spi` is transitive through `common`, so consumers get it for free.
 
 ## Bukkit addons
 
-They do not work, and this fork no longer pretends otherwise.
+Not in this repository. [uncommon-skript-bukkit](../uncommon-skript-bukkit) adds them back as a
+separate jar; nothing here depends on it.
 
-The shim was built so a Bukkit-compiled addon jar would class-load, on the reasoning that the JVM
-resolves method signatures lazily — which is true, and turned out not to be enough. A Skript addon
-does not merely call Skript, it *implements* Skript's syntax interfaces. `Expression.getArray` is
-`getArray(PlatformEvent)` here and `getArray(org.bukkit.event.Event)` upstream; different erasure
-means the addon's method is not an override at all, so the abstract method is never implemented.
-Tested against skript-reflect 2.6.3: it loads, enables and registers its syntax, then throws
-`AbstractMethodError` the first time a syntax element is evaluated.
+The retype is what breaks them. `Expression.getArray` is `getArray(PlatformEvent)` here and
+`getArray(org.bukkit.event.Event)` upstream, so a Bukkit-compiled addon's method has a different
+erasure and is not an override — it loads, enables, registers its syntax, then throws
+`AbstractMethodError` the first time an element is evaluated. The Bukkit layer rewrites the addon's
+bytecode at load time so its descriptors match, and ships the `org.bukkit.*` shim the addon calls
+into.
 
-Making that work means either reflective bridges on the hottest path in Skript, or bytecode
-rewriting at addon load time. Neither is worth it for a fork whose point is the retype, so the
-shim, the Bukkit adapters and the Plugin-typed addon API are gone. `AddonRegistry.load` in the SPI
-is the seam a host would implement to add a native addon mechanism; nothing implements it yet.
+A host picks it up through `ServiceLoader` as an `AddonRegistry`. Without it on the classpath, jars
+in `addons/` are skipped with a warning.
 
 ## Using it
 

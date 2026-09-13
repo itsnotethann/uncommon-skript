@@ -14,10 +14,9 @@
 `settings.gradle.kts` includes `spi`, `common` and `domain`, which is what makes `minestom/` inert.
 `spi` is transitive through `common`'s POM so consumers get it for free.
 
-There used to be a fourth module, `compat`, holding an `org/bukkit/**` shim and the Bukkit
-implementation of the SPI. It is gone — see *Bukkit addons* below. Its removal also removed the
-Gradle project cycle that forced `spi` out as a separate module in the first place; `spi` stays
-split anyway, because a host wanting only the interfaces should not pull the whole core.
+There used to be a fourth module, `compat`, holding the `org/bukkit/**` shim. It moved out to
+`uncommon-skript-bukkit` — see *Bukkit addons* below. `spi` stays a separate module anyway, because
+a host wanting only the interfaces should not pull the whole core.
 
 That inert module is the trap worth knowing about: it looks like source, it is tracked, and it is
 pre-migration. A green build does not prove anything about it, because nothing builds it. When a
@@ -25,31 +24,20 @@ merge conflicts in there, take upstream wholesale rather than resolving on the m
 
 ## Bukkit addons
 
-Not supported. Do not re-add the shim without reading this first.
+Not here. They live in `uncommon-skript-bukkit`, a separate repository that depends on `common` and
+registers an `AddonRegistry` service. Do not re-add a shim to this repository.
 
-The shim existed so a Bukkit-compiled addon jar would class-load. The reasoning was sound as far as
-it went — the JVM resolves superclasses eagerly but method signatures and field types lazily, so
-Plugin-typed public API costs nothing and addon jars link fine. What that argument misses is that
-linkage is not overriding. A Skript addon implements Skript's syntax interfaces, and
-`Expression.getArray` is `getArray(PlatformEvent)` here against `getArray(org.bukkit.event.Event)`
-upstream. Different erasure, so the addon's method is not an override, so the abstract method is
-never implemented.
+Why they cannot live here: a Skript addon implements Skript's syntax interfaces, and the retype
+changes their erasure. `Expression.getArray(PlatformEvent)` here against
+`getArray(org.bukkit.event.Event)` upstream means the addon's method is not an override. Lazy
+linkage lets the jar load; it does nothing for overriding. Pre-migration builds ran skript-reflect
+fine, so this is a cost of the retype, not a pre-existing gap.
 
-Verified against skript-reflect 2.6.3, which got further than expected: it loaded, enabled,
-registered its syntax, and appeared correctly in Skript's own addon list, then threw
+The fix is bytecode rewriting at addon load, and it needs `common` visible — which is exactly the
+dependency a module inside this build could not have without a Gradle cycle. Downstream, the graph
+is `bukkit → common → spi` and acyclic.
 
-```
-AbstractMethodError: Method com/btk5h/skriptmirror/skript/reflect/ExprJavaCall
-  .getArray(Lorg/skriptlang/skript/lang/event/PlatformEvent;)[Ljava/lang/Object; is abstract
-```
-
-on first evaluation. That is the 151-file retype, not a registration detail, and it cannot be
-patched around cheaply. The two real fixes are reflective bridge methods on `getArray` / `getAll` /
-`get` / `check` — the hottest path in Skript — or ASM rewriting of addon descriptors at load time.
-
-So what went, in one change: the `compat` module (89 files), `ConfigurationSerializer` (dead — zero
-references), `common/src/main/resources/plugin.yml`, and every Plugin-typed public signature that
-existed only for addon linkage:
+What `main` gave up, none of which had a caller inside `common/`:
 
 | Removed | Live replacement |
 |---|---|
@@ -58,9 +46,10 @@ existed only for addon linkage:
 | `SkriptAddon.plugin` and its `JavaPlugin` constructors | the `AddonHandle` constructor |
 | `Task(Plugin, …)`, `Task.callSync(Callable, Plugin)` | `PlatformScheduler` |
 | `Utils.getClasses(Plugin, …)`, `Utils.getFile(Plugin)` | `getClasses(Class, File, …)` |
+| `ConfigurationSerializer` | none — it had zero references |
 
-None of those had a single caller inside `common/`. `AddonRegistry.load(File)` stays in the SPI as
-the seam for a future native addon mechanism; no implementation returns anything but `null`.
+Addons still call `Skript.registerAddon(JavaPlugin)`; the Bukkit layer redirects that call to
+itself. Nothing in this repository has to change for addon support, and nothing should.
 
 ## Remotes
 
@@ -104,8 +93,9 @@ These conflict on most merges, so they are listed rather than rediscovered:
 
 `main` only. There was a `bukkit-compat` branch carrying `FunctionEvent` and `PreScriptLoadEvent`
 as `extends org.bukkit.event.Event` with a `HandlerList`, so that addons could register Bukkit
-listeners for those two events. With no shim there is no Bukkit `Event` to extend and no addon to
-register one, so the branch has nothing left to mean.
+listeners for those two events. `main` has no Bukkit `Event` to extend, and the Bukkit layer does
+not restore that — addons loaded through it can provide syntax but cannot listen for those two
+events as Bukkit events. Nothing needed it, so the branch is dead.
 
 ## Gates
 
