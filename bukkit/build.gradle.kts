@@ -1,6 +1,7 @@
 plugins {
 	`java-library`
 	`maven-publish`
+	id("com.gradleup.shadow") version "9.3.0"
 }
 
 repositories {
@@ -9,7 +10,7 @@ repositories {
 
 dependencies {
 	api(project(":common"))
-	api("org.ow2.asm:asm:9.8")
+	implementation("org.ow2.asm:asm:9.10.1")
 	api("com.google.guava:guava:33.5.0-jre")
 	api("org.yaml:snakeyaml:1.32")
 	api("net.kyori:adventure-text-minimessage:4.26.1")
@@ -21,4 +22,20 @@ dependencies {
 tasks.withType<JavaCompile>().configureEach {
 	options.release.set(25)
 	options.encoding = "UTF-8"
+}
+
+tasks.jar {
+	archiveClassifier.set("plain")
+}
+
+tasks.shadowJar {
+	archiveClassifier.set("")
+	dependencies {
+		include(dependency("org.ow2.asm:asm"))
+	}
+	relocate("org.objectweb.asm", "org.skriptlang.skript.platform.bukkit.asm")
+}
+
+tasks.assemble {
+	dependsOn(tasks.shadowJar)
 }

@@ -22,8 +22,12 @@ Put `bukkit.jar` on the host's classpath. It registers two services:
 A host that looks up its addon registry through `ServiceLoader` needs no code change. Skript's core
 picks up extra event buses on its own. A `PlatformProvider` must already be installed.
 
-Every runtime dependency this module declares is already inside a typical host shadow jar, so the
-jar can usually go on the classpath by itself.
+Use the shaded `bukkit.jar` from `:bukkit:shadowJar`. It bundles its own ASM, relocated to
+`org.skriptlang.skript.platform.bukkit.asm`, because hosts ship whatever ASM their other dependencies
+pull in — a typical Minestom host ships 9.7, which cannot read Java 25 class files, so every addon
+compiled for a current Java failed to load. Nothing else is bundled: guava, snakeyaml, adventure and
+logback must be the host's own copies, because their types cross into Skript.
+
 
 ## Why it rewrites bytecode
 
@@ -83,3 +87,8 @@ grep -oE "(Method|InterfaceMethod|Field) [^ ]*" all.txt | grep "org/bukkit/" | s
 
 Anything called on a Minecraft type will not work. Anything else must exist in the shim under
 `src/main/java/org/bukkit/`.
+
+## Performance
+
+Not a reason to use this. Event dispatch was benchmarked against upstream on the same addon and
+scripts: about 12 ns slower per event with no trigger, and within run-to-run noise with triggers.
