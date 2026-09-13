@@ -49,10 +49,9 @@ into.
 A host picks it up through `ServiceLoader` as an `AddonRegistry`. Without it on the classpath, jars
 in `addons/` are skipped with a warning.
 
-Addon support is the same as upstream skript-minestom's: the shim covers plugin loading,
-configuration, scheduling, commands and permissions, not Minecraft game types. Addons built on
-players, worlds, items or inventories do not work on either. Parity was checked line by line
-against upstream; see `bukkit/README.md`.
+Addon support matches upstream skript-minestom's, checked line by line, and adds a first set of
+game types upstream lacks — players, worlds, locations — backed by a platform module. Items,
+blocks and inventories are not covered on either. See `bukkit/README.md`.
 
 ## Using it
 

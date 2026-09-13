@@ -5,12 +5,28 @@ never loads an `org.bukkit` class without it.
 
 ## What it gives you
 
-The same addon support upstream skript-minestom has, on a core with no Bukkit in it.
+Upstream skript-minestom's addon support, on a core with no Bukkit in it — plus a first set of
+Minecraft types upstream does not have.
 
-That is a specific, limited thing. The shim — here and upstream — covers plugin loading,
-configuration, scheduling, commands, permissions, services and Bukkit's event plumbing. It does not
-contain Minecraft: no worlds, locations, blocks, items, inventories or entities. Addons built on
-those do not work here or upstream. Addons that are logic and Java glue do.
+The shim covers plugin loading, configuration, scheduling, commands, permissions, services and
+Bukkit's event plumbing, and now the core game types: `Entity`, `Damageable`, `LivingEntity`,
+`HumanEntity`, `OfflinePlayer` and `Player` as interfaces, `World`, `Location`, `GameMode` and
+`Permission`, plus `Bukkit.getWorlds()`, `getWorld(name|UUID)`, `getPlayer(name)` and
+`getPlayerExact(name)`. Their shapes follow real Bukkit — interfaces where Bukkit has interfaces —
+because addons are compiled against real Bukkit. Upstream's `Player` is a concrete class, so any
+addon calling a method on a player fails there with `IncompatibleClassChangeError`.
+
+Still not covered: blocks, items, materials, inventories, non-player entities, and every method on
+the types above that is not declared here. An addon that calls one fails with a linkage error naming
+it.
+
+This module only defines the types. Something has to back them with a real server:
+
+- **`BukkitServerProvider`** is a `ServiceLoader` hook. A platform module registers one and returns a
+  `Server` whose players and worlds are real. For Minestom that is `minestom-bukkit` in the Minestom
+  host project, a separate jar.
+- Without a provider, `SpiServer` is used: server questions are answered from the SPI, and there are
+  no players or worlds.
 
 ## Using it
 
@@ -55,24 +71,27 @@ touched; addons subclass `Event`, and the shim's `Event` already implements `Pla
 ## Parity with upstream
 
 Same skript-reflect 2.6.3, same script, upstream skript-minestom `b5096343` against this module on
-uncommon-skript. 20 output lines each; 19 identical:
+uncommon-skript. 20 output lines each:
 
-| Checked | Result |
-|---|---|
-| static calls, constructors, instance methods, static fields | identical |
-| custom expressions, effects, conditions | identical |
-| Java calls after `wait`, inside functions, in loops | identical |
-| `event` from an addon expression | identical |
-| Bukkit console sender, sending to it | identical |
-| listening for a Bukkit event, firing it through `ServicesManager` | identical |
-| skript-reflect custom events, defined and called | identical |
-| `Bukkit.getName()` | differs: `uncommon-skript` vs `Skript-Minestom (<version>)` |
+| Checked | Without a provider | With `minestom-bukkit` |
+|---|---|---|
+| static calls, constructors, instance methods, static fields | identical | identical |
+| custom expressions, effects, conditions | identical | identical |
+| Java calls after `wait`, inside functions, in loops | identical | identical |
+| `event` from an addon expression | identical | identical |
+| Bukkit console sender, sending to it | identical | identical |
+| listening for a Bukkit event, firing it through `ServicesManager` | identical | identical |
+| skript-reflect custom events, defined and called | identical | identical |
+| `Bukkit.getName()` | `uncommon-skript` | identical |
 
-Not covered by that run, because it had no players connected, and known to differ:
-`Bukkit.getOnlinePlayers()` and `getPlayer(UUID)` return nothing here, where upstream returns the
-connected players as name-and-UUID records, and `getOnlineMode()` is always `false`. The SPI has no
-player list to answer from. A host that needs those passes its own `Server` to
-`BukkitAddonSupport.install(Server)`.
+With `minestom-bukkit`, a connected client also verified: `getPlayer(UUID)` and `getPlayerExact`
+return equal wrappers, online and per-world player counts, `§` colour codes in `sendMessage`,
+health, game mode read and set, location and world, cross-check against Minestom's own game mode,
+teleport, and LuckPerms-backed `hasPermission`. `isOp()` is always `false` — Minestom has no
+operators.
+
+Minestom instances have no names, so a `World` reports its dimension name, or its UUID when more
+than one instance shares that dimension.
 
 ## Sizing an addon before trying it
 
@@ -85,8 +104,8 @@ javap -p -c -classpath . $(find . -name '*.class' | sed 's|^\./||; s|/|.|g; s|\.
 grep -oE "(Method|InterfaceMethod|Field) [^ ]*" all.txt | grep "org/bukkit/" | sort | uniq -c | sort -rn
 ```
 
-Anything called on a Minecraft type will not work. Anything else must exist in the shim under
-`src/main/java/org/bukkit/`.
+Every method listed must exist in the shim under `src/main/java/org/bukkit/` — and for game types,
+be implemented by the platform's `BukkitServerProvider`. What is missing is the work.
 
 ## Performance
 
