@@ -6,3 +6,4 @@ rootProject.name = "uncommon-skript"
 include("spi")
 include("common")
 include("domain")
+include("bukkit")
