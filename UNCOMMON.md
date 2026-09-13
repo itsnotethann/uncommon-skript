@@ -9,14 +9,15 @@
 | `spi/` | yes | fork-owned. The platform interfaces — `platform/*`, `lang/event/*`, `MapSerializable`. 18 files, zero dependencies on the rest of Skript |
 | `common/` | yes | tracking fork of upstream's `common/`. Takes `spi` as `api`. Keep fork deltas small and enumerable |
 | `domain/` | yes | fork-owned. Domain interfaces under `org.skriptlang.skript.domain`. No upstream occupant |
+| `bukkit/` | yes | fork-owned. Optional Bukkit addon support: the `org/bukkit/**` shim plus addon bytecode rewriting. Depends on `common`; nothing depends on it |
 | `minestom/` | **no** | inert. Present only so `git merge upstream` never hits modify/delete conflicts. Do not edit it here — it is stale by design and nothing compiles it |
 
-`settings.gradle.kts` includes `spi`, `common` and `domain`, which is what makes `minestom/` inert.
+`settings.gradle.kts` includes `spi`, `common`, `domain` and `bukkit`, which is what makes `minestom/`
+inert.
 `spi` is transitive through `common`'s POM so consumers get it for free.
 
-There used to be a fourth module, `compat`, holding the `org/bukkit/**` shim. It moved out to
-`uncommon-skript-bukkit` — see *Bukkit addons* below. `spi` stays a separate module anyway, because
-a host wanting only the interfaces should not pull the whole core.
+`spi` stays a separate module even though nothing forces it to any more, because a host wanting
+only the interfaces should not pull the whole core.
 
 That inert module is the trap worth knowing about: it looks like source, it is tracked, and it is
 pre-migration. A green build does not prove anything about it, because nothing builds it. When a
@@ -24,20 +25,25 @@ merge conflicts in there, take upstream wholesale rather than resolving on the m
 
 ## Bukkit addons
 
-Not here. They live in `uncommon-skript-bukkit`, a separate repository that depends on `common` and
-registers an `AddonRegistry` service. Do not re-add a shim to this repository.
+They live in `bukkit/`, and only there. `common`, `spi` and `domain` must never depend on it — that
+one-way dependency is the whole separation, and Gradle enforces it: `bukkit` depends on `common`, so
+`common` depending back would be a cycle and fail to configure.
 
-Why they cannot live here: a Skript addon implements Skript's syntax interfaces, and the retype
+`bukkit/` is the `org/bukkit/**` shim, the Bukkit adapters, and a class loader that rewrites addon
+bytecode. It registers an `AddonRegistry` service. A host that wants addon support puts `bukkit.jar`
+on the classpath; a host that does not never loads any `org.bukkit` class. See `bukkit/README.md`.
+
+Why the rewrite is needed: a Skript addon implements Skript's syntax interfaces, and the retype
 changes their erasure. `Expression.getArray(PlatformEvent)` here against
 `getArray(org.bukkit.event.Event)` upstream means the addon's method is not an override. Lazy
 linkage lets the jar load; it does nothing for overriding. Pre-migration builds ran skript-reflect
-fine, so this is a cost of the retype, not a pre-existing gap.
+fine, so this is a cost of the retype, and `bukkit/` is what pays it back.
 
-The fix is bytecode rewriting at addon load, and it needs `common` visible — which is exactly the
-dependency a module inside this build could not have without a Gradle cycle. Downstream, the graph
-is `bukkit → common → spi` and acyclic.
+This used to be a module called `compat` that `common` depended on (`compileOnly`), which made the
+shim part of the core's compile classpath and kept it out of reach of `common`'s own types. The
+direction is now reversed.
 
-What `main` gave up, none of which had a caller inside `common/`:
+What `common` gave up, none of which had a caller inside `common/`:
 
 | Removed | Live replacement |
 |---|---|
@@ -48,8 +54,15 @@ What `main` gave up, none of which had a caller inside `common/`:
 | `Utils.getClasses(Plugin, …)`, `Utils.getFile(Plugin)` | `getClasses(Class, File, …)` |
 | `ConfigurationSerializer` | none — it had zero references |
 
-Addons still call `Skript.registerAddon(JavaPlugin)`; the Bukkit layer redirects that call to
-itself. Nothing in this repository has to change for addon support, and nothing should.
+Addons still call `Skript.registerAddon(JavaPlugin)`; `bukkit/` redirects that call to itself.
+
+`common` knows nothing about Bukkit, but it has one extension point `bukkit/` uses:
+`Skript.eventBus()` wraps the host's bus in `CompositeEventBus`, which adds any `EventBus` found
+through `ServiceLoader`. Without it, a trigger for an event class the host bus does not own — an
+addon's own Bukkit event — is dropped silently, because `SkriptEventHandler.registerBukkitEvent`
+returns when `channelFor` is `null`. The composite asks each bus in turn and fires to all of them;
+that is safe because every bus ignores classes it does not own. Anything else that seems to need a
+change in `common` for addon support belongs in `bukkit/`.
 
 ## Remotes
 
@@ -85,7 +98,7 @@ These conflict on most merges, so they are listed rather than rediscovered:
 | File | Delta |
 |---|---|
 | `build.gradle.kts` | fork coordinates (`com.github.itsnotethann.uncommonskript`) |
-| `settings.gradle.kts` | includes `spi` + `common` + `domain`; excludes `minestom` |
+| `settings.gradle.kts` | includes `spi` + `common` + `domain` + `bukkit`; excludes `minestom` |
 | `common/build.gradle` | no `application` plugin, no `compat` dependency |
 | `README.md` | replaced; upstream's identifies itself as skript-minestom |
 
@@ -93,7 +106,7 @@ These conflict on most merges, so they are listed rather than rediscovered:
 
 `main` only. There was a `bukkit-compat` branch carrying `FunctionEvent` and `PreScriptLoadEvent`
 as `extends org.bukkit.event.Event` with a `HandlerList`, so that addons could register Bukkit
-listeners for those two events. `main` has no Bukkit `Event` to extend, and the Bukkit layer does
+listeners for those two events. `main` has no Bukkit `Event` to extend, and `bukkit/` does
 not restore that — addons loaded through it can provide syntax but cannot listen for those two
 events as Bukkit events. Nothing needed it, so the branch is dead.
 

@@ -14,7 +14,7 @@ for scheduling, addon lifecycle, logging and server state. That is replaced here
 - `org.skriptlang.skript.platform` — `EventBus`, `EventChannel`, `PlatformScheduler`,
   `AddonHandle`, `AddonRegistry`, `PlatformEnvironment`, `LogSink`
 
-There is no Bukkit implementation and no `org.bukkit.*` compatibility shim in this repository.
+There is no Bukkit in `common`. The `org.bukkit.*` compatibility shim is its own optional module.
 
 Two upstream defects were fixed along the way, both independent of the SPI:
 
@@ -29,31 +29,37 @@ Two upstream defects were fixed along the way, both independent of the SPI:
 | `spi/` | yes | the platform interfaces. 18 files, no dependency on the rest of Skript |
 | `common/` | yes | the platform-free core; a tracking fork of upstream's `common/` |
 | `domain/` | yes | fork-owned domain interfaces under `org.skriptlang.skript.domain`; no upstream occupant |
+| `bukkit/` | yes | optional Bukkit addon support. Depends on `common`; nothing depends on it |
 | `minestom/` | no | inert. Present only so merges from upstream never hit modify/delete conflicts. Do not edit it here |
 
-`settings.gradle.kts` includes `spi`, `common` and `domain` only, which is what makes `minestom/`
+`settings.gradle.kts` includes `spi`, `common`, `domain` and `bukkit`, which is what makes `minestom/`
 inert. `spi` is transitive through `common`, so consumers get it for free.
 
 ## Bukkit addons
 
-Not in this repository. [uncommon-skript-bukkit](../uncommon-skript-bukkit) adds them back as a
-separate jar; nothing here depends on it.
+Optional, in [`bukkit/`](bukkit/README.md). The core does not depend on it.
 
 The retype is what breaks them. `Expression.getArray` is `getArray(PlatformEvent)` here and
 `getArray(org.bukkit.event.Event)` upstream, so a Bukkit-compiled addon's method has a different
 erasure and is not an override — it loads, enables, registers its syntax, then throws
-`AbstractMethodError` the first time an element is evaluated. The Bukkit layer rewrites the addon's
+`AbstractMethodError` the first time an element is evaluated. `bukkit/` rewrites the addon's
 bytecode at load time so its descriptors match, and ships the `org.bukkit.*` shim the addon calls
 into.
 
 A host picks it up through `ServiceLoader` as an `AddonRegistry`. Without it on the classpath, jars
 in `addons/` are skipped with a warning.
 
+Addon support is the same as upstream skript-minestom's: the shim covers plugin loading,
+configuration, scheduling, commands and permissions, not Minecraft game types. Addons built on
+players, worlds, items or inventories do not work on either. Parity was checked line by line
+against upstream; see `bukkit/README.md`.
+
 ## Using it
 
 ```
 com.github.itsnotethann.uncommonskript:common:1.0.0-alpha.1
 com.github.itsnotethann.uncommonskript:domain:1.0.0-alpha.1
+com.github.itsnotethann.uncommonskript:bukkit:1.0.0-alpha.1   # optional, runtime only
 ```
 
 Or as a composite build, which is how skript-minestom consumes it:
