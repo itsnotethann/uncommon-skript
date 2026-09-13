@@ -20,11 +20,18 @@ Still not covered: blocks, items, materials, inventories, non-player entities, a
 the types above that is not declared here. An addon that calls one fails with a linkage error naming
 it.
 
-This module only defines the types. Something has to back them with a real server:
+This module only defines the types. Something has to back them with a real server, and convert
+between the platform's objects and Bukkit's:
 
 - **`BukkitServerProvider`** is a `ServiceLoader` hook. A platform module registers one and returns a
   `Server` whose players and worlds are real. For Minestom that is `minestom-bukkit` in the Minestom
   host project, a separate jar.
+- **`BukkitTypeBridge`** is the conversion hook. Addon code asking for a Bukkit type gets the
+  platform object converted, whether it arrives through a cast, an array, an `instanceof` or a lambda;
+  and the bridge registers Skript converters for the other direction, so an addon expression returning
+  a Bukkit `Player` works in core syntax. Addon syntax typed `%player%` therefore receives a real Bukkit
+  `Player`. Patterns naming types the platform does not register under Bukkit's name — `%location%`,
+  `%world%` on Minestom — still do not parse.
 - Without a provider, `SpiServer` is used: server questions are answered from the SPI, and there are
   no players or worlds.
 
@@ -62,6 +69,8 @@ rewrites each addon class as it is defined:
 | `org.bukkit.event.Cancellable` | the platform `Cancellable` — identical methods |
 | `getEventPriority()` returning Bukkit's `EventPriority` | the core call, converted back to Bukkit's enum |
 | `Skript.registerAddon(JavaPlugin)` | `BukkitAddons.registerAddon` — the core no longer has it |
+| a `checkcast` or `instanceof` against an `org.bukkit` type | preceded by `BukkitValues.adapt` / `isInstance`, which converts platform objects — a Minestom player becomes a Bukkit `Player` |
+| a lambda or method reference with an `org.bukkit`-typed parameter | pointed at a synthetic bridge method that converts the arguments first, because the JVM-generated lambda class does its own cast |
 
 The distinction that matters: a method overriding a **Skript** interface gets `PlatformEvent`; a
 method implementing a **Bukkit shim** interface — skript-reflect's `EventExecutor.execute(Listener,
