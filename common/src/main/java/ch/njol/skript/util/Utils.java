@@ -24,8 +24,6 @@ import ch.njol.util.NonNullPair;
 import ch.njol.util.Pair;
 import ch.njol.util.coll.CollectionUtils;
 import com.google.common.base.Preconditions;
-import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.java.JavaPlugin;
 import org.eclipse.jdt.annotation.Nullable;
 import org.jetbrains.annotations.NotNull;
 import org.skriptlang.skript.util.ClassLoader;
@@ -188,11 +186,6 @@ public abstract class Utils {
 //		return new AmountResponse(s);
 //	}
 
-	@Deprecated
-	public static Class<?>[] getClasses(Plugin plugin, String basePackage, String... subPackages) throws IOException {
-		return getClasses(plugin.getClass(), getFile(plugin), basePackage, subPackages);
-	}
-
 	public static Class<?>[] getClasses(Class<?> source, @Nullable File jarFile, String basePackage, String... subPackages) throws IOException {
 		List<Class<?>> classes = new ArrayList<>();
 
@@ -224,31 +217,6 @@ public abstract class Utils {
 			if (entryName.startsWith(sub, afterBase)) return true;
 		}
 		return false;
-	}
-
-	/**
-	 * The first invocation of this method uses reflection to invoke the protected method JavaPlugin#getFile() to get the plugin's jar file.
-	 * 
-	 * @return The jar file of the plugin.
-	 */
-	@Nullable
-	public static File getFile(Plugin plugin) {
-		try {
-			Method getFile = JavaPlugin.class.getDeclaredMethod("getFile");
-			getFile.setAccessible(true);
-			return (File) getFile.invoke(plugin);
-		} catch (NoSuchMethodException e) {
-			throw new RuntimeException(e);
-		} catch (IllegalArgumentException e) {
-			throw new RuntimeException(e);
-		} catch (IllegalAccessException e) {
-			assert false;
-		} catch (SecurityException e) {
-			throw new RuntimeException(e);
-		} catch (InvocationTargetException e) {
-			throw new RuntimeException(e.getCause());
-		}
-		return null;
 	}
 
 	/**

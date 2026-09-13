@@ -6,32 +6,61 @@
 
 | Path | Built | Owner |
 |---|---|---|
-| `spi/` | yes | fork-owned. The platform interfaces — `platform/*`, `lang/event/*`, `MapSerializable`. 17 files, zero dependencies on the rest of Skript |
-| `compat/` | yes | fork-owned. The `org/bukkit/**` shim plus `platform/bukkit/**`, the Bukkit implementation of `spi`. Takes `spi` as `api` |
-| `common/` | yes | tracking fork of upstream's `common/`. Takes `spi` as `api` and `compat` as `compileOnly`. Keep fork deltas small and enumerable |
+| `spi/` | yes | fork-owned. The platform interfaces — `platform/*`, `lang/event/*`, `MapSerializable`. 18 files, zero dependencies on the rest of Skript |
+| `common/` | yes | tracking fork of upstream's `common/`. Takes `spi` as `api`. Keep fork deltas small and enumerable |
 | `domain/` | yes | fork-owned. Domain interfaces under `org.skriptlang.skript.domain`. No upstream occupant |
 | `minestom/` | **no** | inert. Present only so `git merge upstream` never hits modify/delete conflicts. Do not edit it here — it is stale by design and nothing compiles it |
 
-`settings.gradle.kts` includes `spi`, `compat`, `common` and `domain`, which is what makes
-`minestom/` inert.
+`settings.gradle.kts` includes `spi`, `common` and `domain`, which is what makes `minestom/` inert.
+`spi` is transitive through `common`'s POM so consumers get it for free.
 
-**Three modules, not two, and the third is not optional.** `compat` needs the SPI and `common`
-needs `compat`, which is a Gradle project cycle; extracting `spi` underneath both is what breaks
-it:
-
-```
-spi  <--(api)--  compat
- ^                 |
- |                 | (compileOnly)
- +---(api)---  common
-```
-
-`spi` is transitive through `common`'s POM so consumers get it for free. `compat` is `compileOnly`
-and therefore absent from the POM, so a consumer that wants the shim has to name it explicitly.
+There used to be a fourth module, `compat`, holding an `org/bukkit/**` shim and the Bukkit
+implementation of the SPI. It is gone — see *Bukkit addons* below. Its removal also removed the
+Gradle project cycle that forced `spi` out as a separate module in the first place; `spi` stays
+split anyway, because a host wanting only the interfaces should not pull the whole core.
 
 That inert module is the trap worth knowing about: it looks like source, it is tracked, and it is
 pre-migration. A green build does not prove anything about it, because nothing builds it. When a
 merge conflicts in there, take upstream wholesale rather than resolving on the merits.
+
+## Bukkit addons
+
+Not supported. Do not re-add the shim without reading this first.
+
+The shim existed so a Bukkit-compiled addon jar would class-load. The reasoning was sound as far as
+it went — the JVM resolves superclasses eagerly but method signatures and field types lazily, so
+Plugin-typed public API costs nothing and addon jars link fine. What that argument misses is that
+linkage is not overriding. A Skript addon implements Skript's syntax interfaces, and
+`Expression.getArray` is `getArray(PlatformEvent)` here against `getArray(org.bukkit.event.Event)`
+upstream. Different erasure, so the addon's method is not an override, so the abstract method is
+never implemented.
+
+Verified against skript-reflect 2.6.3, which got further than expected: it loaded, enabled,
+registered its syntax, and appeared correctly in Skript's own addon list, then threw
+
+```
+AbstractMethodError: Method com/btk5h/skriptmirror/skript/reflect/ExprJavaCall
+  .getArray(Lorg/skriptlang/skript/lang/event/PlatformEvent;)[Ljava/lang/Object; is abstract
+```
+
+on first evaluation. That is the 151-file retype, not a registration detail, and it cannot be
+patched around cheaply. The two real fixes are reflective bridge methods on `getArray` / `getAll` /
+`get` / `check` — the hottest path in Skript — or ASM rewriting of addon descriptors at load time.
+
+So what went, in one change: the `compat` module (89 files), `ConfigurationSerializer` (dead — zero
+references), `common/src/main/resources/plugin.yml`, and every Plugin-typed public signature that
+existed only for addon linkage:
+
+| Removed | Live replacement |
+|---|---|
+| `Skript.registerAddon(JavaPlugin)` | `registerAddon(Class, String)` |
+| `Skript.getAddon(JavaPlugin)` | `getAddon(String)` |
+| `SkriptAddon.plugin` and its `JavaPlugin` constructors | the `AddonHandle` constructor |
+| `Task(Plugin, …)`, `Task.callSync(Callable, Plugin)` | `PlatformScheduler` |
+| `Utils.getClasses(Plugin, …)`, `Utils.getFile(Plugin)` | `getClasses(Class, File, …)` |
+
+None of those had a single caller inside `common/`. `AddonRegistry.load(File)` stays in the SPI as
+the seam for a future native addon mechanism; no implementation returns anything but `null`.
 
 ## Remotes
 
@@ -57,6 +86,9 @@ consumer can compile at all.
 Conflicts inside retyped files usually need **both** sides — upstream's body with the fork's
 signature. Taking either wholesale loses something.
 
+Upstream still has `plugin.yml`, `ConfigurationSerializer` and the Plugin-typed overloads listed
+above. A merge will bring them back as add/add or modify/delete conflicts; delete them again.
+
 ## Known fork deltas on upstream files
 
 These conflict on most merges, so they are listed rather than rediscovered:
@@ -64,37 +96,16 @@ These conflict on most merges, so they are listed rather than rediscovered:
 | File | Delta |
 |---|---|
 | `build.gradle.kts` | fork coordinates (`com.github.itsnotethann.uncommonskript`) |
-| `settings.gradle.kts` | includes `spi` + `compat` + `common` + `domain`; excludes `minestom` |
+| `settings.gradle.kts` | includes `spi` + `common` + `domain`; excludes `minestom` |
+| `common/build.gradle` | no `application` plugin, no `compat` dependency |
 | `README.md` | replaced; upstream's identifies itself as skript-minestom |
 
 ## Branches
 
-| Branch | `FunctionEvent` / `PreScriptLoadEvent` | For |
-|---|---|---|
-| `main` | `implements PlatformEvent` | the platform-free build. Nothing in `common/` eagerly references the shim, so it runs without `org/bukkit/**` on the classpath at all |
-| `bukkit-compat` | `extends Event`, with `HandlerList` | consumers who need addons to register Bukkit listeners for those two events |
-
-**The delta is exactly two files, and it must stay that way.** Both branches are built and boot
-tested; every other difference belongs on `main`.
-
-Why a branch rather than a build variant: a variant would compile `common` twice, and the only
-difference is a supertype, which Java resolves eagerly and therefore cannot be swapped at runtime.
-
-To update the compat branch after work lands on `main`:
-
-```
-git checkout bukkit-compat
-git merge main
-```
-
-Conflicts are only possible in those two files. If `main` changes either one, port the change and
-keep the Bukkit supertype. **A clean merge is not proof of correctness here** — the two branches
-can agree textually while differing in behaviour, so re-run the boot test after merging.
-
-Everything else is shared, including the graceful `BukkitEventBus.fire()` (it ignores platform
-events that are not Bukkit events) and the warning `Functions.enableFunctionEvents` emits when the
-running build cannot dispatch function events to Bukkit listeners. Both are correct on either
-branch, which is what keeps the delta at two files.
+`main` only. There was a `bukkit-compat` branch carrying `FunctionEvent` and `PreScriptLoadEvent`
+as `extends org.bukkit.event.Event` with a `HandlerList`, so that addons could register Bukkit
+listeners for those two events. With no shim there is no Bukkit `Event` to extend and no addon to
+register one, so the branch has nothing left to mean.
 
 ## Gates
 
@@ -108,42 +119,11 @@ cannot run here, so behavioural changes need a real server boot instead.
 
 ## What not to "fix"
 
-Some `org.bukkit` references are deliberate and permanent:
+`common/src/main/java/ch/njol/skript/Skript.java` still names `org.bukkit.craftbukkit.CraftServer`
+inside a `classExists` call. It is a string literal in upstream's server-platform detection, not a
+type reference, and it loads nothing. Leave it — editing it buys nothing and adds a delta on an
+upstream-hot file.
 
-- `org/bukkit/**` — the compatibility shim. It exists so Bukkit-compiled Skript addons class-load,
-  and it ships permanently. Deleting it is not an end state and never was.
-- `org/skriptlang/skript/platform/bukkit/**` — the adapters. Speaking both vocabularies is their
-  entire job.
-- `SkriptAddon`, `Utils`, `Task`, `ConfigurationSerializer` — addon-facing signatures that existing
-  third-party jars are already compiled against.
-`ch/njol/skript/Main.java` used to be on that list. It now lives in `compat`, keeping its package,
-so it still ships and `application { mainClass }` in `common/build.gradle` is untouched. It was
-unreferenced from anywhere and had been non-functional since `Skript` stopped extending
-`JavaPlugin` — it calls `pluginManager.loadPlugin` on a jar that no longer declares a plugin.
-Dead Bukkit code does not belong in the platform-free module.
-
-`ConfigurationSerializer` cannot follow it. It extends `Serializer<T>` and uses
-`ch.njol.yggdrasil.Fields`, both in `common`, so moving it would make `compat` depend on `common`
-while `common` already depends on `compat` — a Gradle project cycle. It stays put.
-
-**`compat` deliberately does not register a `PlatformProvider`.** It has no
-`META-INF/services/org.skriptlang.skript.platform.PlatformProvider`, and adding one back is a
-regression, not a fix. `BukkitPlatformProvider` still ships; a Bukkit host installs it by calling
-`Platform.install` explicitly. Advertising it meant two providers on a shadowed classpath, where
-the winner is whichever copy the shadow plugin happens to keep.
-
-`common/src/main/resources/plugin.yml` still says `main: ch.njol.skript.Skript`, which is stale on
-both branches — `Skript` stopped extending `JavaPlugin`, so neither build loads as a Bukkit plugin.
-It is kept to avoid a delta on an upstream-hot file, the same reason as `Main.java`.
-
-The residue target is not zero, and "`common/` no longer compiles against Bukkit" — which this
-document used to say — is false. `common/build.gradle` declares `compileOnly project(':compat')`
-and five files still import `org.bukkit`; take compat off the compile classpath and `common` does
-not build.
-
-What is true is narrower and is the part that matters: nothing in `common/` references the shim
-*eagerly*, so it class-loads and runs with no Bukkit anywhere on the classpath. The clearest case
-is `ConfigurationSerializer<T extends ConfigurationSerializable>` — a Bukkit type in the class
-signature that never loads, because generic bounds resolve lazily. The shim is additive at
-runtime, not absent at compile time: it ships, nothing in a host drives it, and it wakes up only
-when an actual addon jar needs loading.
+`common/build.gradle` still declares `shadow "org.bstats:bstats-bukkit:3.2.1"`. Nothing in
+`common/` imports bstats at all, so it is dead on both sides of the fork. Removing it is probably
+right and is upstream's call more than this fork's.

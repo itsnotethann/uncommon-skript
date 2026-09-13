@@ -23,7 +23,6 @@ import ch.njol.util.StringUtils;
 import ch.njol.util.coll.iterator.CheckedIterator;
 import ch.njol.util.coll.iterator.EnumerationIterable;
 import org.skriptlang.skript.lang.event.PlatformEvent;
-import org.bukkit.plugin.java.JavaPlugin;
 import org.eclipse.jdt.annotation.Nullable;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -87,7 +86,6 @@ import java.util.zip.ZipFile;
  * methods are static.
  *
  * @author Peter Güttinger
- * @see #registerAddon(JavaPlugin)
  * @see #registerCondition(Class, String...)
  * @see #registerEffect(Class, String...)
  * @see #registerExpression(Class, Class, ExpressionType, String...)
@@ -918,31 +916,6 @@ public final class Skript {
 
 	@Deprecated
 	private static final Set<SkriptAddon> addons = new HashSet<>();
-
-	/**
-	 * Registers an addon to Skript. This is currently not required for addons to work, but the returned {@link SkriptAddon} provides useful methods for registering syntax elements
-	 * and adding new strings to Skript's localization system (e.g. the required "types.[type]" strings for registered classes).
-	 *
-	 * @param plugin The plugin
-	 */
-	public static SkriptAddon registerAddon(JavaPlugin plugin) {
-		checkAcceptRegistrations();
-		SkriptAddon addon = new SkriptAddon(plugin);
-		addons.add(addon);
-		return addon;
-	}
-
-	public static @Nullable SkriptAddon getAddon(JavaPlugin plugin) {
-		if (plugin == (Object) Skript.getInstance()) {
-			return Skript.getAddonInstance();
-		}
-		for (SkriptAddon addon : getAddons()) {
-			if (addon.plugin == plugin) {
-				return addon;
-			}
-		}
-		return null;
-	}
 
 	public static @Nullable SkriptAddon getAddon(String name) {
 		if (name.equals(Skript.getInstance().getName())) {

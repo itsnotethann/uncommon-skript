@@ -2,7 +2,6 @@ package ch.njol.skript;
 
 import ch.njol.skript.util.Utils;
 import ch.njol.skript.util.Version;
-import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.Nullable;
 import org.skriptlang.skript.localization.Localizer;
 import org.skriptlang.skript.platform.AddonHandle;
@@ -16,7 +15,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Utility class for Skript addons. Use {@link Skript#registerAddon(JavaPlugin)} to create a SkriptAddon instance for your plugin.
+ * Utility class for Skript addons.
  * @deprecated Use {@link org.skriptlang.skript.addon.SkriptAddon} instead.
  * Register using {@link org.skriptlang.skript.Skript#registerAddon(Class, String)}.
  * Obtain a Skript instance with {@link Skript#instance()}.
@@ -24,7 +23,6 @@ import java.util.regex.Pattern;
 @Deprecated(since = "2.14", forRemoval = true)
 public final class SkriptAddon implements org.skriptlang.skript.addon.SkriptAddon {
 
-	public final @Nullable JavaPlugin plugin;
 	public final Version version;
 	private final String name;
 	private final Class<?> sourceClass;
@@ -33,54 +31,19 @@ public final class SkriptAddon implements org.skriptlang.skript.addon.SkriptAddo
 
 	private final org.skriptlang.skript.addon.SkriptAddon addon;
 
-	/**
-	 * Package-private constructor. Use {@link Skript#registerAddon(JavaPlugin)} to get a SkriptAddon for your plugin.
-	 */
-	SkriptAddon(JavaPlugin plugin) {
-		this(plugin, Skript.instance().registerAddon(plugin.getClass(), plugin.getName()));
-	}
-
-	SkriptAddon(JavaPlugin plugin, org.skriptlang.skript.addon.SkriptAddon addon) {
-		this.addon = addon;
-		this.plugin = plugin;
-		this.name = plugin.getName();
-		this.sourceClass = plugin.getClass();
-		this.dataFolder = plugin.getDataFolder();
-		this.jarFile = Utils.getFile(plugin);
-		this.version = parseVersion(this.name, plugin.getDescription().getVersion());
-	}
-
 	SkriptAddon(AddonHandle handle, org.skriptlang.skript.addon.SkriptAddon addon) {
-		this(nativePlugin(handle), handle.name(), handle.version(), handle.source(), handle.dataFolder(),
+		this(handle.name(), handle.version(), handle.source(), handle.dataFolder(),
 			handle.jarFile(), addon);
 	}
 
-	SkriptAddon(@Nullable JavaPlugin plugin, String name, String version, Class<?> sourceClass, File dataFolder,
+	SkriptAddon(String name, String version, Class<?> sourceClass, File dataFolder,
 			@Nullable File jarFile, org.skriptlang.skript.addon.SkriptAddon addon) {
 		this.addon = addon;
-		this.plugin = plugin;
 		this.name = name;
 		this.sourceClass = sourceClass;
 		this.dataFolder = dataFolder;
 		this.jarFile = jarFile;
 		this.version = parseVersion(name, version);
-	}
-
-	private static @Nullable JavaPlugin nativePlugin(AddonHandle handle) {
-		try {
-			return handle.nativeHandle() instanceof JavaPlugin plugin ? plugin : null;
-		} catch (Throwable ignored) {
-			return null;
-		}
-	}
-
-	private static @Nullable JavaPlugin skriptPlugin() {
-		try {
-			Object owner = org.skriptlang.skript.platform.bukkit.SkriptPluginOwner.get();
-			return owner instanceof JavaPlugin plugin ? plugin : null;
-		} catch (Throwable ignored) {
-			return null;
-		}
 	}
 
 	private static Version parseVersion(String name, String raw) {
@@ -158,7 +121,7 @@ public final class SkriptAddon implements org.skriptlang.skript.addon.SkriptAddo
 		if (handle != null)
 			return new SkriptAddon(handle, addon);
 		Skript skript = Skript.getInstance();
-		return new SkriptAddon(skriptPlugin(), skript.getName(), skript.getPluginVersion(), skript.getClass(),
+		return new SkriptAddon(skript.getName(), skript.getPluginVersion(), skript.getClass(),
 			skript.getDataFolder(), skript.getFile(), addon);
 	}
 

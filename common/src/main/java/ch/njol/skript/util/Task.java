@@ -20,12 +20,9 @@ package ch.njol.skript.util;
 
 import ch.njol.skript.Skript;
 import ch.njol.util.Closeable;
-import org.bukkit.Bukkit;
-import org.bukkit.plugin.Plugin;
 import org.eclipse.jdt.annotation.Nullable;
 import org.skriptlang.skript.platform.PlatformScheduler;
 import org.skriptlang.skript.platform.PlatformTask;
-import org.skriptlang.skript.platform.bukkit.BukkitPlatformScheduler;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
@@ -61,27 +58,6 @@ public abstract class Task implements Runnable, Closeable {
 
 	public Task(final long delay, final boolean async) {
 		this.scheduler = Skript.scheduler();
-		this.async = async;
-		schedule(delay);
-	}
-
-	public Task(final Plugin plugin, final long delay, final long period) {
-		this(plugin, delay, period, false);
-	}
-
-	public Task(final Plugin plugin, final long delay, final long period, final boolean async) {
-		this.scheduler = new BukkitPlatformScheduler(Bukkit.getScheduler(), plugin);
-		this.period = period;
-		this.async = async;
-		schedule(delay);
-	}
-
-	public Task(final Plugin plugin, final long delay) {
-		this(plugin, delay, false);
-	}
-
-	public Task(final Plugin plugin, final long delay, final boolean async) {
-		this.scheduler = new BukkitPlatformScheduler(Bukkit.getScheduler(), plugin);
 		this.async = async;
 		schedule(delay);
 	}
@@ -154,7 +130,7 @@ public abstract class Task implements Runnable, Closeable {
 	}
 	
 	/**
-	 * Equivalent to <tt>{@link #callSync(Callable, Plugin) callSync}(c, {@link Skript#getInstance()})</tt>
+	 * Equivalent to <tt>{@link #callSync(Callable, PlatformScheduler) callSync}(c, {@link Skript#scheduler()})</tt>
 	 */
 	@Nullable
 	public static <T> T callSync(final Callable<T> c) {
@@ -188,7 +164,7 @@ public abstract class Task implements Runnable, Closeable {
 	}
 	
 	/**
-	 * Calls a method on Bukkit's main thread.
+	 * Calls a method on the server's main thread.
 	 * <p>
 	 * Hint: Use a Callable&lt;Void&gt; to make a task which blocks your current thread until it is completed.
 	 * 
@@ -196,16 +172,5 @@ public abstract class Task implements Runnable, Closeable {
 	 * @param p The plugin that owns the task. Must be enabled.
 	 * @return What the method returned or null if it threw an error or was stopped (usually due to the server shutting down)
 	 */
-	@Nullable
-	public static <T> T callSync(final Callable<T> c, final Plugin p) {
-		if (Skript.ENVIRONMENT.isPrimaryThread()) {
-			try {
-				return c.call();
-			} catch (final Exception e) {
-				Skript.exception(e);
-			}
-		}
-		return await(new BukkitPlatformScheduler(Bukkit.getScheduler(), p).callSync(c));
-	}
 	
 }
