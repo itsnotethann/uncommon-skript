@@ -250,6 +250,17 @@ public class PluginClassLoader extends URLClassLoader {
 					}
 
 					@Override
+					public void visitLdcInsn(Object value) {
+						if (value instanceof Type type && type.getSort() == Type.OBJECT) {
+							if (BUKKIT_EVENT.equals(type.getInternalName()))
+								value = Type.getObjectType(PLATFORM_EVENT);
+							else if (BUKKIT_CANCELLABLE.equals(type.getInternalName()))
+								value = Type.getObjectType(PLATFORM_CANCELLABLE);
+						}
+						super.visitLdcInsn(value);
+					}
+
+					@Override
 					public void visitTypeInsn(int opcode, String type) {
 						if (BUKKIT_CANCELLABLE.equals(type))
 							type = PLATFORM_CANCELLABLE;

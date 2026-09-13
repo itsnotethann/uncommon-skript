@@ -48,8 +48,13 @@ picks up extra event buses on its own. A `PlatformProvider` must already be inst
 Use the shaded `bukkit.jar` from `:bukkit:shadowJar`. It bundles its own ASM, relocated to
 `org.skriptlang.skript.platform.bukkit.asm`, because hosts ship whatever ASM their other dependencies
 pull in — a typical Minestom host ships 9.7, which cannot read Java 25 class files, so every addon
-compiled for a current Java failed to load. Nothing else is bundled: guava, snakeyaml, adventure and
-logback must be the host's own copies, because their types cross into Skript.
+compiled for a current Java failed to load. It also bundles two things addons expect to find inside
+Skript: bStats' Bukkit `Metrics`, relocated to `ch.njol.skript.bstats` as upstream Skript ships it
+(oopsk calls it), and JNA, which oopsk's bundled ByteBuddy needs. Nothing else is bundled: guava,
+snakeyaml, adventure and logback must be the host's own copies, because their types cross into Skript.
+
+Addons are found by `plugin.yml`, or `paper-plugin.yml` when there is none; a Paper
+`dependencies.server` entry counts as `depend` when required and `softdepend` otherwise.
 
 
 ## Why it rewrites bytecode
@@ -65,6 +70,7 @@ rewrites each addon class as it is defined:
 | `Event` in the descriptor of a method that does **not** implement a shim type | `PlatformEvent`, and so do that method's frames, array creations and casts |
 | `Event` in a call to or field of anything outside `org.bukkit` | `PlatformEvent` |
 | a call into `org.bukkit` whose last argument is `Event`, inside a rewritten method | the same call, with a cast back to `Event` first |
+| an `Event.class` or `Cancellable.class` literal | the platform type � oopsk looks up its generated constructors reflectively with it |
 | `Event.getEventName()` / `Event.isAsynchronous()` | statics in `BukkitAddons` |
 | `org.bukkit.event.Cancellable` | the platform `Cancellable` — identical methods |
 | `getEventPriority()` returning Bukkit's `EventPriority` | the core call, converted back to Bukkit's enum |
@@ -98,6 +104,11 @@ return equal wrappers, online and per-world player counts, `§` colour codes in 
 health, game mode read and set, location and world, cross-check against Minestom's own game mode,
 teleport, and LuckPerms-backed `hasPermission`. `isOp()` is always `false` — Minestom has no
 operators.
+
+oopsk 1.0-beta2, with a template script covering instances, defaults, `const`, reset, copy, the
+template condition and conversion to string: output identical to upstream, run alongside
+skript-reflect with its 20 lines still identical. Upstream itself only starts oopsk with JNA added to
+its classpath in the build tested here.
 
 Minestom instances have no names, so a `World` reports its dimension name, or its UUID when more
 than one instance shares that dimension.

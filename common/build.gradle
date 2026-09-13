@@ -26,8 +26,6 @@ allprojects {
 
 dependencies {
 	api project(':spi')
-	shadow "org.bstats:bstats-base:3.2.1"
-	shadow "org.bstats:bstats-bukkit:3.2.1"
 	api "net.kyori:adventure-text-serializer-bungeecord:4.3.2"
 	api "org.eclipse.jdt:org.eclipse.jdt.annotation:2.2.700"
 	api("com.google.code.findbugs:findbugs:3.0.1") { transitive = false }
@@ -41,7 +39,6 @@ dependencies {
 	api "ch.qos.logback:logback-classic:1.5.32"
 	api "net.kyori:adventure-text-minimessage:4.26.1"
 	api "net.kyori:adventure-text-serializer-ansi:4.26.1"
-	api "net.java.dev.jna:jna:5.17.0" // oopsk support
 }
 
 task jar(overwrite: true, type: ShadowJar) {
@@ -64,8 +61,6 @@ tasks.withType(ShadowJar) {
 		project.configurations.shadow
 	]
 	dependencies {
-		include(dependency('org.bstats:bstats-base'))
-		include(dependency('org.bstats:bstats-bukkit'))
 		include(dependency('net.kyori:adventure-text-serializer-bungeecord'))
 		include(dependency('org.eclipse.jdt:org'))
 		include(dependency('com.google.code.findbugs:findbugs'))
@@ -77,9 +72,7 @@ tasks.withType(ShadowJar) {
 		include(dependency("ch.qos.logback:logback-classic"))
 		include(dependency("net.kyori:adventure-text-minimessage"))
 		include(dependency("net.kyori:adventure-text-serializer-ansi"))
-		include(dependency('net.java.dev.jna:jna'))
 	}
-	relocate 'org.bstats', 'ch.njol.skript.bstats'
 //	relocate 'io.papermc.lib', 'ch.njol.skript.paperlib'
 	manifest {
 		attributes(

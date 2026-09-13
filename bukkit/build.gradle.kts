@@ -11,6 +11,8 @@ repositories {
 dependencies {
 	api(project(":common"))
 	implementation("org.ow2.asm:asm:9.10.1")
+	implementation("org.bstats:bstats-bukkit:3.2.1")
+	implementation("net.java.dev.jna:jna:5.17.0")
 	api("com.google.guava:guava:33.5.0-jre")
 	api("org.yaml:snakeyaml:1.32")
 	api("net.kyori:adventure-text-minimessage:4.26.1")
@@ -32,8 +34,12 @@ tasks.shadowJar {
 	archiveClassifier.set("")
 	dependencies {
 		include(dependency("org.ow2.asm:asm"))
+		include(dependency("org.bstats:bstats-base"))
+		include(dependency("org.bstats:bstats-bukkit"))
+		include(dependency("net.java.dev.jna:jna"))
 	}
 	relocate("org.objectweb.asm", "org.skriptlang.skript.platform.bukkit.asm")
+	relocate("org.bstats", "ch.njol.skript.bstats")
 }
 
 tasks.assemble {
