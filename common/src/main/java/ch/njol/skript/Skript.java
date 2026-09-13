@@ -529,8 +529,13 @@ public final class Skript {
 			AddonHandle addon = addonRegistry.load(addonFile);
 			if (addon == null)
 				continue;
-			addon.setEnabled(true);
-			addon.onEnable();
+			try {
+				addon.setEnabled(true);
+				addon.onEnable();
+			} catch (Exception | LinkageError e) {
+				exception(e, "Failed to enable addon '" + addonFile.getName() + "'");
+				addon.setEnabled(false);
+			}
 		}
 
 		stopAcceptingRegistrations();
