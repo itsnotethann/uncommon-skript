@@ -27,6 +27,7 @@ import org.objectweb.asm.Type;
 import java.nio.charset.StandardCharsets;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -51,6 +52,7 @@ public class PluginClassLoader extends URLClassLoader {
 	private static final String PLATFORM_CANCELLABLE_DESC = "L" + PLATFORM_CANCELLABLE + ";";
 	private static final String BUKKIT_ADDONS = "org/skriptlang/skript/platform/bukkit/BukkitAddons";
 	private static final String PRIORITIES = "org/skriptlang/skript/platform/bukkit/BukkitEventPriorities";
+	private static final String BUKKIT_VALUES = "org/skriptlang/skript/platform/bukkit/BukkitValues";
 	private static final String BUKKIT_PRIORITY_DESC = "Lorg/bukkit/event/EventPriority;";
 	private static final String PLATFORM_PRIORITY_DESC = "Lorg/skriptlang/skript/lang/event/EventPriority;";
 	private static final String SKRIPT = "ch/njol/skript/Skript";
@@ -95,6 +97,42 @@ public class PluginClassLoader extends URLClassLoader {
 		return constant;
 	}
 
+	private static final Type OBJECT_TYPE = Type.getType(Object.class);
+
+	private record LambdaBridge(String name, String descriptor, Handle implementation, List<Type> parameters) {
+	}
+
+	private static boolean isAdaptableType(Type type) {
+		return (type.getSort() == Type.OBJECT || type.getSort() == Type.ARRAY) && isAdaptable(type.getInternalName());
+	}
+
+	private static boolean hasAdaptableArgument(Type methodType) {
+		for (Type argument : methodType.getArgumentTypes()) {
+			if (isAdaptableType(argument))
+				return true;
+		}
+		return false;
+	}
+
+	private static Type eraseAdaptableArguments(Type methodType) {
+		Type[] arguments = methodType.getArgumentTypes();
+		for (int i = 0; i < arguments.length; i++) {
+			if (isAdaptableType(arguments[i]))
+				arguments[i] = OBJECT_TYPE;
+		}
+		return Type.getMethodType(methodType.getReturnType(), arguments);
+	}
+
+	private static boolean isAdaptable(String type) {
+		String element = type;
+		while (element.startsWith("["))
+			element = element.substring(1);
+		if (element.startsWith("L") && element.endsWith(";"))
+			element = element.substring(1, element.length() - 1);
+		return element.startsWith("org/bukkit/") && !element.startsWith("org/bukkit/event/")
+			&& !element.startsWith("org/bukkit/plugin/");
+	}
+
 	private static Object[] retypeFrame(Object[] entries, int count) {
 		if (entries == null)
 			return null;
@@ -132,13 +170,20 @@ public class PluginClassLoader extends URLClassLoader {
 
 	private byte[] retypeEvents(byte[] bytes) {
 		ClassReader reader = new ClassReader(bytes);
-		ClassWriter writer = new ClassWriter(0);
+		ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_MAXS);
 
 		reader.accept(new ClassVisitor(Opcodes.ASM9, writer) {
 			private final List<String> shimSupertypes = new ArrayList<>();
+			private final List<LambdaBridge> lambdaBridges = new ArrayList<>();
+			private String className;
+			private boolean isInterface;
+			private boolean canBridge;
 
 			@Override
 			public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
+				className = name;
+				isInterface = (access & Opcodes.ACC_INTERFACE) != 0;
+				canBridge = !isInterface || (version & 0xFFFF) >= Opcodes.V9;
 				if (superName != null && superName.startsWith("org/bukkit/"))
 					shimSupertypes.add(superName);
 				if (interfaces != null) {
@@ -211,6 +256,17 @@ public class PluginClassLoader extends URLClassLoader {
 							type = PLATFORM_EVENT;
 						else if (retyped && type.startsWith("["))
 							type = retype(type);
+						if ((opcode == Opcodes.CHECKCAST || opcode == Opcodes.INSTANCEOF) && isAdaptable(type)) {
+							super.visitLdcInsn(Type.getObjectType(type));
+							if (opcode == Opcodes.CHECKCAST) {
+								super.visitMethodInsn(Opcodes.INVOKESTATIC, BUKKIT_VALUES, "adapt",
+									"(Ljava/lang/Object;Ljava/lang/Class;)Ljava/lang/Object;", false);
+							} else {
+								super.visitMethodInsn(Opcodes.INVOKESTATIC, BUKKIT_VALUES, "isInstance",
+									"(Ljava/lang/Object;Ljava/lang/Class;)Z", false);
+								return;
+							}
+						}
 						super.visitTypeInsn(opcode, type);
 					}
 
@@ -227,11 +283,17 @@ public class PluginClassLoader extends URLClassLoader {
 
 					@Override
 					public void visitInvokeDynamicInsn(String method, String descriptor, Handle bootstrap, Object... arguments) {
-						Object[] retyped = new Object[arguments.length];
+						Object[] constants = new Object[arguments.length];
 						for (int i = 0; i < arguments.length; i++)
-							retyped[i] = retypeConstant(arguments[i]);
-						super.visitInvokeDynamicInsn(method, retype(descriptor),
-							(Handle) retypeConstant(bootstrap), retyped);
+							constants[i] = retypeConstant(arguments[i]);
+						Handle metafactory = (Handle) retypeConstant(bootstrap);
+						if (canBridge && "java/lang/invoke/LambdaMetafactory".equals(metafactory.getOwner()) && constants.length >= 3
+							&& constants[1] instanceof Handle implementation && constants[2] instanceof Type instantiated
+							&& implementation.getTag() != Opcodes.H_NEWINVOKESPECIAL && hasAdaptableArgument(instantiated)) {
+							constants[1] = bridgeLambda(implementation);
+							constants[2] = eraseAdaptableArguments(instantiated);
+						}
+						super.visitInvokeDynamicInsn(method, retype(descriptor), metafactory, constants);
 					}
 
 					@Override
@@ -249,6 +311,54 @@ public class PluginClassLoader extends URLClassLoader {
 						super.visitFrame(type, numLocal, retypeFrame(local, numLocal), numStack, retypeFrame(stack, numStack));
 					}
 				};
+			}
+			private Handle bridgeLambda(Handle implementation) {
+				Type implementationType = Type.getMethodType(implementation.getDesc());
+				List<Type> parameters = new ArrayList<>();
+				if (implementation.getTag() != Opcodes.H_INVOKESTATIC)
+					parameters.add(Type.getObjectType(implementation.getOwner()));
+				parameters.addAll(Arrays.asList(implementationType.getArgumentTypes()));
+				Type[] bridgeParameters = parameters.stream()
+					.map(parameter -> isAdaptableType(parameter) ? OBJECT_TYPE : parameter)
+					.toArray(Type[]::new);
+				String name = "lambda$bukkitBridge$" + lambdaBridges.size();
+				String descriptor = Type.getMethodDescriptor(implementationType.getReturnType(), bridgeParameters);
+				lambdaBridges.add(new LambdaBridge(name, descriptor, implementation, parameters));
+				return new Handle(Opcodes.H_INVOKESTATIC, className, name, descriptor, isInterface);
+			}
+
+			@Override
+			public void visitEnd() {
+				for (LambdaBridge bridge : lambdaBridges) {
+					MethodVisitor visitor = super.visitMethod(Opcodes.ACC_PRIVATE | Opcodes.ACC_STATIC | Opcodes.ACC_SYNTHETIC,
+						bridge.name(), bridge.descriptor(), null, null);
+					visitor.visitCode();
+					int slot = 0;
+					for (Type parameter : bridge.parameters()) {
+						boolean adaptable = isAdaptableType(parameter);
+						visitor.visitVarInsn((adaptable ? OBJECT_TYPE : parameter).getOpcode(Opcodes.ILOAD), slot);
+						if (adaptable) {
+							visitor.visitLdcInsn(parameter);
+							visitor.visitMethodInsn(Opcodes.INVOKESTATIC, BUKKIT_VALUES, "adapt",
+								"(Ljava/lang/Object;Ljava/lang/Class;)Ljava/lang/Object;", false);
+							visitor.visitTypeInsn(Opcodes.CHECKCAST, parameter.getInternalName());
+						}
+						slot += parameter.getSize();
+					}
+					Handle implementation = bridge.implementation();
+					int opcode = switch (implementation.getTag()) {
+						case Opcodes.H_INVOKESTATIC -> Opcodes.INVOKESTATIC;
+						case Opcodes.H_INVOKEINTERFACE -> Opcodes.INVOKEINTERFACE;
+						case Opcodes.H_INVOKESPECIAL -> Opcodes.INVOKESPECIAL;
+						default -> Opcodes.INVOKEVIRTUAL;
+					};
+					visitor.visitMethodInsn(opcode, implementation.getOwner(), implementation.getName(),
+						implementation.getDesc(), implementation.isInterface());
+					visitor.visitInsn(Type.getMethodType(bridge.descriptor()).getReturnType().getOpcode(Opcodes.IRETURN));
+					visitor.visitMaxs(0, 0);
+					visitor.visitEnd();
+				}
+				super.visitEnd();
 			}
 		}, 0);
 

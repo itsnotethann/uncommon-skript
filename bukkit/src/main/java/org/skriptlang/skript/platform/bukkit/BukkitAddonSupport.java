@@ -14,11 +14,13 @@ public final class BukkitAddonSupport {
 
 	public static AddonRegistry install() {
 		installServer();
+		BukkitValues.registerSkriptTypes();
 		return new BukkitAddonRegistry(Bukkit.getPluginManager());
 	}
 
 	public static AddonRegistry install(Server server) {
 		installServer(server);
+		BukkitValues.registerSkriptTypes();
 		return new BukkitAddonRegistry(Bukkit.getPluginManager());
 	}
 
