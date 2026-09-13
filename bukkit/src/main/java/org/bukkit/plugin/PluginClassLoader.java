@@ -1,6 +1,7 @@
 package org.bukkit.plugin;
 
 import org.bukkit.Bukkit;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -385,10 +386,8 @@ public class PluginClassLoader extends URLClassLoader {
 
 		if (checkPlugins) {
 			for (Plugin plugin : pluginManager.getPlugins()) {
-				if (!(plugin instanceof JavaPlugin))
+				if (!(plugin instanceof JavaPlugin javaPlugin) || javaPlugin.getLoader() == null || javaPlugin.getLoader() == this)
 					continue;
-
-				JavaPlugin javaPlugin = (JavaPlugin) plugin;
 
 				try {
 					Class<?> clazz = javaPlugin.getLoader().loadClass0(name, resolve, false);
@@ -422,11 +421,14 @@ public class PluginClassLoader extends URLClassLoader {
 		if (description != null)
 			return description;
 
-		URL resource = findResource("plugin.yml"); // Only searches this loader’s URLs
-		if (resource == null && file.isDirectory())
-			resource = getResource("plugin.yml");
+		boolean paper = false;
+		URL resource = findDescriptor("plugin.yml");
 		if (resource == null) {
-			Bukkit.getBetterLogger().warn("Found JAR '{}' in the plugins folder without a plugin.yml file.", file.getName());
+			resource = findDescriptor("paper-plugin.yml");
+			paper = resource != null;
+		}
+		if (resource == null) {
+			Bukkit.getBetterLogger().warn("Found JAR '{}' in the plugins folder without a plugin.yml or paper-plugin.yml file.", file.getName());
 			return null;
 		}
 
@@ -434,13 +436,32 @@ public class PluginClassLoader extends URLClassLoader {
 			YamlConfiguration configuration = new YamlConfiguration();
 			configuration.loadFromString(new String(stream.readAllBytes(), StandardCharsets.UTF_8));
 
+			List<String> depend = new ArrayList<>();
+			List<String> softDepend = new ArrayList<>();
+			if (paper) {
+				ConfigurationSection server = configuration.getConfigurationSection("dependencies.server");
+				if (server != null) {
+					for (String dependency : server.getKeys(false)) {
+						if (server.getBoolean(dependency + ".required", true))
+							depend.add(dependency);
+						else
+							softDepend.add(dependency);
+					}
+				}
+			} else {
+				if (configuration.get("depend") != null)
+					depend.addAll((List<String>) configuration.get("depend"));
+				if (configuration.get("softdepend") != null)
+					softDepend.addAll((List<String>) configuration.get("softdepend"));
+			}
+
 			description = new PluginDescriptionFile(
 				(String) configuration.get("name"),
 				String.valueOf(configuration.get("version")),
 				(String) configuration.get("main"),
 				Objects.toString(configuration.get("website"), null),
-				(List<String>) configuration.get("depend"),
-				(List<String>) configuration.get("softdepend")
+				depend,
+				softDepend
 			);
 
 			return description;
@@ -448,5 +469,12 @@ public class PluginClassLoader extends URLClassLoader {
 			exception.printStackTrace();
 			return null;
 		}
+	}
+
+	private @Nullable URL findDescriptor(String name) {
+		URL resource = findResource(name);
+		if (resource == null && file.isDirectory())
+			resource = getResource(name);
+		return resource;
 	}
 }
