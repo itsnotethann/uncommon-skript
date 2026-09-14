@@ -118,6 +118,12 @@ These conflict on most merges, so they are listed rather than rediscovered:
 | `common/build.gradle` | no `application` plugin, no `compat` dependency, no bStats or JNA (they are in `bukkit/`) |
 | `README.md` | replaced; upstream's identifies itself as skript-minestom |
 | `common/.../ScriptLoader.java` | parallel loaders fill an indexed array instead of adding to a shared `ArrayList`, which lost whole scripts. SkriptLang has the same bug |
+| `common/.../ScriptLoader.java` | `loadScript` hops to the main thread only on a loader thread (`isLoaderThread()`), not whenever `isAsync()`. Upstream hangs forever at startup with `script loader thread size` above 0, as Minestom boots on `main` before the tick thread runs |
+| `common/.../ScriptLoader.java` | `loadStructure` skips a file that is already loading, and a failed load untracks its files. Reloading a script twice back to back used to leave two copies running |
+| `common/.../EvtScriptLoad.java` | `on load` on a loader thread is handed to the main thread without blocking, and skipped if its script was unloaded first |
+| `common/.../Skript.java` | no `<skript_minestom_tag>` on log lines, no Paper/Spigot advice in the crash report, issue tracker from `PlatformEnvironment.issueTracker()`, clear error when `onRegistration` was never called |
+| `common/.../SkriptLogger.java` | no `<skript_minestom_tag>` on log lines. A host that wants a prefix adds it in its `LogSink` |
+| `.github/workflows/publish.yml` | deleted. Publishing is JitPack, through `jitpack.yml` |
 
 ## Branches
 
@@ -132,6 +138,7 @@ events as Bukkit events. Nothing needed it, so the branch is dead.
 ```
 ./gradlew :common:compileJava :bukkit:shadowJar
 ./gradlew :testhost:bootTest
+./gradlew :testhost:addonTest -PaddonJars=<dir with the addon jars>
 ```
 
 Compiling proves the tree is type-correct and proves nothing about dispatch, scheduling or
@@ -150,6 +157,13 @@ phases in the same directory:
 | 1 | all, against `<name>.expected` | synchronous |
 | 2 | only those with `<name>.phase2.expected`, so saved variables are checked across a restart | synchronous |
 | 3 | all, against `<name>.phase3.expected` if present, else `<name>.expected` | `script loader thread size: 2` |
+| 5 | only those with `<name>.phase5.expected` | `script loader thread size: 2`, booted on its own thread before the tick loop starts, the way Minestom boots |
+
+`:testhost:addonTest` is phase 4. It puts `bukkit.jar` on the classpath, copies every jar in
+`-PaddonJars=<dir>` (default `testhost/build/addon-jars`) into `Skript/addons`, and runs
+`addon-scripts/`: skript-reflect 2.6.3 and oopsk 1.0-beta2, the two addons the bukkit layer targets.
+Their expectations are upstream skript-minestom's own output, errors included. CI downloads both
+jars from their GitHub releases and checks the SHA-256 first; nothing is committed.
 
 An expectation file whose first line is `skip: <reason>` keeps that script out of the phase. Use it
 for a known bug, with the reason, rather than writing the wrong output into the expectation.
