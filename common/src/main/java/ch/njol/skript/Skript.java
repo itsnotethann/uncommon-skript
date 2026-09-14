@@ -510,6 +510,8 @@ public final class Skript {
 			getAddonInstance().loadClasses("ch.njol.skript", "elements", "conditions",
 				"effects", "events", "expressions", "entity", "literals", "sections", "structures");
 
+			if (registration == null)
+				throw new IllegalStateException("Skript.onRegistration was not called before onEnable");
 			registration.run();
 		} catch (final Exception e) {
 			exception(e, "Could not load required .class files: " + e.getLocalizedMessage());
@@ -1381,10 +1383,10 @@ public final class Skript {
 			return new EmptyStacktraceException();
 		}
 
-		String issuesUrl = "https://github.com/SkriptLang/Skript/issues";
+		String issuesUrl = ENVIRONMENT.issueTracker();
 
 		logEx();
-		logEx("<skript_minestom_tag> Severe Error:");
+		logEx("Severe Error:");
 		logEx(info);
 		logEx();
 
@@ -1404,10 +1406,6 @@ public final class Skript {
 			logEx("");
 			logEx("Just testing things? Good. Please report this bug, so that we can fix it before a stable release.");
 			logEx("Issue tracker: " + issuesUrl);
-		} else if (!serverPlatform.supported){
-			logEx("Your server platform appears to be unsupported by Skript. It might not work reliably.");
-			logEx("You can report this at " + issuesUrl + ". However, we may be unable to fix the issue.");
-			logEx("It is recommended that you switch to Paper or Spigot, should you encounter more problems.");
 		} else if (updater != null && updater.getReleaseStatus() == ReleaseStatus.OUTDATED) {
 			logEx("You're running outdated version of Skript! Please try updating it NOW; it might fix this.");
 			logEx("Run /sk update check to get a download link to latest Skript!");
@@ -1474,7 +1472,7 @@ public final class Skript {
 		logEx("  Java: " + System.getProperty("java.version") + " (" + System.getProperty("java.vm.name") + " " + System.getProperty("java.vm.version") + ")");
 		logEx("  OS: " + System.getProperty("os.name") + " " + System.getProperty("os.arch") + " " + System.getProperty("os.version"));
 		logEx();
-		logEx("Server platform: " + serverPlatform.name + (serverPlatform.supported ? "" : " (unsupported)"));
+		logEx("Server platform: " + ENVIRONMENT.platformVersion());
 		logEx();
 		logEx("Current node: " + SkriptLogger.getNode());
 		logEx("Current item: " + (item == null ? "null" : item.toString(null, true)));

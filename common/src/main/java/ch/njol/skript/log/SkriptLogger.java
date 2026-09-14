@@ -105,9 +105,9 @@ public abstract class SkriptLogger {
 			int i = 1;
 			while (!h.equals(handlers.remove()))
 				i++;
-			SINK.log(Level.SEVERE, "<skript_minestom_tag> " + i + " log handler" + (i == 1 ? " was" : "s were") + " not stopped properly!" +
+			SINK.log(Level.SEVERE, i + " log handler" + (i == 1 ? " was" : "s were") + " not stopped properly!" +
 				" (at " + getCaller() + ") " +
-				"[if you're a server admin and you see this message please file a bug report at https://github.com/SkriptLang/skript/issues if there is not already one]", null);
+				"[if you're a server admin and you see this message please file a bug report at " + Skript.ENVIRONMENT.issueTracker() + " if there is not already one]", null);
 		}
 	}
 	
@@ -182,7 +182,7 @@ public abstract class SkriptLogger {
 			}
 		}
 		entry.logged();
-		SINK.log(entry.getLevel(), "<skript_minestom_tag> " + entry.toFormattedString(), null);
+		SINK.log(entry.getLevel(), entry.toFormattedString(), null);
 	}
 	
 	public static void logAll(Collection<LogEntry> entries) {

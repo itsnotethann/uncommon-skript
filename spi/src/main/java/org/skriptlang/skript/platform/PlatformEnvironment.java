@@ -12,4 +12,8 @@ public interface PlatformEnvironment {
 	File serverDirectory();
 
 	Logger logger();
+
+	default String issueTracker() {
+		return "https://github.com/itsnotethann/uncommon-skript/issues";
+	}
 }
