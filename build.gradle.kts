@@ -10,6 +10,8 @@ repositories {
 }
 
 subprojects {
+	if (name == "testhost") return@subprojects
+
 	apply(plugin = "java")
 	apply(plugin = "maven-publish")
 
