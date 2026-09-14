@@ -1,0 +1,12 @@
+prio lowest
+prio normal
+prio default
+prio high
+prio default second
+prio monitor
+cancel low cancelled it
+cancel high sees cancelled
+cancel monitor any
+precancelled cancelled listener
+hier sub listener
+fired all

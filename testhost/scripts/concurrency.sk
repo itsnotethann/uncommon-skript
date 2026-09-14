@@ -1,0 +1,13 @@
+on load:
+	wait 3 ticks
+	set {-conc::count} to 0
+	loop 50 times:
+		fire test event "conc" off the main thread
+	wait 20 ticks
+	mark "count %{-conc::count}%"
+	mark "all main %whether {-conc::offmain} is not set%"
+
+on test "conc":
+	add 1 to {-conc::count}
+	if test thread is not "main":
+		set {-conc::offmain} to true

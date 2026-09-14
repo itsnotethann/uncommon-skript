@@ -1,0 +1,8 @@
+on load:
+	mark "target loaded"
+
+on test "reload":
+	mark "target fired"
+
+on unload:
+	mark "target unloaded"

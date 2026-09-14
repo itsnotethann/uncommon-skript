@@ -1,0 +1,4 @@
+every 2 ticks:
+	add 1 to {-periodic}
+	if {-periodic} is 3:
+		mark "periodic 3 %test thread%"

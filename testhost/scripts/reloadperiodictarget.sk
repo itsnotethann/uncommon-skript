@@ -1,0 +1,2 @@
+every 1 tick:
+	add 1 to {-rp::ticks}

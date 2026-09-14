@@ -1,0 +1,11 @@
+first over 8
+none over -1
+filtered 4, 8 and 9
+copy sorted 9, 8, 4, 2 and 1
+original 4, 8, 1, 9 and 2
+for 4
+for 8
+by length a, bb and ccc
+inner 1 1
+after exit 2 loops
+call 2

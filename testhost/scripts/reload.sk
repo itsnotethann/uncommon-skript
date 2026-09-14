@@ -1,0 +1,10 @@
+on load:
+	wait 5 ticks
+	fire test event "reload"
+	reload script "reloadtarget.sk"
+	wait 2 ticks
+	fire test event "reload"
+	disable script "reloadtarget.sk"
+	wait 2 ticks
+	fire test event "reload"
+	mark "driver done"

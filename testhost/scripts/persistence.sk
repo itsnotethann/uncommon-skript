@@ -1,0 +1,19 @@
+on load:
+	if test phase is 1:
+		delete {persist::*}
+		set {persist::number} to 42.5
+		set {persist::integer} to 7
+		set {persist::text} to "hello ""quoted"" world"
+		set {persist::bool} to true
+		set {persist::list::*} to 1, 2 and 3
+		set {persist::timespan} to 3 minutes
+		set {-memory} to "gone"
+		mark "saved"
+	else:
+		mark "number %{persist::number}%"
+		mark "integer %{persist::integer}%"
+		mark "text %{persist::text}%"
+		mark "bool %{persist::bool}%"
+		mark "list %{persist::list::*}%"
+		mark "timespan %{persist::timespan}%"
+		mark "memory %{-memory}%"

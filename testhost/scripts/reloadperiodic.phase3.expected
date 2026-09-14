@@ -1,0 +1,1 @@
+skip: with async loading, reloading a script again before its first reload finishes loading leaves two copies running

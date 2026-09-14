@@ -1,0 +1,54 @@
+on load:
+	wait 2 ticks
+	fire test event "prio"
+	fire test event "cancel"
+	fire cancelled test event "precancelled"
+	fire sub test event "hier"
+	fire test event "base"
+	mark "fired all"
+
+on test "prio" with priority monitor:
+	mark "prio monitor"
+
+on test "prio" with priority lowest:
+	mark "prio lowest"
+
+on test "prio":
+	mark "prio default"
+
+on test "prio" with priority high:
+	mark "prio high"
+
+on test "prio" with priority normal:
+	mark "prio normal"
+
+on test "prio":
+	mark "prio default second"
+
+on test "cancel" with priority low:
+	cancel the test event
+	mark "cancel low cancelled it"
+
+on test "cancel":
+	mark "cancel normal ran on a cancelled event"
+
+on cancelled test "cancel" with priority high:
+	mark "cancel high sees cancelled"
+
+on any test "cancel" with priority monitor:
+	mark "cancel monitor any"
+
+on test "precancelled":
+	mark "precancelled uncancelled listener ran"
+
+on cancelled test "precancelled":
+	mark "precancelled cancelled listener"
+
+on test "hier":
+	mark "hier base listener"
+
+on sub test "hier":
+	mark "hier sub listener"
+
+on sub test "base":
+	mark "base sub listener ran on a base event"

@@ -1,0 +1,27 @@
+options:
+	greeting: hey
+	count: 3
+
+variables:
+	{structvar} = 12
+
+on load:
+	mark "{@greeting} x{@count}"
+	mark "default %{structvar}%"
+	set {_i} to 0
+	while {_i} < 5:
+		add 1 to {_i}
+		if {_i} is 2:
+			continue
+		if {_i} is 4:
+			exit loop
+		mark "while %{_i}%"
+	loop 2 times:
+		loop 2 times:
+			mark "nested %loop-number-1% %loop-number-2%"
+	if 1 is 2:
+		mark "wrong branch"
+	else if 1 is 1:
+		mark "else if"
+	else:
+		mark "wrong else"

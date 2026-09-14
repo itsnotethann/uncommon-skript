@@ -1,0 +1,22 @@
+on load:
+	delete {vars::*}
+	set {vars::b} to 2
+	set {vars::a} to 1
+	set {vars::c} to 3
+	mark "size %size of {vars::*}%"
+	mark "indices %indices of {vars::*}%"
+	loop {vars::*}:
+		mark "%loop-index%=%loop-value%"
+	delete {vars::b}
+	mark "after delete %{vars::*}%"
+	add 10 to {vars::a}
+	mark "added %{vars::a}%"
+	set {_list::*} to 5, 3, 9 and 1
+	mark "sorted %sorted {_list::*}%"
+	mark "length %length of "abcd"%"
+	mark "split %"x,y,z" split at ","%"
+	mark "join %join "p", "q" and "r" with "-"%"
+	mark "math %2 ^ 10% %10 / 4% %mod(7, 3)%"
+	mark "rounded %round(2.5)% %floor(2.7)% %ceil(2.1)%"
+	set {_text} to "5"
+	mark "parsed %{_text} parsed as number + 1%"

@@ -1,0 +1,12 @@
+on load:
+	set {_local} to "kept"
+	set {_start} to test tick
+	loop 3 times:
+		mark "loop %loop-number% before"
+		wait 1 tick
+		mark "loop %loop-number% after"
+	mark "local %{_local}%"
+	set {_t} to test tick
+	wait 5 ticks
+	mark "delta %test tick - {_t}%"
+	mark "thread %test thread%"

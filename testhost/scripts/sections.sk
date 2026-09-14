@@ -1,0 +1,32 @@
+function firstOver(limit: number, values: numbers) :: number:
+	loop {_values::*}:
+		if loop-value > {_limit}:
+			return loop-value
+	return -1
+
+function delayed(n: number) :: number:
+	return {_n} + 1
+
+on load:
+	set {_nums::*} to 4, 8, 1, 9 and 2
+	mark "first over %firstOver(5, {_nums::*})%"
+	mark "none over %firstOver(50, {_nums::*})%"
+	mark "filtered %{_nums::*} where [input > 3]%"
+	copy {_nums::*} into {_copy::*}
+	sort {_copy::*} in descending order
+	mark "copy sorted %{_copy::*}%"
+	mark "original %{_nums::*}%"
+	for each {_v} in {_nums::*}:
+		if {_v} is 1:
+			exit loop
+		mark "for %{_v}%"
+	set {_words::*} to "ccc", "a" and "bb"
+	sort {_words::*} based on length of input
+	mark "by length %{_words::*}%"
+	loop 3 times:
+		loop 3 times:
+			if loop-number-2 is 2:
+				exit 2 loops
+			mark "inner %loop-number-1% %loop-number-2%"
+	mark "after exit 2 loops"
+	mark "call %delayed(1)%"

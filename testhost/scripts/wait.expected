@@ -1,0 +1,9 @@
+loop 1 before
+loop 1 after
+loop 2 before
+loop 2 after
+loop 3 before
+loop 3 after
+local kept
+delta 5
+thread main

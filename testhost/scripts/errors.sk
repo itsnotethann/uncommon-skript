@@ -1,0 +1,4 @@
+on load:
+	this is not valid syntax
+	mark 1 is less than 2
+	mark "after error"

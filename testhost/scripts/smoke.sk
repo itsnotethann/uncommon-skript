@@ -1,0 +1,4 @@
+on load:
+	mark "loaded on %test thread%"
+	set {_x} to 1 + 2
+	mark "sum %{_x}%"

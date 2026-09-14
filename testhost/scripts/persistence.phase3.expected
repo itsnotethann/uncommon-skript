@@ -1,0 +1,7 @@
+number 42.5
+integer 7
+text hello "quoted" world
+bool true
+list 1, 2 and 3
+timespan 3 minutes
+memory <none>

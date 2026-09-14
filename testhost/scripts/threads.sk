@@ -1,0 +1,24 @@
+on load:
+	wait 2 ticks
+	fire test event "async" off the main thread
+	wait 10 ticks
+	fire test event "asyncwait" off the main thread
+
+on test "async":
+	set {-async::first} to test tick
+	mark "a1 %test thread%"
+
+on test "async":
+	mark "a2 %test thread%"
+	if test tick is {-async::first}:
+		mark "a2 same tick"
+	else:
+		mark "a2 waited %test tick - {-async::first}% ticks"
+
+on test "asyncwait":
+	mark "w1"
+	wait 1 tick
+	mark "w3 %test thread%"
+
+on test "asyncwait":
+	mark "w2"

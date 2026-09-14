@@ -1,0 +1,25 @@
+function fib(n: number) :: number:
+	if {_n} <= 1:
+		return {_n}
+	return fib({_n} - 1) + fib({_n} - 2)
+
+function greet(name: text, punct: text = "!") :: text:
+	return "hi %{_name}%%{_punct}%"
+
+function count(values: objects):
+	mark "count %size of {_values::*}%"
+
+function early(x: number) :: text:
+	if {_x} > 0:
+		return "positive"
+	return "not positive"
+
+on load:
+	mark "fib %fib(15)%"
+	mark greet("a")
+	mark greet("b", "?")
+	count(1, 2 and 3)
+	mark early(5)
+	mark early(-5)
+	mark "missing %{_nope}%"
+	mark "other script %helper(4)%"

@@ -1,0 +1,18 @@
+on load:
+	wait 3 ticks
+	set {-rp::ticks} to 0
+	wait 20 ticks
+	set {-rp::before} to {-rp::ticks}
+	reload script "reloadperiodictarget.sk"
+	reload script "reloadperiodictarget.sk"
+	set {-rp::ticks} to 0
+	wait 20 ticks
+	set {-rp::after} to {-rp::ticks}
+	if {-rp::after} > {-rp::before} + 3:
+		mark "periodic runs more often after reload: %{-rp::before}% then %{-rp::after}%"
+	else:
+		mark "periodic rate unchanged"
+	disable script "reloadperiodictarget.sk"
+	set {-rp::ticks} to 0
+	wait 10 ticks
+	mark "after disable %{-rp::ticks}%"

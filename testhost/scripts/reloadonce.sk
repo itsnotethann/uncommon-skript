@@ -1,0 +1,12 @@
+on load:
+	wait 3 ticks
+	reload script "reloadoncetarget.sk"
+	wait 5 ticks
+	set {-ro::ticks} to 0
+	wait 20 ticks
+	mark "once %{-ro::ticks}%"
+	disable script "reloadoncetarget.sk"
+	wait 5 ticks
+	set {-ro::ticks} to 0
+	wait 10 ticks
+	mark "after disable %{-ro::ticks}%"
