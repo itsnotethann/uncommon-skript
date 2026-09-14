@@ -1,10 +1,12 @@
 package ch.njol.skript.events;
 
+import ch.njol.skript.ScriptLoader;
 import ch.njol.skript.Skript;
 import ch.njol.skript.events.custom.ScriptLoadEvent;
 import ch.njol.skript.lang.Literal;
 import ch.njol.skript.lang.SkriptParser;
 import ch.njol.skript.lang.util.SimpleEvent;
+import org.skriptlang.skript.lang.script.Script;
 
 public class EvtScriptLoad extends SimpleEvent {
 	static {
@@ -23,7 +25,13 @@ public class EvtScriptLoad extends SimpleEvent {
 	@Override
 	public boolean postLoad() {
 		if (pattern == 1 && !Skript.isStarting()) return true;
-		trigger.execute(new ScriptLoadEvent());
+		if (!ScriptLoader.isLoaderThread())
+			trigger.execute(new ScriptLoadEvent());
+		else
+			Skript.scheduler().callSync(() -> {
+				Script script = trigger.getScript();
+				return (script == null || script.valid()) && trigger.execute(new ScriptLoadEvent());
+			});
 		return true;
 	}
 }

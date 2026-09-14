@@ -1,8 +1,10 @@
 on load:
-	wait 5 ticks
+	while {-rt::loads} is not 1:
+		wait 1 tick
 	fire test event "reload"
 	reload script "reloadtarget.sk"
-	wait 2 ticks
+	while {-rt::loads} is not 2:
+		wait 1 tick
 	fire test event "reload"
 	disable script "reloadtarget.sk"
 	wait 2 ticks

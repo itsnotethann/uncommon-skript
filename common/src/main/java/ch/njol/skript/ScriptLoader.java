@@ -276,6 +276,10 @@ public class ScriptLoader {
 		return asyncLoaderSize > 0;
 	}
 
+	public static boolean isLoaderThread() {
+		return Thread.currentThread() instanceof AsyncLoaderThread;
+	}
+
 	/**
 	 * Checks if scripts are loaded in multiple threads instead of one thread.
 	 * If true, {@link #isAsync()} will also be true.
@@ -449,7 +453,7 @@ public class ScriptLoader {
 	 * Script Loading Methods
 	 */
 
-	private static final Set<File> trackedFiles = new HashSet<>();
+	private static final Set<File> trackedFiles = Collections.synchronizedSet(new HashSet<>());
 
 	/**
 	 * Tracks that a file should be considered as loading.
@@ -664,6 +668,8 @@ public class ScriptLoader {
 					openCloseable.close();
 				}
 			}).exceptionally(t -> {
+				for (Config config : configs)
+					trackedFiles.remove(config.getFile());
 				throw Skript.exception(t);
 			});
 	}
@@ -745,7 +751,7 @@ public class ScriptLoader {
 				.forEach(event -> event.onInit(script));
 			return null;
 		};
-		if (isAsync()) { // Need to delegate to main thread
+		if (isLoaderThread()) { // Need to delegate to main thread
 			Task.callSync(callable);
 		} else { // We are in main thread, execute immediately
 			try {
@@ -827,16 +833,20 @@ public class ScriptLoader {
 			return null;
 		}
 
-		track(file);
+		if (track(file))
+			return null;
 
 		try {
 			String name = Skript.getInstance().getDataFolder().toPath().toAbsolutePath()
 				.resolve(Skript.SCRIPTSFOLDER).relativize(file.toPath().toAbsolutePath()).toString();
-			return loadStructure(Files.newInputStream(file.toPath()), name);
+			Config config = loadStructure(Files.newInputStream(file.toPath()), name);
+			if (config != null)
+				return config;
 		} catch (IOException e) {
 			Skript.error("Could not load " + file.getName() + ": " + ExceptionUtils.toString(e));
 		}
 
+		trackedFiles.remove(file);
 		return null;
 	}
 

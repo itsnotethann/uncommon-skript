@@ -31,6 +31,9 @@ public final class TickLoop implements PlatformScheduler {
 	public TickLoop() {
 		thread = new Thread(this::loop, "TestHost-Main");
 		thread.setDaemon(true);
+	}
+
+	public void start() {
 		thread.start();
 	}
 

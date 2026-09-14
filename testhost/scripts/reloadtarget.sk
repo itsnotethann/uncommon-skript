@@ -1,5 +1,6 @@
 on load:
 	mark "target loaded"
+	add 1 to {-rt::loads}
 
 on test "reload":
 	mark "target fired"

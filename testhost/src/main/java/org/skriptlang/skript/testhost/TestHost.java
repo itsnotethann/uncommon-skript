@@ -102,7 +102,7 @@ public final class TestHost implements PlatformProvider {
 		CountDownLatch loaded = new CountDownLatch(1);
 		CountDownLatch enabled = new CountDownLatch(1);
 		Throwable[] failure = new Throwable[1];
-		loop.sync(() -> {
+		Runnable boot = () -> {
 			try {
 				Skript skript = new Skript();
 				Skript.onRegistration(TestSyntax::register);
@@ -116,7 +116,21 @@ public final class TestHost implements PlatformProvider {
 			} finally {
 				enabled.countDown();
 			}
-		}, 0, -1);
+		};
+
+		if (Boolean.getBoolean("testhost.bootBeforeTicking")) {
+			Thread bootThread = new Thread(boot, "TestHost-Boot");
+			bootThread.setDaemon(true);
+			bootThread.start();
+			if (!enabled.await(TIMEOUT_MILLIS, TimeUnit.MILLISECONDS)) {
+				System.out.println("BOOTTEST FAIL phase " + phase + ": boot did not return before the tick loop started");
+				System.exit(2);
+			}
+			loop.start();
+		} else {
+			loop.start();
+			loop.sync(boot, 0, -1);
+		}
 
 		enabled.await();
 		if (failure[0] != null) {
