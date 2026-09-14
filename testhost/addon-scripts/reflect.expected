@@ -1,0 +1,19 @@
+P01 static-call ok
+P02 constructor+instance size=2
+P03 static-field pi=3.14
+P04 instance-method ABC
+P05 custom-expression 42
+P06 custom-effect
+P07 custom-condition true
+P09 java-in-function 7
+P10 loop x
+P10 loop y
+P11 event-class ScriptLoadEvent
+P12 bukkit-server name=uncommon-skript players=0
+P13 console-sender present
+P08 after-wait ok
+P16 custom-event fired
+P16B custom-event called
+P14B bukkit-event-listener-import fired ServiceRegisterEvent
+P15 service-registered
+! Can't understand this structure: on "org.bukkit.event.ServiceRegisterEvent"

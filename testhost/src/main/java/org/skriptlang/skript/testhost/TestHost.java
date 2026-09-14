@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.Map;
+import java.util.ServiceLoader;
 import java.util.TreeMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -46,7 +47,7 @@ public final class TestHost implements PlatformProvider {
 	private final Logger logger = LoggerFactory.getLogger("Skript");
 	private final EventBus eventBus = new TestEventBus();
 	private final PlatformEnvironment environment;
-	private final AddonRegistry addonRegistry = new EmptyAddonRegistry();
+	private @Nullable AddonRegistry addonRegistry;
 
 	private TestHost(File serverDirectory) {
 		this.serverDirectory = serverDirectory;
@@ -94,6 +95,8 @@ public final class TestHost implements PlatformProvider {
 
 		Path scriptsFolder = work.resolve("Skript").resolve("scripts");
 		stage(scripts, scriptsFolder);
+		if (args.length > 5)
+			stageAddons(Path.of(args[5]), work.resolve("Skript").resolve("addons"));
 		configure(work.resolve("Skript").resolve("config.sk"), loaderThreads);
 
 		loop = new TickLoop();
@@ -182,6 +185,20 @@ public final class TestHost implements PlatformProvider {
 		}
 		for (Path path : scripts(source))
 			Files.copy(path, target.resolve(path.getFileName()), StandardCopyOption.REPLACE_EXISTING);
+	}
+
+	private static void stageAddons(Path source, Path target) throws IOException {
+		Files.createDirectories(target);
+		List<Path> jars;
+		try (Stream<Path> files = Files.list(source)) {
+			jars = files.filter(path -> path.getFileName().toString().endsWith(".jar")).sorted().toList();
+		}
+		if (jars.isEmpty()) {
+			System.out.println("BOOTTEST FAIL: no addon jars in " + source);
+			System.exit(2);
+		}
+		for (Path jar : jars)
+			Files.copy(jar, target.resolve(jar.getFileName()), StandardCopyOption.REPLACE_EXISTING);
 	}
 
 	private static void configure(Path config, String loaderThreads) throws IOException {
@@ -287,7 +304,12 @@ public final class TestHost implements PlatformProvider {
 	}
 
 	@Override
-	public AddonRegistry addonRegistry() {
+	public synchronized AddonRegistry addonRegistry() {
+		if (addonRegistry == null) {
+			addonRegistry = ServiceLoader.load(AddonRegistry.class, TestHost.class.getClassLoader())
+				.findFirst()
+				.orElseGet(EmptyAddonRegistry::new);
+		}
 		return addonRegistry;
 	}
 

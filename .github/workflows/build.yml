@@ -25,3 +25,17 @@ jobs:
 
       - name: Boot test
         run: ./gradlew :testhost:bootTest
+
+      - name: Fetch addons
+        run: |
+          mkdir -p testhost/build/addon-jars
+          cd testhost/build/addon-jars
+          curl -fsSLO https://github.com/SkriptLang/skript-reflect/releases/download/v2.6.3/skript-reflect-2.6.3.jar
+          curl -fsSLO https://github.com/sovdeeth/oopsk/releases/download/1.0-beta2/oopsk-1.0-beta2.jar
+          sha256sum -c <<EOF
+          0b422b828e17aac9e8417b6876924c1dcc221f6a065fb0a21b00da07fc298877  skript-reflect-2.6.3.jar
+          1951d99a826a425f69414ef51237ae2e17d20bdace16553ac859d9202dcdf62f  oopsk-1.0-beta2.jar
+          EOF
+
+      - name: Addon test
+        run: ./gradlew :testhost:addonTest

@@ -62,3 +62,30 @@ val bootTest by tasks.registering {
 tasks.check {
 	dependsOn(bootTest)
 }
+
+val addonHost by configurations.creating
+
+dependencies {
+	addonHost(project(":bukkit"))
+}
+
+val addonScripts = layout.projectDirectory.dir("addon-scripts")
+val addonWork = layout.buildDirectory.dir("addontest")
+val addonJars = providers.gradleProperty("addonJars").orElse(layout.buildDirectory.dir("addon-jars").map { it.asFile.absolutePath })
+val bukkitShadowJar = project(":bukkit").tasks.named<Jar>("shadowJar")
+
+val cleanAddonTest by tasks.registering(Delete::class) {
+	delete(addonWork)
+}
+
+val addonTest by tasks.registering(JavaExec::class) {
+	group = "verification"
+	dependsOn(tasks.classes, cleanAddonTest, bukkitShadowJar)
+	classpath = files(bukkitShadowJar.flatMap { it.archiveFile }) + sourceSets.main.get().runtimeClasspath + addonHost
+	mainClass.set("org.skriptlang.skript.testhost.TestHost")
+	argumentProviders.add(CommandLineArgumentProvider {
+		listOf(addonScripts.asFile.absolutePath, addonWork.get().asFile.absolutePath, "4", "all", "0", addonJars.get())
+	})
+	inputs.dir(addonScripts)
+	outputs.upToDateWhen { false }
+}

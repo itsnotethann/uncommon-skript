@@ -1,0 +1,13 @@
+O01 x=3
+O02 y=7
+O03 x=10
+O04 label=origin
+O05 y-after-reset=7
+O06 copy=99 original=10
+O07 is-point3=true
+O08 is-not-point3=true
+O09 string=struct point3
+O11 list-size=2
+O12 done
+! The 1st argument's definition is invalid
+! Functions cannot be used here

@@ -1,0 +1,30 @@
+function describe(p: point3 struct) :: string:
+	return "%{_p}->x%/%{_p}->y%"
+
+on script load:
+	set {_p} to a point3 struct instance:
+		x: 3
+	mark "O01 x=%{_p}->x%"
+	mark "O02 y=%field y of {_p}%"
+	set {_p}->x to 10
+	mark "O03 x=%{_p}'s x field%"
+	mark "O04 label=%{_p}->label%"
+	set {_p}->y to 2
+	reset {_p}->y
+	mark "O05 y-after-reset=%{_p}->y%"
+	set {_q} to struct copy of {_p}
+	set {_q}->x to 99
+	mark "O06 copy=%{_q}->x% original=%{_p}->x%"
+	if {_p} is a "point3" struct:
+		mark "O07 is-point3=true"
+	else:
+		mark "O07 is-point3=false"
+	if {_p} is not a "point3" struct:
+		mark "O08 is-not-point3=true"
+	else:
+		mark "O08 is-not-point3=false"
+	mark "O09 string=%{_p}%"
+	mark "O10 function=%describe({_p})%"
+	set {_s::*} to {_p} and {_q}
+	mark "O11 list-size=%size of {_s::*}%"
+	mark "O12 done"

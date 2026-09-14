@@ -1,0 +1,6 @@
+struct Point3:
+	x: number
+	y: number = 7
+	const label: string = "origin"
+	converts to:
+		string via this->label

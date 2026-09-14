@@ -1,0 +1,104 @@
+import:
+	java.lang.System
+	java.lang.Math
+	java.util.ArrayList
+	org.bukkit.Bukkit
+	org.bukkit.plugin.ServicePriority
+	org.bukkit.event.ServiceRegisterEvent
+
+expression parity doubled %number%:
+	get:
+		return expr-1 * 2
+
+effect parity announce %string%:
+	trigger:
+		mark expr-1
+
+condition %number% is parity big:
+	check:
+		if expr-1 > 3:
+			continue
+
+function parityJava() :: number:
+	return Math.abs(-7)
+
+on "org.bukkit.event.ServiceRegisterEvent":
+	mark "P14 bukkit-event-listener-string fired"
+
+on ServiceRegisterEvent:
+	mark "P14B bukkit-event-listener-import fired %event.getClass().getSimpleName()%"
+
+on script load:
+	set {_t} to System.currentTimeMillis()
+	if {_t} > 0:
+		mark "P01 static-call ok"
+
+on script load:
+	set {_list} to new ArrayList()
+	{_list}.add("a")
+	{_list}.add("b")
+	mark "P02 constructor+instance size=%{_list}.size()%"
+
+on script load:
+	mark "P03 static-field pi=%Math.PI%"
+
+on script load:
+	set {_s} to "abc"
+	mark "P04 instance-method %{_s}.toUpperCase()%"
+
+on script load:
+	mark "P05 custom-expression %parity doubled 21%"
+
+on script load:
+	parity announce "P06 custom-effect"
+
+on script load:
+	if 5 is parity big:
+		mark "P07 custom-condition true"
+	if 1 is parity big:
+		mark "P07X custom-condition wrongly true"
+
+on script load:
+	wait 2 ticks
+	set {_n} to System.nanoTime()
+	if {_n} > 0:
+		mark "P08 after-wait ok"
+
+on script load:
+	mark "P09 java-in-function %parityJava()%"
+
+on script load:
+	set {_list} to new ArrayList()
+	{_list}.add("x")
+	{_list}.add("y")
+	loop ...{_list}:
+		mark "P10 loop %loop-value%"
+
+on script load:
+	mark "P11 event-class %event.getClass().getSimpleName()%"
+
+on script load:
+	mark "P12 bukkit-server name=%Bukkit.getName()% players=%Bukkit.getOnlinePlayers().size()%"
+
+on script load:
+	set {_c} to Bukkit.getConsoleSender()
+	if {_c} is set:
+		mark "P13 console-sender present"
+	{_c}.sendMessage("P13B console-message")
+
+on script load:
+	wait 5 ticks
+	set {_plugin} to Bukkit.getPluginManager().getPlugin("skript-reflect")
+	Bukkit.getServicesManager().register("s".getClass(), "provider", {_plugin}, ServicePriority.Normal)
+	mark "P15 service-registered"
+
+event "parityevent":
+	pattern: parity happened
+
+on parity happened:
+	mark "P16 custom-event fired"
+
+on script load:
+	wait 3 ticks
+	call custom event "parityevent"
+	mark "P16B custom-event called"
