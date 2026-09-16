@@ -205,7 +205,7 @@ public class PluginClassLoader extends URLClassLoader {
 			public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
 				boolean implementsShim = declaredByShim(shimSupertypes, name, descriptor);
 				String declared = implementsShim ? descriptor : retype(descriptor);
-				boolean retyped = !declared.equals(descriptor);
+				boolean retyped = !implementsShim;
 				MethodVisitor delegate = super.visitMethod(access, name, declared,
 					implementsShim ? signature : retype(signature), exceptions);
 				return new MethodVisitor(Opcodes.ASM9, delegate) {
