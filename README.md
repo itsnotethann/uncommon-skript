@@ -54,6 +54,10 @@ Addon support matches upstream skript-minestom's, checked line by line, and adds
 game types upstream lacks — players, worlds, locations — backed by a platform module. Items,
 blocks and inventories are not covered on either. See `bukkit/README.md`.
 
+Measured against every addon in the skript-minestom organisation — SkCheese 1.8, skript-gui 1.3.2,
+skript-combat 1.0.0, skript-nbs 1.0.1, skript-bdengine 1.3.0, skNoise 1.0.2 — plus skript-reflect
+2.6.3 and oopsk 1.0-beta2. All eight load and their syntax parses, same as upstream.
+
 ## Using it
 
 ```

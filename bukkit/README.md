@@ -20,6 +20,11 @@ Still not covered: blocks, items, materials, inventories, non-player entities, a
 the types above that is not declared here. An addon that calls one fails with a linkage error naming
 it.
 
+Every addon in the skript-minestom organisation loads here and its syntax parses: SkCheese 1.8,
+skript-gui 1.3.2, skript-combat 1.0.0, skript-nbs 1.0.1, skript-bdengine 1.3.0 and skNoise 1.0.2,
+alongside skript-reflect 2.6.3 and oopsk 1.0-beta2. What they do at runtime past parsing is
+untested.
+
 This module only defines the types. Something has to back them with a real server, and convert
 between the platform's objects and Bukkit's:
 
