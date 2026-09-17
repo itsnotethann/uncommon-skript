@@ -1,0 +1,3 @@
+command /probe:
+	trigger:
+		assert 1 is 1 with error "x"

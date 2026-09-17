@@ -1,0 +1,7 @@
+on load:
+	create instance container stored in {-addontest-world}:
+		loader: polar
+		file: "worlds/world.polar"
+	wait 3 seconds
+	set {_m} to new model from id "addontest-missing"
+	broadcast "addontest runtime: model=%{_m}%"

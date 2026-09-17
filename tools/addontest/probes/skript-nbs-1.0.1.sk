@@ -1,0 +1,3 @@
+command /probe:
+	trigger:
+		play nbs song "a.nbs" with fade in 1 second and fade out 1 second to {_p}

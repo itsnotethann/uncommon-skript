@@ -1,0 +1,4 @@
+command /probe:
+	trigger:
+		if combat is enabled in {_i}:
+			broadcast "on"

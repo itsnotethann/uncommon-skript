@@ -1,0 +1,10 @@
+on load:
+	create instance container stored in {-addontest-world}:
+		loader: polar
+		file: "worlds/world.polar"
+	wait 3 seconds
+	set {_p} to position(0, 64, 0)
+	if it is raining at {_p} in {-addontest-world}:
+		broadcast "addontest runtime: raining at %{_p}%"
+	else:
+		broadcast "addontest runtime: not raining at %{_p}%"
