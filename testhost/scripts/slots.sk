@@ -1,0 +1,24 @@
+on load:
+	set {_x} to 5
+	set {_x::1} to "a"
+	set {_x::2} to "b"
+	mark "single %{_x}%"
+	mark "listsize %size of {_x::*}%"
+	mark "list %{_x::*}%"
+	delete {_x}
+	mark "deleted %{_x}% %{_x::*}%"
+	set {_x} to 9
+	delete {_x::*}
+	mark "listgone %{_x}% %{_x::*}%"
+	set {_Y} to 1
+	mark "case %{_y}%"
+	set {_key} to "z"
+	set {_prefixz} to "dyn"
+	mark "dynamic %{_prefix%{_key}%}%"
+	set {_prefix%{_key}%} to "written"
+	mark "dynwrite %{_prefixz}%"
+	set {_a} to 1
+	set {_b} to {_a}
+	add 2 to {_b}
+	mark "copy %{_a}% %{_b}%"
+	mark "unset %{_never}%"

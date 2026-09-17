@@ -1,0 +1,10 @@
+single 5
+listsize 2
+list a and b
+deleted <none> a and b
+listgone 9 <none>
+case 1
+dynamic dyn
+dynwrite written
+copy 1 3
+unset <none>
