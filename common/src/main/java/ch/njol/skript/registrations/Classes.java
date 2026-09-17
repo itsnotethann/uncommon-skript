@@ -74,6 +74,12 @@ public abstract class Classes {
 	 */
 	private static boolean anyClonerRegistered;
 
+	private static boolean anySerializeAsRegistered;
+
+	public static boolean isAnySerializeAsRegistered() {
+		return anySerializeAsRegistered;
+	}
+
 	/**
 	 * @param info info about the class to register
 	 */
@@ -115,6 +121,7 @@ public abstract class Classes {
 		// validate serializeAs
 		for (final ClassInfo<?> ci : getClassInfos()) {
 			if (ci.getSerializeAs() != null) {
+				anySerializeAsRegistered = true;
 				final ClassInfo<?> sa = getExactClassInfo(ci.getSerializeAs());
 				if (sa == null) {
 					Skript.error(ci.getCodeName() + "'s 'serializeAs' class is not registered");

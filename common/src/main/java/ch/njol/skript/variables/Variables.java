@@ -383,7 +383,7 @@ public class Variables {
 
 	@ApiStatus.Internal
 	public static void setLocal(PlatformEvent event, LocalSlots table, int slot, @Nullable String path, @Nullable Object value) {
-		if (value != null) {
+		if (value != null && Classes.isAnySerializeAsRegistered()) {
 			ClassInfo<?> ci = Classes.getSuperClassInfo(value.getClass());
 			Class<?> sas = ci.getSerializeAs();
 			if (sas != null) {
@@ -608,7 +608,7 @@ public class Variables {
 		}
 
 		// Check if conversion is needed due to ClassInfo#getSerializeAs
-		if (value != null) {
+		if (value != null && Classes.isAnySerializeAsRegistered()) {
 			assert !name.endsWith("::*");
 
 			ClassInfo<?> ci = Classes.getSuperClassInfo(value.getClass());
