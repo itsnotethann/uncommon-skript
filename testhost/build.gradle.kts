@@ -71,8 +71,11 @@ val bench by tasks.registering(JavaExec::class) {
 	dependsOn(tasks.classes)
 	classpath = sourceSets.main.get().runtimeClasspath
 	mainClass.set("org.skriptlang.skript.testhost.bench.BenchHost")
-	for (property in listOf("bench.warmup", "bench.rounds", "bench.fires", "bench.baseline")) {
+	for (property in listOf("bench.warmup", "bench.rounds", "bench.fires", "bench.baseline", "bench.only")) {
 		providers.gradleProperty(property).orNull?.let { systemProperty(property, it) }
+	}
+	providers.gradleProperty("bench.jfr").orNull?.let {
+		jvmArgs("-XX:StartFlightRecording=settings=profile,filename=$it,dumponexit=true")
 	}
 	args(benchScripts.asFile.absolutePath, benchWork.get().asFile.absolutePath)
 	inputs.dir(benchScripts)

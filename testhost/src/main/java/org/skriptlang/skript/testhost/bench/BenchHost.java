@@ -110,6 +110,11 @@ public final class BenchHost implements PlatformProvider {
 
 		List<String> names = new ArrayList<>(BenchSyntax.names());
 		names.sort(String::compareTo);
+		String only = System.getProperty("bench.only");
+		if (only != null && !only.isBlank()) {
+			List<String> wanted = List.of(only.split(","));
+			names.removeIf(name -> !wanted.contains(name));
+		}
 		if (names.isEmpty()) {
 			System.out.println("BENCH FAIL: no bench triggers were loaded");
 			System.exit(2);
