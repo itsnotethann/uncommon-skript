@@ -59,3 +59,9 @@ on bench "funccall":
 on bench "listloop":
 	loop {benchlist::*}:
 		set {_x} to loop-value
+
+on bench "nested":
+	set {_a} to "alpha"
+	set {_b} to "beta"
+	loop 1000 times:
+		set {_n} to length of (join {_a} and {_b} with "-")

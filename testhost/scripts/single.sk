@@ -1,0 +1,23 @@
+on load:
+	set {_hits} to 0
+	set {_seen::*} to 0, 0 and 0
+	loop 60 times:
+		set {_v} to (10, 20 or 30)
+		if {_v} is 10, 20 or 30:
+			add 1 to {_hits}
+		if {_v} is 10:
+			add 1 to {_seen::1}
+		if {_v} is 20:
+			add 1 to {_seen::2}
+		if {_v} is 30:
+			add 1 to {_seen::3}
+	mark "orpick %{_hits}%"
+	mark "orsum %{_seen::1} + {_seen::2} + {_seen::3}%"
+	mark "none %{_missing}%"
+	mark "length %length of "abcd"%"
+	set {_nums::*} to 4, 8 and 1
+	mark "sorted %sorted {_nums::*}%"
+	mark "size %size of {_nums::*}%"
+	mark "math %2 ^ 10% %mod(7, 3)%"
+	set {_text} to "5"
+	mark "parsed %{_text} parsed as number + 1%"
