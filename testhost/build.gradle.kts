@@ -63,6 +63,22 @@ tasks.check {
 	dependsOn(bootTest)
 }
 
+val benchScripts = layout.projectDirectory.dir("bench-scripts")
+val benchWork = layout.buildDirectory.dir("bench")
+
+val bench by tasks.registering(JavaExec::class) {
+	group = "verification"
+	dependsOn(tasks.classes)
+	classpath = sourceSets.main.get().runtimeClasspath
+	mainClass.set("org.skriptlang.skript.testhost.bench.BenchHost")
+	for (property in listOf("bench.warmup", "bench.rounds", "bench.fires", "bench.baseline")) {
+		providers.gradleProperty(property).orNull?.let { systemProperty(property, it) }
+	}
+	args(benchScripts.asFile.absolutePath, benchWork.get().asFile.absolutePath)
+	inputs.dir(benchScripts)
+	outputs.upToDateWhen { false }
+}
+
 val addonHost by configurations.creating
 
 dependencies {

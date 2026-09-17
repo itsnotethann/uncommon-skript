@@ -1,0 +1,61 @@
+function benchnoop(n: number) :: number:
+	return {_n}
+
+on load:
+	delete {bench::*}
+	delete {benchlist::*}
+	loop 100 times:
+		set {benchlist::%loop-number%} to loop-number
+
+on bench "overhead":
+	set {_x} to 1
+
+on bench "localset":
+	loop 1000 times:
+		set {_x} to 1
+
+on bench "localget":
+	set {_x} to 1
+	loop 1000 times:
+		set {_y} to {_x}
+
+on bench "globalset":
+	loop 1000 times:
+		set {bench::value} to 1
+
+on bench "globalget":
+	set {bench::value} to 1
+	loop 1000 times:
+		set {_y} to {bench::value}
+
+on bench "listindex":
+	loop 1000 times:
+		set {_list::1} to 1
+
+on bench "arithliteral":
+	loop 1000 times:
+		set {_x} to 1 + 2 * 3
+
+on bench "arithvar":
+	set {_x} to 0
+	loop 1000 times:
+		set {_x} to {_x} + 1
+
+on bench "stringinterp":
+	set {_x} to 7
+	loop 1000 times:
+		set {_s} to "a%{_x}%b"
+
+on bench "branch":
+	set {_x} to 1
+	loop 1000 times:
+		if {_x} is 1:
+			set {_y} to 1
+
+on bench "funccall":
+	loop 1000 times:
+		set {_x} to benchnoop(1)
+
+on bench "listloop":
+	loop {benchlist::*}:
+		set {_x} to loop-value
