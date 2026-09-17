@@ -3,6 +3,8 @@ package org.skriptlang.skript.platform.bukkit;
 import ch.njol.skript.LegacyAddonFactory;
 import ch.njol.skript.Skript;
 import ch.njol.skript.SkriptAddon;
+import org.bukkit.event.Event;
+import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.skriptlang.skript.lang.event.PlatformEvent;
 
@@ -23,5 +25,13 @@ public final class BukkitAddons {
 
 	public static boolean isAsynchronous(PlatformEvent event) {
 		return false;
+	}
+
+	public static void callEvent(PluginManager pluginManager, PlatformEvent event) {
+		if (event instanceof Event bukkitEvent) {
+			pluginManager.callEvent(bukkitEvent);
+			return;
+		}
+		Skript.eventBus().fire(event);
 	}
 }

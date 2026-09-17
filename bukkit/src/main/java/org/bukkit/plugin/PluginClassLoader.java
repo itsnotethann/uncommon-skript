@@ -60,6 +60,10 @@ public class PluginClassLoader extends URLClassLoader {
 	private static final String REGISTER_ADDON_DESC =
 		"(Lorg/bukkit/plugin/java/JavaPlugin;)Lch/njol/skript/SkriptAddon;";
 	private static final String BUKKIT_EVENT_DESC = "L" + BUKKIT_EVENT + ";";
+	private static final String PLUGIN_MANAGER = "org/bukkit/plugin/PluginManager";
+	private static final String SIMPLE_PLUGIN_MANAGER = "org/bukkit/plugin/SimplePluginManager";
+	private static final String CALL_EVENT = "callEvent";
+	private static final String CALL_EVENT_DESC = "(" + BUKKIT_EVENT_DESC + ")V";
 	private static final String PLATFORM_EVENT_DESC = "L" + PLATFORM_EVENT + ";";
 
 	@Override
@@ -236,6 +240,12 @@ public class PluginClassLoader extends URLClassLoader {
 						}
 						if (SKRIPT.equals(owner) && "registerAddon".equals(method) && REGISTER_ADDON_DESC.equals(descriptor)) {
 							super.visitMethodInsn(Opcodes.INVOKESTATIC, BUKKIT_ADDONS, "registerAddon", descriptor, false);
+							return;
+						}
+						if (CALL_EVENT.equals(method) && CALL_EVENT_DESC.equals(descriptor)
+							&& (PLUGIN_MANAGER.equals(owner) || SIMPLE_PLUGIN_MANAGER.equals(owner))) {
+							super.visitMethodInsn(Opcodes.INVOKESTATIC, BUKKIT_ADDONS, CALL_EVENT,
+								"(L" + PLUGIN_MANAGER + ";" + PLATFORM_EVENT_DESC + ")V", false);
 							return;
 						}
 						if (owner.startsWith("org/bukkit/")) {
