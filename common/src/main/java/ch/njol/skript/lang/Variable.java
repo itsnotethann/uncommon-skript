@@ -75,6 +75,7 @@ public class Variable<T> implements Expression<T>, KeyReceiverExpression<T>, Key
 
 	private final @Nullable LocalSlots slotTable;
 	private final int slot;
+	private final @Nullable String slotPath;
 
 	@SuppressWarnings("unchecked")
 	private Variable(VariableString name, Class<? extends T>[] types, boolean local, boolean ephemeral, boolean list, @Nullable Variable<?> source) {
@@ -99,22 +100,38 @@ public class Variable<T> implements Expression<T>, KeyReceiverExpression<T>, Key
 
 		LocalSlots slotTable = null;
 		int slot = -1;
-		if (local && !list && name.isSimple()) {
+		String slotPath = null;
+		if (local && source != null && source.slotTable != null) {
+			slotTable = source.slotTable;
+			slot = source.slot;
+			slotPath = source.slotPath;
+		} else if (local && name.isSimple() && parser.isActive()) {
 			String simple = name.toString(null);
 			if (Variables.caseInsensitiveVariables)
 				simple = simple.toLowerCase(Locale.ENGLISH);
-			if (simple.indexOf(SINGLE_SEPARATOR_CHAR) < 0 && simple.indexOf('*') < 0) {
-				if (source != null && source.slotTable != null && source.slotTable.indexOf(simple) == source.slot) {
-					slotTable = source.slotTable;
-					slot = source.slot;
-				} else if (parser.isActive()) {
+			int separator = simple.indexOf(SEPARATOR);
+			if (separator < 0) {
+				if (!list && simple.indexOf(SINGLE_SEPARATOR_CHAR) < 0 && simple.indexOf('*') < 0) {
 					slotTable = parser.getLocalSlots();
 					slot = slotTable.reserve(simple);
+				}
+			} else if (separator > 0) {
+				String root = simple.substring(0, separator);
+				String rest = simple.substring(separator + SEPARATOR.length());
+				boolean usable = root.indexOf(SINGLE_SEPARATOR_CHAR) < 0 && root.indexOf('*') < 0 && !rest.isEmpty()
+					&& (list
+						? rest.indexOf('*') == rest.length() - 1 && (rest.equals("*") || rest.endsWith(SEPARATOR + "*"))
+						: rest.indexOf('*') < 0);
+				if (usable) {
+					slotTable = parser.getLocalSlots();
+					slot = slotTable.reserveList(root);
+					slotPath = rest;
 				}
 			}
 		}
 		this.slotTable = slotTable;
 		this.slot = slot;
+		this.slotPath = slotPath;
 	}
 
 	/**
@@ -372,7 +389,7 @@ public class Variable<T> implements Expression<T>, KeyReceiverExpression<T>, Key
 				return null;
 			LocalSlots slotTable = this.slotTable;
 			Object stored = slotTable != null
-				? Variables.getLocal(event, slotTable, slot)
+				? Variables.getLocal(event, slotTable, slot, slotPath)
 				: Variables.getVariable(name, event, local);
 			Object value = !list ? Variables.findAndRunConverter(name, event, stored, local) : stored;
 			if (value != null)
@@ -456,7 +473,7 @@ public class Variable<T> implements Expression<T>, KeyReceiverExpression<T>, Key
 	private void set(PlatformEvent event, @Nullable Object value) {
 		LocalSlots slotTable = this.slotTable;
 		if (slotTable != null) {
-			Variables.setLocal(event, slotTable, slot, value);
+			Variables.setLocal(event, slotTable, slot, slotPath, value);
 			return;
 		}
 		Variables.setVariable(name.toString(event), value, event, local);
@@ -464,6 +481,14 @@ public class Variable<T> implements Expression<T>, KeyReceiverExpression<T>, Key
 
 	private void setIndex(PlatformEvent event, String index, @Nullable Object value) {
 		assert list;
+		LocalSlots slotTable = this.slotTable;
+		String slotPath = this.slotPath;
+		if (slotTable != null && slotPath != null) {
+			if (Variables.caseInsensitiveVariables)
+				index = index.toLowerCase(Locale.ENGLISH);
+			Variables.setLocal(event, slotTable, slot, slotPath.substring(0, slotPath.length() - 1) + index, value);
+			return;
+		}
 		String name = this.name.toString(event);
 		assert name.endsWith(SEPARATOR + "*") : name + "; " + this.name;
 		Variables.setVariable(name.substring(0, name.length() - 1) + index, value, event, local);

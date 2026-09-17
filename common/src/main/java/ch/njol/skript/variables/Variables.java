@@ -376,13 +376,13 @@ public class Variables {
 	}
 
 	@ApiStatus.Internal
-	public static @Nullable Object getLocal(PlatformEvent event, LocalSlots table, int slot) {
+	public static @Nullable Object getLocal(PlatformEvent event, LocalSlots table, int slot, @Nullable String path) {
 		LocalFrame frame = localVariables.get(event);
-		return frame == null ? null : frame.getSlot(table, slot);
+		return frame == null ? null : frame.getSlot(table, slot, path);
 	}
 
 	@ApiStatus.Internal
-	public static void setLocal(PlatformEvent event, LocalSlots table, int slot, @Nullable Object value) {
+	public static void setLocal(PlatformEvent event, LocalSlots table, int slot, @Nullable String path, @Nullable Object value) {
 		if (value != null) {
 			ClassInfo<?> ci = Classes.getSuperClassInfo(value.getClass());
 			Class<?> sas = ci.getSerializeAs();
@@ -394,7 +394,7 @@ public class Variables {
 		LocalFrame frame = localVariables.get(event);
 		if (frame == null)
 			frame = localVariables.computeIfAbsent(event, e -> new LocalFrame(table));
-		frame.setSlot(table, slot, value);
+		frame.setSlot(table, slot, path, value);
 	}
 
 	/**
@@ -524,9 +524,10 @@ public class Variables {
 		if (val == null)
 			return new EmptyIterator<>();
 		assert val instanceof TreeMap;
+		//noinspection unchecked
+		Map<String, Object> node = (Map<String, Object>) val;
 		// temporary list to prevent CMEs
-		@SuppressWarnings("unchecked")
-		Iterator<String> keys = new ArrayList<>(((Map<String, Object>) val).keySet()).iterator();
+		Iterator<String> keys = new ArrayList<>(node.keySet()).iterator();
 		return new Iterator<>() {
 			@Nullable
 			private String key;
@@ -540,7 +541,17 @@ public class Variables {
 				while (keys.hasNext()) {
 					key = keys.next();
 					if (key != null) {
-						next = findAndRunConverter(subName + key, event, Variables.getVariable(subName + key, event, local), local);
+						Object raw;
+						if (local) {
+							raw = node.get(key);
+							if (raw instanceof TreeMap)
+								raw = ((TreeMap<?, ?>) raw).get(null);
+						} else {
+							raw = Variables.getVariable(subName + key, event, local);
+						}
+						next = raw != null && !variableConverterMap.isEmpty()
+							? findAndRunConverter(subName + key, event, raw, local)
+							: raw;
 						if (next != null && !(next instanceof TreeMap))
 							return true;
 					}
