@@ -1,0 +1,47 @@
+on load:
+	set {_l::1} to "a"
+	set {_l::2} to "b"
+	mark "elem %{_l::1}% %{_l::2}%"
+	mark "all %{_l::*}% %size of {_l::*}%"
+	set {_l} to "root"
+	mark "coexist %{_l}% %{_l::*}% %size of {_l::*}%"
+	set {_i} to 2
+	set {_l::%{_i}%} to "B"
+	mark "dyn %{_l::2}% %{_l::*}%"
+	delete {_l::*}
+	mark "wiped %{_l}% %{_l::*}%"
+	set {_n::x::y} to 5
+	set {_n::x::z} to 6
+	mark "nested %{_n::x::y}% %{_n::x::*}% %size of {_n::x::*}%"
+	set {_n::x} to "own"
+	mark "nestedown %{_n::x}% %{_n::x::*}% %size of {_n::x::*}%"
+	delete {_n::x::*}
+	mark "nesteddel %{_n::x}% %{_n::x::*}% %{_n::*}%"
+	set {_k::*} to "p", "q" and "r"
+	mark "setall %{_k::*}% %size of {_k::*}%"
+	delete {_k::2}
+	mark "afterdel %{_k::*}% %size of {_k::*}%"
+	add "s" to {_k::*}
+	mark "added %{_k::*}%"
+	set {_m::alpha} to 1
+	mark "case %{_m::Alpha}% %{_M::alpha}%"
+	set {_s::*} to 3, 1 and 2
+	mark "sorted %sorted {_s::*}%"
+	loop {_s::*}:
+		mark "loop %loop-index% %loop-value%"
+	set {_c::*} to {_s::*}
+	mark "copy %{_c::*}%"
+	mark "missing %{_gone::1}% %{_gone::*}%"
+	delete {_k::99}
+	mark "nodel %{_k::*}%"
+	set {_deep::a::b::c} to "z"
+	mark "deep %{_deep::a::b::c}% %{_deep::a::*}% %{_deep::*}%"
+	delete {_deep::a::b::*}
+	mark "deepdel %{_deep::a::b::c}% %{_deep::a::b}%"
+	delete {_deep::*}
+	mark "deepgone %{_deep::a::b::c}% %{_deep::*}%"
+	set {_d::1} to "before"
+	wait 1 tick
+	mark "delayed %{_d::1}% %{_d::*}%"
+	set {_d::2} to "after"
+	mark "resumed %{_d::*}% %size of {_d::*}%"

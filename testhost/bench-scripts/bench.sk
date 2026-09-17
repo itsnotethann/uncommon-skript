@@ -65,3 +65,19 @@ on bench "nested":
 	set {_b} to "beta"
 	loop 1000 times:
 		set {_n} to length of (join {_a} and {_b} with "-")
+
+on bench "listget":
+	set {_list::1} to 1
+	loop 1000 times:
+		set {_y} to {_list::1}
+
+on bench "listsize":
+	set {_list::*} to 1, 2 and 3
+	loop 1000 times:
+		set {_n} to size of {_list::*}
+
+on bench "listloopvar":
+	set {_items::*} to 1, 2 and 3
+	loop 100 times:
+		loop {_items::*}:
+			set {_x} to loop-value-2
