@@ -4,6 +4,7 @@ import ch.njol.skript.Skript;
 import ch.njol.skript.SkriptAPIException;
 import ch.njol.skript.SkriptConfig;
 import ch.njol.skript.classes.ClassInfo;
+import org.jetbrains.annotations.ApiStatus;
 import ch.njol.skript.config.Config;
 import ch.njol.skript.config.Node;
 import ch.njol.skript.config.SectionNode;
@@ -324,7 +325,7 @@ public class Variables {
 	 * A map storing all local variables,
 	 * indexed by their {@link PlatformEvent}.
 	 */
-	private static final Map<PlatformEvent, VariablesMap> localVariables = new ConcurrentHashMap<>();
+	private static final Map<PlatformEvent, LocalFrame> localVariables = new ConcurrentHashMap<>();
 
 	/**
 	 * Gets the {@link TreeMap} of all global variables.
@@ -366,7 +367,34 @@ public class Variables {
 	 */
 	@Nullable
 	public static VariablesMap removeLocals(PlatformEvent event) {
-		return localVariables.remove(event);
+		LocalFrame frame = localVariables.remove(event);
+		return frame == null ? null : frame.materialize();
+	}
+
+	public static void discardLocals(PlatformEvent event) {
+		localVariables.remove(event);
+	}
+
+	@ApiStatus.Internal
+	public static @Nullable Object getLocal(PlatformEvent event, LocalSlots table, int slot) {
+		LocalFrame frame = localVariables.get(event);
+		return frame == null ? null : frame.getSlot(table, slot);
+	}
+
+	@ApiStatus.Internal
+	public static void setLocal(PlatformEvent event, LocalSlots table, int slot, @Nullable Object value) {
+		if (value != null) {
+			ClassInfo<?> ci = Classes.getSuperClassInfo(value.getClass());
+			Class<?> sas = ci.getSerializeAs();
+			if (sas != null) {
+				value = Converters.convert(value, sas);
+				assert value != null : ci + ", " + sas;
+			}
+		}
+		LocalFrame frame = localVariables.get(event);
+		if (frame == null)
+			frame = localVariables.computeIfAbsent(event, e -> new LocalFrame(table));
+		frame.setSlot(table, slot, value);
 	}
 
 	/**
@@ -382,7 +410,7 @@ public class Variables {
 	 */
 	public static void setLocalVariables(PlatformEvent event, @Nullable Object map) {
 		if (map != null) {
-			localVariables.put(event, (VariablesMap) map);
+			localVariables.put(event, new LocalFrame((VariablesMap) map));
 		} else {
 			removeLocals(event);
 		}
@@ -396,11 +424,11 @@ public class Variables {
 	 * @return the copy.
 	 */
 	public static @Nullable Object copyLocalVariables(PlatformEvent event) {
-		VariablesMap from = localVariables.get(event);
+		LocalFrame from = localVariables.get(event);
 		if (from == null)
 			return null;
 
-		return from.copy();
+		return from.materialize().copy();
 	}
 
 	public static @Nullable Object copyVariables(@Nullable Object variables) {
@@ -448,11 +476,11 @@ public class Variables {
 		}
 
 		if (local) {
-			VariablesMap map = localVariables.get(event);
-			if (map == null)
+			LocalFrame frame = localVariables.get(event);
+			if (frame == null)
 				return null;
 
-			return map.getVariable(n);
+			return frame.getByName(n);
 		} else {
 			try {
 				variablesLock.readLock().lock();
@@ -585,8 +613,10 @@ public class Variables {
 			assert event != null : name;
 
 			// Get the variables map and set the variable in it
-			VariablesMap map = localVariables.computeIfAbsent(event, e -> new VariablesMap());
-			map.setVariable(name, value);
+			LocalFrame frame = localVariables.get(event);
+			if (frame == null)
+				frame = localVariables.computeIfAbsent(event, e -> new LocalFrame((LocalSlots) null));
+			frame.setByName(name, value);
 		} else {
 			setVariable(name, value);
 		}

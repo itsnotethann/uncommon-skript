@@ -14,6 +14,7 @@ import ch.njol.skript.registrations.Classes;
 import ch.njol.skript.structures.StructVariables.DefaultVariables;
 import ch.njol.skript.util.StringMode;
 import ch.njol.skript.util.Utils;
+import ch.njol.skript.variables.LocalSlots;
 import ch.njol.skript.variables.Variables;
 import ch.njol.util.Kleenean;
 import ch.njol.util.Pair;
@@ -72,6 +73,9 @@ public class Variable<T> implements Expression<T>, KeyReceiverExpression<T>, Key
 
 	private ListProvider listProvider = new ShallowListProvider();
 
+	private final @Nullable LocalSlots slotTable;
+	private final int slot;
+
 	@SuppressWarnings("unchecked")
 	private Variable(VariableString name, Class<? extends T>[] types, boolean local, boolean ephemeral, boolean list, @Nullable Variable<?> source) {
 		assert types.length > 0;
@@ -92,6 +96,25 @@ public class Variable<T> implements Expression<T>, KeyReceiverExpression<T>, Key
 		this.superType = (Class<T>) Classes.getSuperClassInfo(types).getC();
 
 		this.source = source;
+
+		LocalSlots slotTable = null;
+		int slot = -1;
+		if (local && !list && name.isSimple()) {
+			String simple = name.toString(null);
+			if (Variables.caseInsensitiveVariables)
+				simple = simple.toLowerCase(Locale.ENGLISH);
+			if (simple.indexOf(SINGLE_SEPARATOR_CHAR) < 0 && simple.indexOf('*') < 0) {
+				if (source != null && source.slotTable != null && source.slotTable.indexOf(simple) == source.slot) {
+					slotTable = source.slotTable;
+					slot = source.slot;
+				} else if (parser.isActive()) {
+					slotTable = parser.getLocalSlots();
+					slot = slotTable.reserve(simple);
+				}
+			}
+		}
+		this.slotTable = slotTable;
+		this.slot = slot;
 	}
 
 	/**
@@ -347,7 +370,11 @@ public class Variable<T> implements Expression<T>, KeyReceiverExpression<T>, Key
 			// prevents e.g. {%expr%} where "%expr%" ends with "::*" from returning a Map
 			if (name.endsWith(Variable.SEPARATOR + "*") != list)
 				return null;
-			Object value = !list ? Variables.findAndRunConverter(name, event, Variables.getVariable(name, event, local), local) : Variables.getVariable(name, event, local);
+			LocalSlots slotTable = this.slotTable;
+			Object stored = slotTable != null
+				? Variables.getLocal(event, slotTable, slot)
+				: Variables.getVariable(name, event, local);
+			Object value = !list ? Variables.findAndRunConverter(name, event, stored, local) : stored;
 			if (value != null)
 				return value;
 
@@ -427,6 +454,11 @@ public class Variable<T> implements Expression<T>, KeyReceiverExpression<T>, Key
 	}
 
 	private void set(PlatformEvent event, @Nullable Object value) {
+		LocalSlots slotTable = this.slotTable;
+		if (slotTable != null) {
+			Variables.setLocal(event, slotTable, slot, value);
+			return;
+		}
 		Variables.setVariable(name.toString(event), value, event, local);
 	}
 

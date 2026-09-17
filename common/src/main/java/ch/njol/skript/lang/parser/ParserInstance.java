@@ -12,6 +12,7 @@ import ch.njol.skript.lang.TriggerSection;
 import ch.njol.skript.log.HandlerList;
 import ch.njol.skript.structures.StructOptions.OptionsData;
 import ch.njol.skript.variables.HintManager;
+import ch.njol.skript.variables.LocalSlots;
 import ch.njol.util.Kleenean;
 import ch.njol.util.coll.CollectionUtils;
 import com.google.common.base.Preconditions;
@@ -91,6 +92,7 @@ public final class ParserInstance implements Experimented {
 		this.hasDelayBefore = Kleenean.FALSE;
 		this.node = null;
 		this.hintManager = new HintManager(this.hintManager.isActive());
+		this.localSlots = new LocalSlots();
 		dataMap.clear();
 	}
 
@@ -549,6 +551,13 @@ public final class ParserInstance implements Experimented {
 	// Type Hints
 
 	private HintManager hintManager = new HintManager(true);
+
+	private LocalSlots localSlots = new LocalSlots();
+
+	@ApiStatus.Internal
+	public LocalSlots getLocalSlots() {
+		return localSlots;
+	}
 
 	/**
 	 * @return The local variable type hint manager for the active parsing process.
