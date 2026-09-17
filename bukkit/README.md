@@ -24,10 +24,15 @@ Every addon in the skript-minestom organisation loads here and its syntax parses
 skript-gui 1.3.2, skript-combat 1.0.0, skript-nbs 1.0.1, skript-bdengine 1.3.0 and skNoise 1.0.2,
 alongside skript-reflect 2.6.3 and oopsk 1.0-beta2.
 
-Past parsing, four of them have been run: skNoise builds a generator and reads it back, SkCheese
-asserts and parses a string as a number, skript-combat answers a weather question about a real point
-in a loaded polar world, and skript-bdengine resolves a model id. skript-gui and skript-nbs both
-need a connected player, so neither is covered headless.
+Past parsing, all six have been run. Headless: skNoise builds a generator and reads it back,
+SkCheese asserts and parses a string as a number, skript-combat answers a weather question about a
+real position in a loaded polar world, and skript-bdengine resolves a model id. With a player
+connected: skript-gui opens a GUI and runs the click handler on a slot, and skript-nbs plays a song
+and its song end event reaches a script.
+
+Addons fire their own events through `PluginManager.callEvent`. Those events are usually the host's
+event wrappers rather than Bukkit events, so the loader sends that call to `BukkitAddons.callEvent`,
+which keeps Bukkit events on Bukkit's path and hands anything else to Skript's event bus.
 
 This module only defines the types. Something has to back them with a real server, and convert
 between the platform's objects and Bukkit's:
