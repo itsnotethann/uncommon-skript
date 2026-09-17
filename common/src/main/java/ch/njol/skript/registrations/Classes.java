@@ -69,6 +69,12 @@ public abstract class Classes {
 	private final static Map<String, List<ClassInfo<?>>> registeredLiteralPatterns = new HashMap<>();
 
 	/**
+	 * Whether any registered class has a cloner at all, decided once registrations close.
+	 * @see #clone(Object)
+	 */
+	private static boolean anyClonerRegistered;
+
+	/**
 	 * @param info info about the class to register
 	 */
 	public static <T> void registerClass(final ClassInfo<T> info) {
@@ -96,9 +102,16 @@ public abstract class Classes {
 	}
 	
 	public static void onRegistrationsStop() {
-		
+
 		sortClassInfos();
-		
+
+		for (final ClassInfo<?> ci : getClassInfos()) {
+			if (ci.getCloner() != null) {
+				anyClonerRegistered = true;
+				break;
+			}
+		}
+
 		// validate serializeAs
 		for (final ClassInfo<?> ci : getClassInfos()) {
 			if (ci.getSerializeAs() != null) {
@@ -438,6 +451,10 @@ public abstract class Classes {
 			}
 			return clone;
 		} else {
+			// With no cloner registered anywhere, resolving the ClassInfo can only end in the value
+			// being handed straight back, so skip it. Every value written to a variable comes here.
+			if (!anyClonerRegistered)
+				return obj;
 			ClassInfo classInfo = getSuperClassInfo(obj.getClass());
 			return classInfo.clone(obj);
 		}
