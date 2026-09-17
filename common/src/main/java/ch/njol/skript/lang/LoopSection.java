@@ -4,6 +4,7 @@ import com.google.common.collect.MapMaker;
 import org.jetbrains.annotations.Nullable;
 import org.skriptlang.skript.lang.event.PlatformEvent;
 
+import java.lang.ref.WeakReference;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -28,6 +29,13 @@ public abstract class LoopSection extends Section implements SyntaxElement, Debu
 		public @Nullable Object previous;
 		public @Nullable Object next;
 
+		/**
+		 * Set when the loop exits, so that a memo held by another thread cannot hand out a state
+		 * the loop has already finished with. A trigger can change threads across a delay, which
+		 * means the thread that exits the loop is not always the one that entered it.
+		 */
+		volatile boolean exited;
+
 	}
 
 	protected final transient Map<PlatformEvent, LoopState> loopStates = new MapMaker()
@@ -36,15 +44,53 @@ public abstract class LoopSection extends Section implements SyntaxElement, Debu
 		.makeMap();
 
 	/**
+	 * The last state looked up on this thread. Iterations of one loop run back to back for the same
+	 * event, so this answers nearly every lookup without touching the map, whose weak keys make a
+	 * read far more expensive than a plain hash lookup. The event is held weakly so that a loop
+	 * abandoned by an exception cannot pin it.
+	 */
+	private final transient ThreadLocal<Memo> memo = ThreadLocal.withInitial(Memo::new);
+
+	private static final class Memo {
+
+		private @Nullable WeakReference<PlatformEvent> event;
+		private @Nullable LoopState state;
+
+		private @Nullable LoopState get(PlatformEvent event) {
+			WeakReference<PlatformEvent> reference = this.event;
+			if (reference == null || reference.get() != event)
+				return null;
+			LoopState state = this.state;
+			return state != null && !state.exited ? state : null;
+		}
+
+		private void set(PlatformEvent event, LoopState state) {
+			this.event = new WeakReference<>(event);
+			this.state = state;
+		}
+
+		private void clear() {
+			event = null;
+			state = null;
+		}
+
+	}
+
+	/**
 	 * @param event The event the loop is running for
 	 * @return The loop's state for that event, creating it if the loop has not started yet
 	 */
 	protected LoopState loopState(PlatformEvent event) {
-		LoopState state = loopStates.get(event);
+		Memo memo = this.memo.get();
+		LoopState state = memo.get(event);
+		if (state != null)
+			return state;
+		state = loopStates.get(event);
 		if (state == null) {
 			state = new LoopState();
 			loopStates.put(event, state);
 		}
+		memo.set(event, state);
 		return state;
 	}
 
@@ -53,7 +99,8 @@ public abstract class LoopSection extends Section implements SyntaxElement, Debu
 	 * @return The loop's state for that event, or null if the loop is not running
 	 */
 	protected @Nullable LoopState currentLoopState(PlatformEvent event) {
-		return loopStates.get(event);
+		LoopState state = memo.get().get(event);
+		return state != null ? state : loopStates.get(event);
 	}
 
 	/**
@@ -61,7 +108,7 @@ public abstract class LoopSection extends Section implements SyntaxElement, Debu
 	 * @return The loop iteration number
 	 */
 	public long getLoopCounter(PlatformEvent event) {
-		LoopState state = loopStates.get(event);
+		LoopState state = currentLoopState(event);
 		return state == null || state.counter == 0 ? 1L : state.counter;
 	}
 
@@ -76,7 +123,10 @@ public abstract class LoopSection extends Section implements SyntaxElement, Debu
 	 */
 	@Override
 	public void exit(PlatformEvent event) {
-		loopStates.remove(event);
+		LoopState state = loopStates.remove(event);
+		if (state != null)
+			state.exited = true;
+		memo.get().clear();
 	}
 
 }

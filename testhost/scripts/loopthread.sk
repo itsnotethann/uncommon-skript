@@ -1,0 +1,19 @@
+on load:
+	wait 2 ticks
+	fire test event "loopthread" off the main thread
+
+on test "loopthread":
+	mark "start %test thread%"
+	set {_outer} to 0
+	set {_inner} to 0
+	loop 3 times:
+		add 1 to {_outer}
+		loop 4 times:
+			add 1 to {_inner}
+		wait 1 tick
+	mark "counts %{_outer}% %{_inner}%"
+	mark "end %test thread%"
+	set {_again} to 0
+	loop 5 times:
+		add 1 to {_again}
+	mark "again %{_again}%"
