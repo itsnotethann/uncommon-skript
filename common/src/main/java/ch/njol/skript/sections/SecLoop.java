@@ -14,7 +14,6 @@ import ch.njol.skript.util.Container;
 import ch.njol.skript.util.Container.ContainerType;
 import ch.njol.skript.util.LiteralUtils;
 import ch.njol.util.Kleenean;
-import com.google.common.collect.MapMaker;
 import com.google.common.collect.PeekingIterator;
 import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.jetbrains.annotations.Nullable;
@@ -23,7 +22,6 @@ import org.jetbrains.annotations.UnknownNullability;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 @Name("Loop")
 @Description({
@@ -82,23 +80,6 @@ public class SecLoop extends LoopSection {
 
 	protected @UnknownNullability Expression<?> expression;
 
-	private final transient Map<PlatformEvent, Object> current = new MapMaker()
-		.concurrencyLevel(8)
-		.weakKeys()
-		.makeMap();
-	private final transient Map<PlatformEvent, Iterator<?>> iteratorMap = new MapMaker()
-		.concurrencyLevel(8)
-		.weakKeys()
-		.makeMap();
-	private final transient Map<PlatformEvent, Object> previous = new MapMaker()
-		.concurrencyLevel(8)
-		.weakKeys()
-		.makeMap();
-	private final transient Map<PlatformEvent, Object> next = new MapMaker()
-		.concurrencyLevel(8)
-		.weakKeys()
-		.makeMap();
-
 	protected @Nullable TriggerItem actualNext;
 	private boolean guaranteedToLoop;
 	private boolean loopPeeking;
@@ -142,7 +123,8 @@ public class SecLoop extends LoopSection {
 
 	@Override
 	protected @Nullable TriggerItem walk(PlatformEvent event) {
-		Iterator<?> iter = iteratorMap.get(event);
+		LoopState state = loopState(event);
+		Iterator<?> iter = state.iterator;
 		if (iter == null) {
 			if (iterableSingle) {
 				Object value = expression.getSingle(event);
@@ -159,23 +141,24 @@ public class SecLoop extends LoopSection {
 					? ((KeyedIterableExpression<?>) expression).keyedIterator(event)
 					: expression.iterator(event);
 				if (iter != null && iter.hasNext()) {
-					iteratorMap.put(event, iter);
+					state.iterator = iter;
 				} else {
 					iter = null;
 				}
 			}
 		}
 
-		Object nextValue = next.get(event);
+		Object nextValue = state.next;
 		if (iter == null || (!iter.hasNext() && nextValue == null)) {
 			exit(event);
 			debug(event, false);
 			return actualNext;
 		} else {
-			if (current.containsKey(event)) previous.put(event, current.get(event));
+			if (state.hasCurrent)
+				state.previous = state.current;
 			if (nextValue != null) {
 				this.store(event, nextValue);
-				next.remove(event);
+				state.next = null;
 			} else if (iter.hasNext()) {
 				this.store(event, iter.next());
 			}
@@ -184,8 +167,10 @@ public class SecLoop extends LoopSection {
 	}
 
 	protected void store(PlatformEvent event, Object next) {
-		this.current.put(event, next);
-		this.currentLoopCounter.put(event, (currentLoopCounter.getOrDefault(event, 0L)) + 1);
+		LoopState state = loopState(event);
+		state.current = next;
+		state.hasCurrent = true;
+		state.counter++;
 	}
 
 	@Override
@@ -199,28 +184,33 @@ public class SecLoop extends LoopSection {
 	}
 
 	public @Nullable Object getCurrent(PlatformEvent event) {
-		return current.get(event);
+		LoopState state = currentLoopState(event);
+		return state == null ? null : state.current;
 	}
 
 	public @Nullable Object getNext(PlatformEvent event) {
 		if (!loopPeeking)
 			return null;
-		Object nextValue = next.get(event);
+		LoopState state = currentLoopState(event);
+		if (state == null)
+			return null;
+		Object nextValue = state.next;
 		if (nextValue != null) {
 			return nextValue;
 		}
-		Iterator<?> iter = iteratorMap.get(event);
+		Iterator<?> iter = state.iterator;
 		if (iter == null || !iter.hasNext())
 			return null;
 		if (iter instanceof PeekingIterator<?> peekingIterator)
 			return peekingIterator.peek();
 		nextValue = iter.next();
-		next.put(event, nextValue);
+		state.next = nextValue;
 		return nextValue;
 	}
 
 	public @Nullable Object getPrevious(PlatformEvent event) {
-		return previous.get(event);
+		LoopState state = currentLoopState(event);
+		return state == null ? null : state.previous;
 	}
 
 	public Expression<?> getLoopedExpression() {
@@ -252,10 +242,6 @@ public class SecLoop extends LoopSection {
 
 	@Override
 	public void exit(PlatformEvent event) {
-		iteratorMap.remove(event);
-		previous.remove(event);
-		current.remove(event);
-		next.remove(event);
 		super.exit(event);
 	}
 

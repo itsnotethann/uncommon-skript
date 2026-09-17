@@ -1,0 +1,39 @@
+on load:
+	set {_n} to 0
+	loop 1000 times:
+		add 1 to {_n}
+	mark "count %{_n}%"
+	set {_last} to 0
+	loop 250 times:
+		set {_last} to loop-number
+	mark "counter %{_last}%"
+	delete {loops::*}
+	set {loops::a} to "x"
+	set {loops::b} to "y"
+	set {loops::c} to "z"
+	loop {loops::*}:
+		mark "list %loop-index%=%loop-value% prev=%previous loop-value% next=%next loop-value%"
+	set {_outer} to 0
+	set {_inner} to 0
+	loop 4 times:
+		add 1 to {_outer}
+		loop 5 times:
+			add 1 to {_inner}
+	mark "nested %{_outer}% %{_inner}%"
+	set {_hits} to 0
+	loop 6 times:
+		if loop-number is 3:
+			continue
+		add 1 to {_hits}
+	mark "continue %{_hits}%"
+	set {_before} to 0
+	loop 10 times:
+		add 1 to {_before}
+		if loop-number is 4:
+			exit loop
+	mark "exit %{_before}%"
+	set {_w} to 0
+	while {_w} < 7:
+		add 1 to {_w}
+	mark "while %{_w}%"
+	delete {loops::*}

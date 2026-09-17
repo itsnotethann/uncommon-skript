@@ -78,7 +78,7 @@ public class SecWhile extends LoopSection {
 	@Override
 	protected TriggerItem walk(PlatformEvent event) {
 		if ((doWhile && ranDoWhile.add(event)) || condition.check(event)) {
-			currentLoopCounter.put(event, (currentLoopCounter.getOrDefault(event, 0L)) + 1);
+			loopState(event).counter++;
 			return walk(event, true);
 		} else {
 			exit(event);
