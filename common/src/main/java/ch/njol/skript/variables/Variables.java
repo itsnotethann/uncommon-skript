@@ -609,6 +609,12 @@ public class Variables {
 	 * @param local if this variable is a local or global variable.
 	 */
 	public static void setVariable(String name, @Nullable Object value, @Nullable PlatformEvent event, boolean local) {
+		setVariable(name, value, event, local, null);
+	}
+
+	@ApiStatus.Internal
+	public static void setVariable(String name, @Nullable Object value, @Nullable PlatformEvent event, boolean local,
+								   @Nullable LocalSlots frameTable) {
 		if (caseInsensitiveVariables) {
 			name = name.toLowerCase(Locale.ENGLISH);
 		}
@@ -632,7 +638,7 @@ public class Variables {
 			// Get the variables map and set the variable in it
 			LocalFrame frame = localVariables.get(event);
 			if (frame == null)
-				frame = localVariables.computeIfAbsent(event, e -> new LocalFrame((LocalSlots) null));
+				frame = localVariables.computeIfAbsent(event, e -> new LocalFrame(frameTable));
 			frame.setByName(name, value);
 		} else {
 			setVariable(name, value);

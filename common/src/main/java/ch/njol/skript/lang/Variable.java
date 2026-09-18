@@ -76,6 +76,7 @@ public class Variable<T> implements Expression<T>, KeyReceiverExpression<T>, Key
 	private final @Nullable LocalSlots slotTable;
 	private final int slot;
 	private final @Nullable String slotPath;
+	private final @Nullable LocalSlots frameTable;
 
 	@SuppressWarnings("unchecked")
 	private Variable(VariableString name, Class<? extends T>[] types, boolean local, boolean ephemeral, boolean list, @Nullable Variable<?> source) {
@@ -132,6 +133,8 @@ public class Variable<T> implements Expression<T>, KeyReceiverExpression<T>, Key
 		this.slotTable = slotTable;
 		this.slot = slot;
 		this.slotPath = slotPath;
+		this.frameTable = slotTable != null ? slotTable
+			: (local && parser.isActive() ? parser.getLocalSlots() : null);
 	}
 
 	/**
@@ -476,7 +479,7 @@ public class Variable<T> implements Expression<T>, KeyReceiverExpression<T>, Key
 			Variables.setLocal(event, slotTable, slot, slotPath, value);
 			return;
 		}
-		Variables.setVariable(name.toString(event), value, event, local);
+		Variables.setVariable(name.toString(event), value, event, local, frameTable);
 	}
 
 	private void setIndex(PlatformEvent event, String index, @Nullable Object value) {
@@ -491,7 +494,7 @@ public class Variable<T> implements Expression<T>, KeyReceiverExpression<T>, Key
 		}
 		String name = this.name.toString(event);
 		assert name.endsWith(SEPARATOR + "*") : name + "; " + this.name;
-		Variables.setVariable(name.substring(0, name.length() - 1) + index, value, event, local);
+		Variables.setVariable(name.substring(0, name.length() - 1) + index, value, event, local, frameTable);
 	}
 
 	public int size(PlatformEvent event) {
