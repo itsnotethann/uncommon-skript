@@ -81,3 +81,9 @@ on bench "listloopvar":
 	loop 100 times:
 		loop {_items::*}:
 			set {_x} to loop-value-2
+
+on bench "listsizebig":
+	loop 100 times:
+		set {_big::%loop-number%} to loop-number
+	loop 1000 times:
+		set {_n} to size of {_big::*}

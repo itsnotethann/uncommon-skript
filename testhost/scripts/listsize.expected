@@ -1,0 +1,15 @@
+plain 3
+recursive 3
+nested 2 4
+sub 2
+nestedown 3 2
+missing 0
+emptied 0
+afterdel 2 p and r
+afteradd 3
+mixed 3
+scoped 2
+coexist 2
+global 3
+globaldel 2
+deep 0 0 2 2

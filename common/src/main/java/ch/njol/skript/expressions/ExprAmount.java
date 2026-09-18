@@ -52,6 +52,8 @@ public class ExprAmount extends SimpleExpression<Long> {
 
 	private boolean recursive;
 
+	private @Nullable Variable<?> sizeVariable;
+
 	@Override
 	public boolean init(Expression<?>[] exprs, int matchedPattern, Kleenean isDelayed, ParseResult parseResult) {
 		this.exprs = exprs[0] instanceof ExpressionList ? (ExpressionList<?>) exprs[0] : new ExpressionList<>(new Expression<?>[]{exprs[0]}, Object.class, false);
@@ -69,6 +71,10 @@ public class ExprAmount extends SimpleExpression<Long> {
 				return false;
 			}
 		}
+		Expression<?>[] all = this.exprs.getExpressions();
+		if (!recursive && all.length == 1 && all[0] instanceof Variable<?> variable && variable.isList())
+			sizeVariable = variable;
+
 		return true;
 	}
 
@@ -84,6 +90,25 @@ public class ExprAmount extends SimpleExpression<Long> {
 				}
 			}
 			return new Long[]{(long) currentSize};
+		}
+		Variable<?> sizeVariable = this.sizeVariable;
+		if (sizeVariable != null) {
+			Object raw = sizeVariable.getRaw(e);
+			if (!(raw instanceof Map<?, ?> map))
+				return new Long[]{0L};
+			int count = 0;
+			for (Map.Entry<?, ?> entry : map.entrySet()) {
+				if (entry.getKey() == null)
+					continue;
+				Object value = entry.getValue();
+				if (value instanceof Map<?, ?> sub) {
+					if (sub.get(null) != null)
+						count++;
+				} else if (value != null) {
+					count++;
+				}
+			}
+			return new Long[]{(long) count};
 		}
 		return new Long[]{(long) exprs.getArray(e).length};
 	}

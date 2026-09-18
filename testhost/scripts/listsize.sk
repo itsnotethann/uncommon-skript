@@ -1,0 +1,37 @@
+on load:
+	set {_a::*} to 1, 2 and 3
+	mark "plain %size of {_a::*}%"
+	mark "recursive %recursive size of {_a::*}%"
+	set {_n::1} to "x"
+	set {_n::2::1} to "y"
+	set {_n::2::2} to "z"
+	set {_n::3} to "w"
+	mark "nested %size of {_n::*}% %recursive size of {_n::*}%"
+	mark "sub %size of {_n::2::*}%"
+	set {_n::2} to "own"
+	mark "nestedown %size of {_n::*}% %size of {_n::2::*}%"
+	mark "missing %size of {_gone::*}%"
+	set {_e::1} to "v"
+	delete {_e::1}
+	mark "emptied %size of {_e::*}%"
+	set {_m::*} to "p", "q" and "r"
+	delete {_m::2}
+	mark "afterdel %size of {_m::*}% %{_m::*}%"
+	add "s" to {_m::*}
+	mark "afteradd %size of {_m::*}%"
+	set {_mix::1} to 5
+	set {_mix::2} to "text"
+	set {_mix::3} to true
+	mark "mixed %size of {_mix::*}%"
+	set {_g::*} to 1 and 2
+	mark "scoped %size of {_g::*}%"
+	set {_g} to "root"
+	mark "coexist %size of {_g::*}%"
+	set {global::*} to 7, 8 and 9
+	mark "global %size of {global::*}%"
+	delete {global::2}
+	mark "globaldel %size of {global::*}%"
+	set {_deep::a::b::c} to 1
+	set {_deep::a::b::d} to 2
+	mark "deep %size of {_deep::*}% %size of {_deep::a::*}% %size of {_deep::a::b::*}% %recursive size of {_deep::*}%"
+	delete {global::*}
