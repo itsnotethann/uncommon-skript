@@ -69,7 +69,13 @@ public class Variables {
 
 	private static final Map<Class<?>, Function<Object, Object>> intermediaryMap = new ConcurrentHashMap<>();
 
+	public static boolean hasVariableSetIntermediaries() {
+		return !intermediaryMap.isEmpty();
+	}
+
 	public static boolean searchAndRunFirstVariableSetIntermediary(Object value, Object[] array, int index) {
+		if (intermediaryMap.isEmpty())
+			return false;
 		for (Class<?> clazz : intermediaryMap.keySet()) {
 			if (!clazz.isAssignableFrom(value.getClass())) continue;
 			array[index] = intermediaryMap.get(clazz).apply(value);

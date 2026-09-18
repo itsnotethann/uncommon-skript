@@ -424,17 +424,30 @@ public interface Expression<T> extends SyntaxElement, Debuggable, Loopable<T>, S
 
 		// Slots must be transformed to item stacks when writing to variables
 		// Also, some types must be cloned
-		Object[] newDelta = null;
-		if (changed instanceof Variable) {
-			newDelta = new Object[delta.length];
+		if (!(changed instanceof Variable))
+			return delta;
+
+		if (Variables.hasVariableSetIntermediaries()) {
+			Object[] newDelta = new Object[delta.length];
 			for (int i = 0; i < delta.length; i++) {
 				Object value = delta[i];
-				if (!Variables.searchAndRunFirstVariableSetIntermediary(value, newDelta, i)) newDelta[i] = Classes.clone(delta[i]);
+				if (!Variables.searchAndRunFirstVariableSetIntermediary(value, newDelta, i)) newDelta[i] = Classes.clone(value);
 			}
+			return newDelta;
 		}
-		// Everything else (inventories, actions, etc.) does not need special handling
 
-		// Return the given delta or an Object[] copy of it, with some values transformed
+		Object[] newDelta = null;
+		for (int i = 0; i < delta.length; i++) {
+			Object value = delta[i];
+			Object cloned = Classes.clone(value);
+			if (newDelta == null) {
+				if (cloned == value)
+					continue;
+				newDelta = new Object[delta.length];
+				System.arraycopy(delta, 0, newDelta, 0, i);
+			}
+			newDelta[i] = cloned;
+		}
 		return newDelta == null ? delta : newDelta;
 	}
 
