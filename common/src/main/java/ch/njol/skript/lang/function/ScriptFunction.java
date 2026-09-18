@@ -19,9 +19,13 @@ public class ScriptFunction<T> extends Function<T> implements ReturnHandler<T> {
 
 	private final Trigger trigger;
 
-	private final ThreadLocal<Boolean> returnValueSet = ThreadLocal.withInitial(() -> false);
-	private final ThreadLocal<T @Nullable []> returnValues = new ThreadLocal<>();
-	private final ThreadLocal<String @Nullable []> returnKeys = new ThreadLocal<>();
+	private static final class Returned<T> {
+		private boolean set;
+		private T @Nullable [] values;
+		private String @Nullable [] keys;
+	}
+
+	private final ThreadLocal<Returned<T>> returned = ThreadLocal.withInitial(Returned::new);
 
 	/**
 	 * @deprecated use {@link ScriptFunction#ScriptFunction(Signature, SectionNode)} instead.
@@ -85,12 +89,12 @@ public class ScriptFunction<T> extends Function<T> implements ReturnHandler<T> {
 
 		trigger.execute(event);
 		ClassInfo<T> returnType = getReturnType();
-		return returnType != null ? returnValues.get() : null;
+		return returnType != null ? returned.get().values : null;
 	}
 
 	@Override
 	public @NotNull String @Nullable [] returnedKeys() {
-		return returnKeys.get();
+		return returned.get().keys;
 	}
 
 	/**
@@ -99,26 +103,29 @@ public class ScriptFunction<T> extends Function<T> implements ReturnHandler<T> {
 	@Deprecated(since = "2.9.0", forRemoval = true)
 	@ApiStatus.Internal
 	public final void setReturnValue(@Nullable T[] values) {
-		assert !returnValueSet.get();
-		returnValueSet.set(true);
-		this.returnValues.set(values);
+		Returned<T> returned = this.returned.get();
+		assert !returned.set;
+		returned.set = true;
+		returned.values = values;
 	}
 
 	@Override
 	public boolean resetReturnValue() {
-		returnValueSet.remove();
-		returnValues.remove();
-		returnKeys.remove();
+		Returned<T> returned = this.returned.get();
+		returned.set = false;
+		returned.values = null;
+		returned.keys = null;
 		return true;
 	}
 
 	@Override
 	public final void returnValues(PlatformEvent event, Expression<? extends T> value) {
-		assert !returnValueSet.get();
-		returnValueSet.set(true);
-		this.returnValues.set(value.getArray(event));
+		Returned<T> returned = this.returned.get();
+		assert !returned.set;
+		returned.set = true;
+		returned.values = value.getArray(event);
 		if (KeyProviderExpression.canReturnKeys(value))
-			this.returnKeys.set(((KeyProviderExpression<?>) value).getArrayKeys(event));
+			returned.keys = ((KeyProviderExpression<?>) value).getArrayKeys(event);
 	}
 
 	@Override
