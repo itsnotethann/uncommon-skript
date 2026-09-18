@@ -87,3 +87,32 @@ on bench "listsizebig":
 		set {_big::%loop-number%} to loop-number
 	loop 1000 times:
 		set {_n} to size of {_big::*}
+
+function benchargs3(a: number, b: number, c: number) :: number:
+	return {_a}
+
+function benchlist(ns: numbers) :: number:
+	return 1
+
+function benchwork(n: number) :: number:
+	return {_n} * 2 + 1
+
+on bench "funccallargs3":
+	loop 1000 times:
+		set {_x} to benchargs3(1, 2, 3)
+
+on bench "funccalllist":
+	loop 1000 times:
+		set {_x} to benchlist(1, 2, 3)
+
+on bench "funccalljava":
+	loop 1000 times:
+		set {_x} to abs(-1)
+
+on bench "funccallwork":
+	loop 1000 times:
+		set {_x} to benchwork(2)
+
+on bench "funccallvoid":
+	loop 1000 times:
+		benchnoop(1)
