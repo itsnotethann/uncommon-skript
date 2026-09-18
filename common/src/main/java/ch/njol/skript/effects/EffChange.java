@@ -19,6 +19,7 @@ import ch.njol.skript.registrations.Classes;
 import ch.njol.skript.util.LiteralUtils;
 import ch.njol.skript.util.Patterns;
 import ch.njol.skript.variables.HintManager;
+import ch.njol.skript.variables.Variables;
 import ch.njol.util.Kleenean;
 import org.skriptlang.skript.lang.event.PlatformEvent;
 import org.jetbrains.annotations.Nullable;
@@ -91,6 +92,8 @@ public class EffChange extends Effect {
 	private @Nullable Expression<?> changer;
 
 	private ChangeMode mode;
+
+	private boolean fusedVariableSet;
 
 	@Override
 	public boolean init(Expression<?>[] exprs, int matchedPattern, Kleenean isDelayed, ParseResult parseResult) {
@@ -296,11 +299,26 @@ public class EffChange extends Effect {
 			}
 		}
 
+		fusedVariableSet = mode == ChangeMode.SET
+			&& changed instanceof Variable<?> target && !target.isList() && target.isSingle()
+			&& changer instanceof Variable<?> source && !source.isList() && source.isSingle();
+
 		return true;
 	}
 
 	@Override
 	protected void execute(PlatformEvent event) {
+		if (fusedVariableSet && !Variables.hasVariableSetIntermediaries()) {
+			Object value = changer.getSingle(event);
+			if (value == null) {
+				if (changed.acceptChange(ChangeMode.DELETE) != null)
+					changed.change(event, null, ChangeMode.DELETE);
+				return;
+			}
+			((Variable<?>) changed).set(event, Classes.clone(value));
+			return;
+		}
+
 		Object[] delta = null;
 		if (changer != null) {
 			delta = changer.getArray(event);

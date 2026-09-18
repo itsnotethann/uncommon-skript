@@ -470,7 +470,7 @@ public class Variable<T> implements Expression<T>, KeyReceiverExpression<T>, Key
 		return unzipped.values().toArray((T[]) Array.newInstance(superType, 0));
 	}
 
-	private void set(PlatformEvent event, @Nullable Object value) {
+	public void set(PlatformEvent event, @Nullable Object value) {
 		LocalSlots slotTable = this.slotTable;
 		if (slotTable != null) {
 			Variables.setLocal(event, slotTable, slot, slotPath, value);
