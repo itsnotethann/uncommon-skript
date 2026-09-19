@@ -26,8 +26,14 @@ public abstract class Function<T> implements org.skriptlang.skript.common.functi
 
 	private final Signature<T> sign;
 
+	private final boolean[] keyedParameters;
+
 	public Function(Signature<T> sign) {
 		this.sign = sign;
+		Parameter<?>[] parameters = sign.getParameters();
+		this.keyedParameters = new boolean[parameters.length];
+		for (int i = 0; i < parameters.length; i++)
+			this.keyedParameters[i] = parameters[i].hasModifier(Modifier.KEYED);
 	}
 
 	/**
@@ -96,7 +102,8 @@ public abstract class Function<T> implements org.skriptlang.skript.common.functi
 		// Execute parameters or default value expressions
 		for (int i = 0; i < parameters.length; i++) {
 			Parameter<?> parameter = parameters[i];
-			Object[] parameterValue = parameter.hasModifier(Modifier.KEYED) ? convertToKeyed(parameterValues[i]) : parameterValues[i];
+			boolean keyedParameter = keyedParameters[i];
+			Object[] parameterValue = keyedParameter ? convertToKeyed(parameterValues[i]) : parameterValues[i];
 
 			// see https://github.com/SkriptLang/Skript/pull/8135
 			if ((parameterValues[i] == null || parameterValues[i].length == 0)
@@ -112,7 +119,7 @@ public abstract class Function<T> implements org.skriptlang.skript.common.functi
 			} else if (!(this instanceof DefaultFunction<?>) && parameterValue == null) { // Go for default value
 				assert parameter.def != null; // Should've been parse error
 				Object[] defaultValue = parameter.def.getArray(event);
-				if (parameter.hasModifier(Modifier.KEYED) && KeyProviderExpression.areKeysRecommended(parameter.def)) {
+				if (keyedParameter && KeyProviderExpression.areKeysRecommended(parameter.def)) {
 					String[] keys = ((KeyProviderExpression<?>) parameter.def).getArrayKeys(event);
 					parameterValue = KeyedValue.zip(defaultValue, keys);
 				} else {
