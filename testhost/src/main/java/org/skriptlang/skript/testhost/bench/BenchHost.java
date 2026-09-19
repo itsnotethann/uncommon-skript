@@ -37,6 +37,7 @@ public final class BenchHost implements PlatformProvider {
 	private static final int WARMUP_ROUNDS = Integer.getInteger("bench.warmup", 8);
 	private static final int ROUNDS = Integer.getInteger("bench.rounds", 15);
 	private static final int FIRES = Integer.getInteger("bench.fires", 200);
+	private static final int DRAIN_TICKS = Integer.getInteger("bench.drain", 2000);
 
 	private static TickLoop loop;
 
@@ -78,6 +79,7 @@ public final class BenchHost implements PlatformProvider {
 
 		stage(scripts, work.resolve("Skript").resolve("scripts"));
 		configure(work.resolve("Skript").resolve("config.sk"));
+		resetVariableStore(work.resolve("Skript"));
 
 		loop = new TickLoop();
 		Platform.install(new BenchHost(work.toFile()));
@@ -142,20 +144,23 @@ public final class BenchHost implements PlatformProvider {
 	}
 
 	private static long measure(String name) {
-		BenchEvent event = new BenchEvent(name);
 		EventBus bus = Skript.eventBus();
+		BenchEvent[] events = new BenchEvent[FIRES];
 		for (int round = 0; round < WARMUP_ROUNDS; round++)
-			fire(bus, event);
+			fire(bus, name, events);
 		long best = Long.MAX_VALUE;
 		for (int round = 0; round < ROUNDS; round++)
-			best = Math.min(best, fire(bus, event));
+			best = Math.min(best, fire(bus, name, events));
 		return best;
 	}
 
-	private static long fire(EventBus bus, BenchEvent event) {
+	private static long fire(EventBus bus, String name, BenchEvent[] events) {
+		for (int i = 0; i < FIRES; i++)
+			events[i] = new BenchEvent(name);
 		long start = System.nanoTime();
 		for (int i = 0; i < FIRES; i++)
-			bus.fire(event);
+			bus.fire(events[i]);
+		loop.drainPending(DRAIN_TICKS);
 		return (System.nanoTime() - start) / FIRES;
 	}
 
@@ -226,8 +231,35 @@ public final class BenchHost implements PlatformProvider {
 			return;
 		String text = Files.readString(config, StandardCharsets.UTF_8);
 		text = text.replaceAll("(?m)^script loader thread size:.*$", "script loader thread size: 0");
-		text = text.replaceAll("(?m)^(\\s*)type: CSV\\s*$", "$1type: disabled");
+		String defaultBlock = "(?m)^([ \\t]*)type: (?:disabled|CSV)([ \\t]*\\R[ \\t]*pattern: \\Q(?!-).*\\E[ \\t]*$)";
+		String enabled = text.replaceAll(defaultBlock, "$1type: CSV$2");
+		if (enabled.equals(text) && !text.contains("type: CSV")) {
+			System.out.println("BENCH FAIL: could not enable the default CSV variable storage");
+			System.exit(2);
+		}
+		text = enabled;
 		Files.writeString(config, text, StandardCharsets.UTF_8);
+	}
+
+	private static void resetVariableStore(Path skriptDirectory) throws IOException {
+		if (!Files.isDirectory(skriptDirectory))
+			return;
+		try (Stream<Path> files = Files.list(skriptDirectory)) {
+			for (Path path : files.toList()) {
+				String name = path.getFileName().toString();
+				if (Files.isRegularFile(path) && (name.equals("variables.csv") || name.startsWith("variables.csv.")))
+					Files.delete(path);
+			}
+		}
+		Path backups = skriptDirectory.resolve("backups");
+		if (Files.isDirectory(backups)) {
+			try (Stream<Path> files = Files.list(backups)) {
+				for (Path path : files.toList()) {
+					if (Files.isRegularFile(path))
+						Files.delete(path);
+				}
+			}
+		}
 	}
 
 	@Override

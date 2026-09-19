@@ -122,3 +122,15 @@ on bench "listcopy":
 		set {_src::%loop-number%} to loop-number
 	loop 1000 times:
 		set {_dst::*} to {_src::*}
+
+on bench "afterwait":
+	wait 1 tick
+	loop 1000 times:
+		set {_x} to 1
+
+on bench "afterwaitlist":
+	loop 20 times:
+		set {_src::%loop-number%} to loop-number
+	wait 1 tick
+	loop 1000 times:
+		set {_y} to {_src::5}

@@ -69,6 +69,33 @@ public final class TickLoop implements PlatformScheduler {
 		}
 	}
 
+	public void drainPending(int maxTicks) {
+		for (int i = 0; i < maxTicks; i++) {
+			boolean pending = false;
+			synchronized (queue) {
+				for (Scheduled scheduled : queue) {
+					if (scheduled.periodTicks < 0) {
+						pending = true;
+						break;
+					}
+				}
+			}
+			if (!pending)
+				return;
+			tick++;
+			while (true) {
+				Scheduled due;
+				synchronized (queue) {
+					due = queue.peek();
+					if (due == null || due.dueTick > tick)
+						break;
+					queue.poll();
+				}
+				due.run();
+			}
+		}
+	}
+
 	private Scheduled enqueue(Runnable task, long delayTicks, long periodTicks) {
 		Scheduled scheduled = new Scheduled(ids.incrementAndGet(), task, periodTicks);
 		schedule(scheduled, delayTicks);
