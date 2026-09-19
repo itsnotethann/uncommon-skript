@@ -1,0 +1,18 @@
+insert-values delta, alpha, charlie and bravo
+sorted-values alpha, bravo, charlie and delta
+insert-loop 1 delta
+insert-loop 2 alpha
+insert-loop 3 charlie
+insert-loop 4 bravo
+key-insert-indices alpha, mike and zulu
+key-asc-indices zulu, alpha and mike
+key-desc-indices mike, alpha and zulu
+key-loop alpha 2
+key-loop mike 3
+key-loop zulu 1
+num-insert-indices 9, 10 and 100
+num-asc-indices 100, 9 and 10
+num-loop 9 nine
+num-loop 10 ten
+num-loop 100 hundred
+reversed 3, 2 and 1

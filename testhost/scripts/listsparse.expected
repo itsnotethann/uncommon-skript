@@ -1,0 +1,23 @@
+dense-indices 1, 2, 3 and 4
+dense-size 4
+hole-indices 1, 3 and 4
+hole-size 3
+hole-values a, c and d
+hole-slot <none>
+refill-indices 1, 2, 3 and 4
+refill-values a, e, c and d
+twoholes-indices 2 and 4
+aftertwo-indices 1, 2 and 4
+aftertwo-values f, e and d
+sparse-indices 2, 7 and 10
+sparse-size 3
+sparse-values two, seven and ten
+sparse-append-indices 1, 2, 7 and 10
+sparse-loop 1 next
+sparse-loop 2 two
+sparse-loop 7 seven
+sparse-loop 10 ten
+cleared-size 0
+cleared-indices <none>
+refilled-indices 1 and 3
+refilled-values more and back

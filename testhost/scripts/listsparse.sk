@@ -1,0 +1,35 @@
+on load:
+	set {_d::*} to "a", "b", "c" and "d"
+	mark "dense-indices %indices of {_d::*}%"
+	mark "dense-size %size of {_d::*}%"
+	delete {_d::2}
+	mark "hole-indices %indices of {_d::*}%"
+	mark "hole-size %size of {_d::*}%"
+	mark "hole-values %{_d::*}%"
+	mark "hole-slot %{_d::2}%"
+	add "e" to {_d::*}
+	mark "refill-indices %indices of {_d::*}%"
+	mark "refill-values %{_d::*}%"
+	delete {_d::1}
+	delete {_d::3}
+	mark "twoholes-indices %indices of {_d::*}%"
+	add "f" to {_d::*}
+	mark "aftertwo-indices %indices of {_d::*}%"
+	mark "aftertwo-values %{_d::*}%"
+	set {_s::10} to "ten"
+	set {_s::2} to "two"
+	set {_s::7} to "seven"
+	mark "sparse-indices %indices of {_s::*}%"
+	mark "sparse-size %size of {_s::*}%"
+	mark "sparse-values %{_s::*}%"
+	add "next" to {_s::*}
+	mark "sparse-append-indices %indices of {_s::*}%"
+	loop {_s::*}:
+		mark "sparse-loop %loop-index% %loop-value%"
+	delete {_s::*}
+	mark "cleared-size %size of {_s::*}%"
+	mark "cleared-indices %indices of {_s::*}%"
+	set {_s::3} to "back"
+	add "more" to {_s::*}
+	mark "refilled-indices %indices of {_s::*}%"
+	mark "refilled-values %{_s::*}%"

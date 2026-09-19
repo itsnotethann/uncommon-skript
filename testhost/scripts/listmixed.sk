@@ -1,0 +1,24 @@
+on load:
+	set {_m::1} to "one"
+	set {_m::alpha} to "A"
+	set {_m::2} to "two"
+	set {_m::beta} to "B"
+	mark "mixed-indices %indices of {_m::*}%"
+	mark "mixed-size %size of {_m::*}%"
+	mark "mixed-values %{_m::*}%"
+	add "appended" to {_m::*}
+	mark "append-indices %indices of {_m::*}%"
+	mark "append-values %{_m::*}%"
+	loop {_m::*}:
+		mark "mixed-loop %loop-index% %loop-value%"
+	delete {_m::alpha}
+	mark "del-indices %indices of {_m::*}%"
+	mark "del-named %{_m::alpha}%"
+	mark "del-size %size of {_m::*}%"
+	set {_n::*} to "p" and "q"
+	set {_n::tail} to "t"
+	mark "named-after-setall %indices of {_n::*}%"
+	mark "named-after-setall-size %size of {_n::*}%"
+	set {_n::*} to "fresh"
+	mark "setall-wipes %indices of {_n::*}%"
+	mark "setall-wipes-named %{_n::tail}%"

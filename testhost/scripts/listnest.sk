@@ -1,0 +1,33 @@
+on load:
+	set {_t::a::1} to "a1"
+	set {_t::a::2} to "a2"
+	set {_t::b::1} to "b1"
+	mark "top-indices %indices of {_t::*}%"
+	mark "sub-indices %indices of {_t::a::*}%"
+	mark "top-size %size of {_t::*}%"
+	mark "recursive-size %recursive size of {_t::*}%"
+	mark "sub-values %{_t::a::*}%"
+	set {_t::a::*} to "flat1" and "flat2"
+	mark "sub-setall-indices %indices of {_t::a::*}%"
+	mark "sub-setall-values %{_t::a::*}%"
+	set {_t::a} to "leaf"
+	mark "leaf-value %{_t::a}%"
+	mark "leaf-sub-indices %indices of {_t::a::*}%"
+	mark "leaf-top-size %size of {_t::*}%"
+	delete {_t::a::*}
+	mark "subdel-leaf %{_t::a}%"
+	mark "subdel-top-indices %indices of {_t::*}%"
+	mark "subdel-recursive %recursive size of {_t::*}%"
+	set {_u::x::y::z} to 1
+	set {_u::x::y::w} to 2
+	set {_u::x::q} to 3
+	mark "deep-top %indices of {_u::*}%"
+	mark "deep-mid %indices of {_u::x::*}%"
+	mark "deep-leaf %indices of {_u::x::y::*}%"
+	mark "deep-sizes %size of {_u::*}% %size of {_u::x::*}% %recursive size of {_u::*}%"
+	set {_v::*} to {_u::x::y::*}
+	mark "deep-copy-indices %indices of {_v::*}%"
+	mark "deep-copy-size %size of {_v::*}%"
+	delete {_u::*}
+	mark "deep-cleared %recursive size of {_u::*}%"
+	mark "deep-cleared-leaf %{_u::x::y::z}%"

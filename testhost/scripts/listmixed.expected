@@ -1,0 +1,17 @@
+mixed-indices 1, 2, alpha and beta
+mixed-size 4
+mixed-values one, two, A and B
+append-indices 1, 2, 3, alpha and beta
+append-values one, two, appended, A and B
+mixed-loop 1 one
+mixed-loop 2 two
+mixed-loop 3 appended
+mixed-loop alpha A
+mixed-loop beta B
+del-indices 1, 2, 3 and beta
+del-named <none>
+del-size 4
+named-after-setall 1, 2 and tail
+named-after-setall-size 3
+setall-wipes 1
+setall-wipes-named <none>

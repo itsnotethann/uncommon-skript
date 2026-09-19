@@ -1,0 +1,21 @@
+top-indices a and b
+sub-indices 1 and 2
+top-size 0
+recursive-size 3
+sub-values a1 and a2
+sub-setall-indices 1 and 2
+sub-setall-values flat1 and flat2
+leaf-value leaf
+leaf-sub-indices 1 and 2
+leaf-top-size 1
+subdel-leaf leaf
+subdel-top-indices a and b
+subdel-recursive 2
+deep-top x
+deep-mid q and y
+deep-leaf w and z
+deep-sizes 0 1 3
+deep-copy-indices 1 and 2
+deep-copy-size 2
+deep-cleared 0
+deep-cleared-leaf <none>

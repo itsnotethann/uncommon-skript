@@ -1,0 +1,23 @@
+on load:
+	set {_o::*} to "delta", "alpha", "charlie" and "bravo"
+	mark "insert-values %{_o::*}%"
+	mark "sorted-values %sorted {_o::*}%"
+	loop {_o::*}:
+		mark "insert-loop %loop-index% %loop-value%"
+	set {_k::zulu} to 1
+	set {_k::alpha} to 2
+	set {_k::mike} to 3
+	mark "key-insert-indices %indices of {_k::*}%"
+	mark "key-asc-indices %sorted indices of {_k::*} in ascending order%"
+	mark "key-desc-indices %sorted indices of {_k::*} in descending order%"
+	loop {_k::*}:
+		mark "key-loop %loop-index% %loop-value%"
+	set {_n::10} to "ten"
+	set {_n::9} to "nine"
+	set {_n::100} to "hundred"
+	mark "num-insert-indices %indices of {_n::*}%"
+	mark "num-asc-indices %sorted indices of {_n::*} in ascending order%"
+	loop {_n::*}:
+		mark "num-loop %loop-index% %loop-value%"
+	set {_r::*} to 1, 2 and 3
+	mark "reversed %reversed {_r::*}%"
