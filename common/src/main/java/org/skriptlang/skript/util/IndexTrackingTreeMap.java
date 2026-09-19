@@ -39,37 +39,49 @@ public class IndexTrackingTreeMap<V> extends TreeMap<String, V> {
 																   String[] keys, V[] values, int count) {
 		if (count <= 0)
 			return null;
+		int numericCount = 0;
+		int maxIndex = -1;
+		int previousIndex = -1;
+		boolean anyMap = false;
 		for (int i = 0; i < count; i++) {
-			if (keys[i] == null || values[i] == null)
+			String key = keys[i];
+			V value = values[i];
+			if (key == null || value == null)
 				return null;
-		}
-		for (int i = 1; i < count; i++) {
-			if (comparator.compare(keys[i - 1], keys[i]) >= 0)
-				return null;
+			int index = parsePositiveInt(key);
+			if (index >= 0) {
+				numericCount++;
+				if (index > maxIndex)
+					maxIndex = index;
+			}
+			if (value instanceof Map)
+				anyMap = true;
+			if (i > 0) {
+				int comparison = previousIndex >= 0 && index >= 0
+					? Integer.compare(previousIndex, index)
+					: comparator.compare(keys[i - 1], key);
+				if (comparison >= 0)
+					return null;
+			}
+			previousIndex = index;
 		}
 		IndexTrackingTreeMap<V> map = new IndexTrackingTreeMap<>(comparator);
 		map.putAll(new SortedEntries<>(comparator, keys, values, count));
 		if (map.size() != count)
 			return null;
-		map.rebuildTracking(keys, values, count);
+		map.applyTracking(keys, values, count, numericCount, maxIndex, anyMap);
 		return map;
 	}
 
-	private void rebuildTracking(String[] keys, Object[] values, int count) {
-		mapIndices.clear();
-		numericalIndices = null;
-		numericCount = 0;
-		maxIndex = -1;
-		for (int i = 0; i < count; i++) {
-			String key = keys[i];
-			if (values[i] instanceof Map)
-				mapIndices.add(key);
-			int index = parsePositiveInt(key);
-			if (index < 0)
-				continue;
-			numericCount++;
-			if (index > maxIndex)
-				maxIndex = index;
+	private void applyTracking(String[] keys, Object[] values, int count,
+							   int numericCount, int maxIndex, boolean anyMap) {
+		this.numericCount = numericCount;
+		this.maxIndex = maxIndex;
+		if (anyMap) {
+			for (int i = 0; i < count; i++) {
+				if (values[i] instanceof Map)
+					mapIndices.add(keys[i]);
+			}
 		}
 		if (numericCount == maxIndex || (numericCount == 0 && maxIndex < 0)) {
 			dense = true;
@@ -329,7 +341,7 @@ public class IndexTrackingTreeMap<V> extends TreeMap<String, V> {
 		return indices;
 	}
 
-	private int parsePositiveInt(String string) {
+	private static int parsePositiveInt(String string) {
 		if (string == null || string.isBlank() || string.charAt(0) == '0') // Don't handle leading-zero integers
 			return -1;
 
@@ -348,7 +360,7 @@ public class IndexTrackingTreeMap<V> extends TreeMap<String, V> {
 		return value;
 	}
 
-	private boolean isDigit(int codepoint) {
+	private static boolean isDigit(int codepoint) {
 		return codepoint >= '0' && codepoint <= '9';
 	}
 
