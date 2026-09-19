@@ -1,0 +1,15 @@
+add w 4
+hole v 4
+tail 9 5
+single only 1
+grew two
+reset 2 a b <none>
+copy 4
+loop 1 x
+loop 2 v
+loop 3 z
+loop 4 w
+replaced 2 7 <none>
+cleared 0
+refill fresh
+keyed one two 2

@@ -35,6 +35,135 @@ public class IndexTrackingTreeMap<V> extends TreeMap<String, V> {
 		super(comparator);
 	}
 
+	public static <V> @Nullable IndexTrackingTreeMap<V> buildSorted(Comparator<? super String> comparator,
+																   String[] keys, V[] values, int count) {
+		if (count <= 0)
+			return null;
+		for (int i = 0; i < count; i++) {
+			if (keys[i] == null || values[i] == null)
+				return null;
+		}
+		for (int i = 1; i < count; i++) {
+			if (comparator.compare(keys[i - 1], keys[i]) >= 0)
+				return null;
+		}
+		IndexTrackingTreeMap<V> map = new IndexTrackingTreeMap<>(comparator);
+		map.putAll(new SortedEntries<>(comparator, keys, values, count));
+		if (map.size() != count)
+			return null;
+		map.rebuildTracking(keys, values, count);
+		return map;
+	}
+
+	private void rebuildTracking(String[] keys, Object[] values, int count) {
+		mapIndices.clear();
+		numericalIndices = null;
+		numericCount = 0;
+		maxIndex = -1;
+		for (int i = 0; i < count; i++) {
+			String key = keys[i];
+			if (values[i] instanceof Map)
+				mapIndices.add(key);
+			int index = parsePositiveInt(key);
+			if (index < 0)
+				continue;
+			numericCount++;
+			if (index > maxIndex)
+				maxIndex = index;
+		}
+		if (numericCount == maxIndex || (numericCount == 0 && maxIndex < 0)) {
+			dense = true;
+			nextIndex = maxIndex < 0 ? 1 : maxIndex + 1;
+			return;
+		}
+		dense = false;
+		Set<Integer> indices = sparseIndices();
+		nextIndex = 1;
+		while (indices.contains(nextIndex))
+			nextIndex++;
+	}
+
+	private static final class SortedEntries<V> extends AbstractMap<String, V> implements SortedMap<String, V> {
+
+		private final Comparator<? super String> comparator;
+		private final String[] keys;
+		private final V[] values;
+		private final int count;
+
+		SortedEntries(Comparator<? super String> comparator, String[] keys, V[] values, int count) {
+			this.comparator = comparator;
+			this.keys = keys;
+			this.values = values;
+			this.count = count;
+		}
+
+		@Override
+		public int size() {
+			return count;
+		}
+
+		@Override
+		public Comparator<? super String> comparator() {
+			return comparator;
+		}
+
+		@Override
+		public Set<Entry<String, V>> entrySet() {
+			return new AbstractSet<>() {
+				@Override
+				public Iterator<Entry<String, V>> iterator() {
+					return new Iterator<>() {
+						private int index;
+
+						@Override
+						public boolean hasNext() {
+							return index < count;
+						}
+
+						@Override
+						public Entry<String, V> next() {
+							if (index >= count)
+								throw new NoSuchElementException();
+							int at = index++;
+							return new SimpleImmutableEntry<>(keys[at], values[at]);
+						}
+					};
+				}
+
+				@Override
+				public int size() {
+					return count;
+				}
+			};
+		}
+
+		@Override
+		public SortedMap<String, V> subMap(String from, String to) {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public SortedMap<String, V> headMap(String to) {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public SortedMap<String, V> tailMap(String from) {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public String firstKey() {
+			return keys[0];
+		}
+
+		@Override
+		public String lastKey() {
+			return keys[count - 1];
+		}
+
+	}
+
 	@Override
 	public V put(String key, V value) {
 		V previous = super.put(key, value);

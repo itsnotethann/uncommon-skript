@@ -83,6 +83,17 @@ final class LocalFrame {
 		store(table, index, path, 0, value);
 	}
 
+	boolean setSlotList(LocalSlots table, int index, String[] keys, Object[] values, int count) {
+		if (this.table != table)
+			return false;
+		IndexTrackingTreeMap<Object> node = IndexTrackingTreeMap.buildSorted(
+			VariablesMap.VARIABLE_NAME_COMPARATOR, keys, values, count);
+		if (node == null)
+			return false;
+		slots(index, table.size())[index] = node;
+		return true;
+	}
+
 	VariablesMap materialize() {
 		VariablesMap map = map();
 		LocalSlots table = this.table;

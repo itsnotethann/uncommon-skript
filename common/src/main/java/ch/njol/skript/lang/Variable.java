@@ -494,6 +494,28 @@ public class Variable<T> implements Expression<T>, KeyReceiverExpression<T>, Key
 		Variables.setVariable(name.toString(event), value, event, local, frameTable);
 	}
 
+	private boolean setListBulk(PlatformEvent event, Object @NotNull [] delta, String @Nullable [] keys) {
+		LocalSlots slotTable = this.slotTable;
+		if (slotTable == null || !"*".equals(slotPath))
+			return false;
+		int count = keys != null ? Math.min(delta.length, keys.length) : delta.length;
+		if (count == 0)
+			return false;
+		String[] names = new String[count];
+		Object[] values = new Object[count];
+		for (int index = 0; index < count; index++) {
+			Object value = delta[index];
+			if (value == null || value instanceof Object[])
+				return false;
+			String key = keys != null ? keys[index] : String.valueOf(index + 1);
+			if (Variables.caseInsensitiveVariables)
+				key = key.toLowerCase(Locale.ENGLISH);
+			names[index] = key;
+			values[index] = value;
+		}
+		return Variables.setLocalList(event, slotTable, slot, names, values, count);
+	}
+
 	private void setIndex(PlatformEvent event, String index, @Nullable Object value) {
 		assert list;
 		LocalSlots slotTable = this.slotTable;
@@ -553,6 +575,8 @@ public class Variable<T> implements Expression<T>, KeyReceiverExpression<T>, Key
 		}
 		if (mode == ChangeMode.SET) {
 			assert delta.length == keys.length;
+			if (setListBulk(event, delta, keys))
+				return;
 			this.set(event, null);
 			int length = Math.min(delta.length, keys.length);
 			for (int index = 0; index < length; index++) {
@@ -581,6 +605,8 @@ public class Variable<T> implements Expression<T>, KeyReceiverExpression<T>, Key
 			case SET:
 				assert delta != null;
 				if (list) {
+					if (setListBulk(event, delta, null))
+						break;
 					set(event, null);
 					int i = 1;
 					for (Object value : delta) {

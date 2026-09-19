@@ -418,6 +418,28 @@ public class Variables {
 	}
 
 	@ApiStatus.Internal
+	public static boolean setLocalList(PlatformEvent event, LocalSlots table, int slot,
+									   String[] keys, Object[] values, int count) {
+		if (Classes.isAnySerializeAsRegistered()) {
+			for (int i = 0; i < count; i++) {
+				Object value = values[i];
+				if (value == null)
+					continue;
+				ClassInfo<?> ci = Classes.getSuperClassInfo(value.getClass());
+				Class<?> sas = ci.getSerializeAs();
+				if (sas != null) {
+					values[i] = Converters.convert(value, sas);
+					assert values[i] != null : ci + ", " + sas;
+				}
+			}
+		}
+		LocalFrame frame = localVariables.get(event);
+		if (frame == null)
+			frame = localVariables.computeIfAbsent(event, e -> new LocalFrame(table));
+		return frame.setSlotList(table, slot, keys, values, count);
+	}
+
+	@ApiStatus.Internal
 	public static void setLocal(PlatformEvent event, LocalSlots table, int slot, @Nullable String path, @Nullable Object value) {
 		if (value != null && Classes.isAnySerializeAsRegistered()) {
 			ClassInfo<?> ci = Classes.getSuperClassInfo(value.getClass());
