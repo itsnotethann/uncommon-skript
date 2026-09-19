@@ -5,7 +5,7 @@ expression parse changer:
 	get:
 		return {_captured}
 	set:
-		mark "L06 setter-ran %expr-1%"
+		mark "L06 setter-ran %the change value%"
 
 on script load:
 	mark "L05 parse-locals-visible %parse changer%"

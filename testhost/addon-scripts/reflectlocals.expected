@@ -1,4 +1,3 @@
-skip: skript-reflect copyLocals reflectively invokes VariablesMap.copy on a LocalFrame; flip on with the VariablesMap/LocalFrame merge
 L05 parse-locals-visible fromparse
 L06 setter-ran newvalue
 L07 after-set
