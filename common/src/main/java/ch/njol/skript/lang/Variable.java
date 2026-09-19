@@ -777,6 +777,11 @@ public class Variable<T> implements Expression<T>, KeyReceiverExpression<T>, Key
 	}
 
 	@Override
+	public boolean returnsFreshArray() {
+		return true;
+	}
+
+	@Override
 	public T[] getArray(PlatformEvent event) {
 		return getAll(event);
 	}

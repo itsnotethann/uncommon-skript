@@ -530,6 +530,11 @@ public class VariableString implements Expression<String> {
 	}
 
 	@Override
+	public boolean returnsFreshArray() {
+		return true;
+	}
+
+	@Override
 	public String[] getArray(PlatformEvent event) {
 		return new String[] {toString(event)};
 	}

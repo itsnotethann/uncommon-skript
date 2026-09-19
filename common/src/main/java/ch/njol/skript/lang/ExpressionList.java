@@ -76,6 +76,17 @@ public class ExpressionList<T> implements Expression<T> {
 	}
 
 	@Override
+	public boolean returnsFreshArray() {
+		if (and)
+			return true;
+		for (Expression<? extends T> expression : expressions) {
+			if (!expression.returnsFreshArray())
+				return false;
+		}
+		return true;
+	}
+
+	@Override
 	public T[] getArray(PlatformEvent event) {
 		if (and)
 			return getAll(event);

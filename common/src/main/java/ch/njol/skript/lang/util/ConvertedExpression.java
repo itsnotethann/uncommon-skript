@@ -209,6 +209,11 @@ public class ConvertedExpression<F, T> implements Expression<T> {
 	}
 
 	@Override
+	public boolean returnsFreshArray() {
+		return true;
+	}
+
+	@Override
 	public T[] getArray(PlatformEvent event) {
 		return Converters.convert(source.getArray(event), to, converter);
 	}

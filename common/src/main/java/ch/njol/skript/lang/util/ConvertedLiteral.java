@@ -28,6 +28,7 @@ import org.eclipse.jdt.annotation.Nullable;
 import org.skriptlang.skript.lang.converter.ConverterInfo;
 import org.skriptlang.skript.lang.converter.Converters;
 
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.function.Predicate;
 
@@ -61,12 +62,12 @@ public class ConvertedLiteral<F, T> extends ConvertedExpression<F, T> implements
 
 	@Override
 	public T[] getArray() {
-		return data;
+		return Arrays.copyOf(data, data.length);
 	}
 
 	@Override
 	public T[] getAll() {
-		return data;
+		return Arrays.copyOf(data, data.length);
 	}
 
 	@Override

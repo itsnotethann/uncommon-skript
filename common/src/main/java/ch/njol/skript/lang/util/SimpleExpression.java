@@ -82,6 +82,11 @@ public abstract class SimpleExpression<T> implements Expression<T>, SyntaxRuntim
 	}
 
 	@Override
+	public boolean returnsFreshArray() {
+		return true;
+	}
+
+	@Override
 	public final T[] getArray(PlatformEvent event) {
 		T[] values = get(event);
 		if (values == null) {

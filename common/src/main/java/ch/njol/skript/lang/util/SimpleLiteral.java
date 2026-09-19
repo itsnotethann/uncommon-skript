@@ -108,6 +108,11 @@ public class SimpleLiteral<T> implements Literal<T>, DefaultExpression<T> {
 	}
 
 	@Override
+	public boolean returnsFreshArray() {
+		return true;
+	}
+
+	@Override
 	public T[] getArray() {
 		return this.data();
 	}

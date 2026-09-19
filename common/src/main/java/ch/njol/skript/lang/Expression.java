@@ -71,6 +71,10 @@ public interface Expression<T> extends SyntaxElement, Debuggable, Loopable<T>, S
 	 */
 	T[] getArray(PlatformEvent event);
 
+	default boolean returnsFreshArray() {
+		return false;
+	}
+
 	/**
 	 * Gets all possible return values of this expression, i.e. it returns the same as {@link #getArray(PlatformEvent)} if {@link #getAnd()} is true, otherwise all possible values for
 	 * {@link #getSingle(PlatformEvent)}.
