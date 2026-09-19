@@ -461,6 +461,8 @@ public class Variable<T> implements Expression<T>, KeyReceiverExpression<T>, Key
 
 	private T[] getConvertedArray(PlatformEvent event) {
 		assert list;
+		if (listProvider.getClass() == ShallowListProvider.class && getRaw(event) instanceof Map<?, ?> rawMap)
+			return getConvertedArrayShallow(event, rawMap);
 		KeyedValue<?>[] values = listProvider.getValues(event);
 		int length = values.length;
 		String[] keys = new String[length];
@@ -478,6 +480,40 @@ public class Variable<T> implements Expression<T>, KeyReceiverExpression<T>, Key
 			count++;
 		}
 		if (count != length) {
+			keys = Arrays.copyOf(keys, count);
+			converted = Arrays.copyOf(converted, count);
+		}
+		cache.put(event, keys);
+		return converted;
+	}
+
+	private T[] getConvertedArrayShallow(PlatformEvent event, Map<?, ?> rawMap) {
+		int capacity = rawMap.size();
+		String[] keys = new String[capacity];
+		//noinspection unchecked
+		T[] converted = (T[]) Array.newInstance(superType, capacity);
+		boolean converters = Variables.hasVariableConverters();
+		String prefix = converters ? StringUtils.substring(name.toString(event), 0, -1) : null;
+		int count = 0;
+		for (Entry<?, ?> entry : rawMap.entrySet()) {
+			Object key = entry.getKey();
+			Object raw = entry.getValue();
+			if (key == null || raw == null)
+				continue;
+			if (raw instanceof Map<?, ?> sublist)
+				raw = sublist.get(null);
+			if (converters)
+				raw = Variables.findAndRunConverter(prefix + key, event, raw, local);
+			if (raw == null)
+				continue;
+			T value = Converters.convert(raw, types);
+			if (value == null)
+				continue;
+			keys[count] = (String) key;
+			converted[count] = value;
+			count++;
+		}
+		if (count != capacity) {
 			keys = Arrays.copyOf(keys, count);
 			converted = Arrays.copyOf(converted, count);
 		}
