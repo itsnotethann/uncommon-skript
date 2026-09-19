@@ -24,6 +24,7 @@ public class ExprFunctionCall<T> extends SimpleExpression<T> implements KeyProvi
 	private final FunctionReference<?> reference;
 	private final Class<? extends T>[] returnTypes;
 	private final Class<T> returnType;
+	private final boolean directReturn;
 	private final Map<PlatformEvent, String[]> cache = Collections.synchronizedMap(new WeakHashMap<>());
 
 	public ExprFunctionCall(FunctionReference<T> function) {
@@ -40,10 +41,12 @@ public class ExprFunctionCall<T> extends SimpleExpression<T> implements KeyProvi
 			// Function returns expected type already
 			this.returnTypes = new Class[] {returnType};
 			this.returnType = (Class<T>) returnType;
+			this.directReturn = true;
 		} else {
 			// Return value needs to be converted
 			this.returnTypes = expectedReturnTypes;
 			this.returnType = (Class<T>) Utils.getSuperType(expectedReturnTypes);
+			this.directReturn = false;
 		}
 	}
 
@@ -69,7 +72,11 @@ public class ExprFunctionCall<T> extends SimpleExpression<T> implements KeyProvi
 			return convertedValues;
 		}
 
-		Converters.convert(values, convertedValues, returnTypes);
+		if (directReturn) {
+			System.arraycopy(values, 0, convertedValues, 0, values.length);
+		} else {
+			Converters.convert(values, convertedValues, returnTypes);
+		}
 		if (keys != null) {
 			for (int i = 0; i < convertedValues.length; i++) {
 				if (convertedValues[i] == null)
@@ -78,7 +85,8 @@ public class ExprFunctionCall<T> extends SimpleExpression<T> implements KeyProvi
 			convertedValues = ArrayUtils.removeAllOccurrences(convertedValues, null);
 			cache.put(event, ArrayUtils.removeAllOccurrences(keys, null));
 		} else {
-			convertedValues = ArrayUtils.removeAllOccurrences(convertedValues, null);
+			if (ArrayUtils.contains(convertedValues, null))
+				convertedValues = ArrayUtils.removeAllOccurrences(convertedValues, null);
 			cache.put(event, generateNumericalKeys(convertedValues.length));
 		}
 		return convertedValues;
