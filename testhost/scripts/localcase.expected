@@ -1,0 +1,20 @@
+scalar-byname slot
+scalar-slot byname
+scalar-lower byname
+elem-byname slot
+elem-slot byname
+elem-lower byname
+elem-indices gamma
+key-byname slot
+key-slot byname
+key-lower byname
+key-indices epsilon
+list-size 3
+list-indices one, three and two
+list-loop one 1
+list-loop three 3
+list-loop two 2
+list-read 1 2 3
+after-scalar byname byname
+after-elem byname
+after-indices one, three and two

@@ -1,0 +1,35 @@
+on load:
+	suppress the starting with expression warnings
+	set {_k} to "Alpha"
+	set {_Alpha} to "slot"
+	mark "scalar-byname %{_%{_k}%}%"
+	set {_%{_k}%} to "byname"
+	mark "scalar-slot %{_Alpha}%"
+	mark "scalar-lower %{_alpha}%"
+	set {_kb} to "Beta"
+	set {_Beta::Gamma} to "slot"
+	mark "elem-byname %{_%{_kb}%::Gamma}%"
+	set {_%{_kb}%::Gamma} to "byname"
+	mark "elem-slot %{_Beta::Gamma}%"
+	mark "elem-lower %{_beta::gamma}%"
+	mark "elem-indices %indices of {_Beta::*}%"
+	set {_kd} to "delta"
+	set {_delta::Epsilon} to "slot"
+	mark "key-byname %{_%{_kd}%::Epsilon}%"
+	set {_%{_kd}%::Epsilon} to "byname"
+	mark "key-slot %{_delta::Epsilon}%"
+	mark "key-lower %{_delta::epsilon}%"
+	mark "key-indices %indices of {_delta::*}%"
+	set {_kz} to "zeta"
+	set {_zeta::One} to 1
+	set {_zeta::TWO} to 2
+	set {_%{_kz}%::Three} to 3
+	mark "list-size %size of {_zeta::*}%"
+	mark "list-indices %indices of {_zeta::*}%"
+	loop {_zeta::*}:
+		mark "list-loop %loop-index% %loop-value%"
+	mark "list-read %{_%{_kz}%::One}% %{_%{_kz}%::TWO}% %{_zeta::Three}%"
+	wait 1 tick
+	mark "after-scalar %{_Alpha}% %{_%{_k}%}%"
+	mark "after-elem %{_Beta::Gamma}%"
+	mark "after-indices %indices of {_zeta::*}%"
