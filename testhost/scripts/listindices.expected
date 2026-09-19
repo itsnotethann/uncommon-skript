@@ -1,0 +1,14 @@
+grow 4 4
+hole 99 4
+append 100
+reuse 7 4
+sparse first 2
+sparse2 second
+emptied fresh 1
+named 3 3
+gap b 3
+gap2 d
+loop 1 1
+loop 2 2
+loop 4 4
+loop 5 5

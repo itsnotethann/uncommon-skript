@@ -1,0 +1,38 @@
+on load:
+	set {_a::*} to 1, 2 and 3
+	add 4 to {_a::*}
+	mark "grow %size of {_a::*}% %{_a::4}%"
+	delete {_a::2}
+	add 99 to {_a::*}
+	mark "hole %{_a::2}% %size of {_a::*}%"
+	add 100 to {_a::*}
+	mark "append %{_a::5}%"
+	delete {_a::5}
+	delete {_a::4}
+	add 7 to {_a::*}
+	mark "reuse %{_a::4}% %size of {_a::*}%"
+	set {_b::5} to "five"
+	add "first" to {_b::*}
+	mark "sparse %{_b::1}% %size of {_b::*}%"
+	add "second" to {_b::*}
+	mark "sparse2 %{_b::2}%"
+	set {_c::*} to "p", "q" and "r"
+	delete {_c::1}
+	delete {_c::2}
+	delete {_c::3}
+	add "fresh" to {_c::*}
+	mark "emptied %{_c::1}% %size of {_c::*}%"
+	set {_d::x} to 1
+	set {_d::y} to 2
+	add 3 to {_d::*}
+	mark "named %{_d::1}% %size of {_d::*}%"
+	set {_e::1} to "a"
+	set {_e::3} to "c"
+	add "b" to {_e::*}
+	mark "gap %{_e::2}% %size of {_e::*}%"
+	add "d" to {_e::*}
+	mark "gap2 %{_e::4}%"
+	set {_f::*} to 1, 2, 3, 4 and 5
+	delete {_f::3}
+	loop {_f::*}:
+		mark "loop %loop-index% %loop-value%"

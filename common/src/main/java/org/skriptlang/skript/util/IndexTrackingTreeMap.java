@@ -1,6 +1,7 @@
 package org.skriptlang.skript.util;
 
 import com.google.common.base.Preconditions;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.UnmodifiableView;
 
 import java.util.*;
@@ -20,7 +21,9 @@ public class IndexTrackingTreeMap<V> extends TreeMap<String, V> {
 
 	private final Set<String> mapIndices = new HashSet<>();
 
-	private final Set<Integer> numericalIndices = new HashSet<>();
+	private @Nullable Set<Integer> numericalIndices;
+	private boolean dense = true;
+	private int numericCount = 0;
 	private int nextIndex = 1;
 	private int maxIndex = -1;
 
@@ -71,7 +74,9 @@ public class IndexTrackingTreeMap<V> extends TreeMap<String, V> {
 	@Override
 	public void clear() {
 		super.clear();
-		numericalIndices.clear();
+		numericalIndices = null;
+		dense = true;
+		numericCount = 0;
 		mapIndices.clear();
 		nextIndex = 1;
 		maxIndex = -1;
@@ -110,10 +115,20 @@ public class IndexTrackingTreeMap<V> extends TreeMap<String, V> {
 		if (index < 0)
 			return;
 
-		numericalIndices.add(index);
+		numericCount++;
+		if (dense && index == (maxIndex < 0 ? 1 : maxIndex + 1)) {
+			maxIndex = index;
+			nextIndex = index + 1;
+			return;
+		}
 
+		dense = false;
 		maxIndex = Math.max(maxIndex, index);
-		advanceNextIndex();
+		Set<Integer> indices = sparseIndices();
+		indices.add(index);
+		while (indices.contains(nextIndex))
+			nextIndex++;
+		compact();
 	}
 
 	private void handleReplace(String key, V previous, V value) {
@@ -132,25 +147,53 @@ public class IndexTrackingTreeMap<V> extends TreeMap<String, V> {
 		if (index < 0)
 			return;
 
-		numericalIndices.remove(index);
+		numericCount--;
+
+		if (dense && index == maxIndex) {
+			maxIndex = numericCount == 0 ? -1 : numericCount;
+			nextIndex = numericCount + 1;
+			return;
+		}
+
+		if (dense) {
+			dense = false;
+			sparseIndices();
+		} else if (numericalIndices != null) {
+			numericalIndices.remove(index);
+		}
 
 		if (index == maxIndex)
 			recomputeMaxIndex();
-		nextIndex = Math.min(nextIndex, index);
+		nextIndex = Math.max(1, Math.min(nextIndex, index));
+		compact();
 	}
 
-	private void advanceNextIndex() {
-		if (nextIndex == maxIndex) {
-			nextIndex++;
+	private void compact() {
+		if (numericCount != maxIndex)
 			return;
-		}
-		while (numericalIndices.contains(nextIndex))
-			nextIndex++;
+		dense = true;
+		numericalIndices = null;
+		nextIndex = maxIndex + 1;
 	}
 
 	private void recomputeMaxIndex() {
-		while (maxIndex >= 0 && !numericalIndices.contains(maxIndex))
+		Set<Integer> indices = sparseIndices();
+		while (maxIndex >= 0 && !indices.contains(maxIndex))
 			maxIndex--;
+	}
+
+	private Set<Integer> sparseIndices() {
+		Set<Integer> indices = numericalIndices;
+		if (indices == null) {
+			indices = new HashSet<>();
+			for (String key : keySet()) {
+				int index = parsePositiveInt(key);
+				if (index >= 0)
+					indices.add(index);
+			}
+			numericalIndices = indices;
+		}
+		return indices;
 	}
 
 	private int parsePositiveInt(String string) {
