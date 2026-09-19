@@ -1,0 +1,16 @@
+before scalar a
+before size 3
+after scalar a
+after size 3
+after elem 2
+after dyn one
+after nest 2
+grew 4
+newdyn two
+second scalar a
+second size 4
+second dyn two
+deleted 3
+loop 1 1
+loop 3 3
+loop 4 4

@@ -24,7 +24,7 @@ public abstract class AsyncEffect extends Effect {
 	protected TriggerItem walk(PlatformEvent e) {
 		debug(e, true);
 
-		Object localVars = Variables.removeLocals(e); // Back up local variables
+		Object localVars = Variables.detachLocals(e); // Back up local variables
 
 		if (!Skript.getInstance().isEnabled()) // See https://github.com/SkriptLang/Skript/issues/3702
 			return null;

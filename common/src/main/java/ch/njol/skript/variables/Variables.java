@@ -415,11 +415,18 @@ public class Variables {
 	 * @param map the new local variables.
 	 */
 	public static void setLocalVariables(PlatformEvent event, @Nullable Object map) {
-		if (map != null) {
+		if (map instanceof LocalFrame frame) {
+			localVariables.put(event, frame);
+		} else if (map != null) {
 			localVariables.put(event, new LocalFrame((VariablesMap) map));
 		} else {
 			removeLocals(event);
 		}
+	}
+
+	@ApiStatus.Internal
+	public static @Nullable Object detachLocals(PlatformEvent event) {
+		return localVariables.remove(event);
 	}
 
 	/**

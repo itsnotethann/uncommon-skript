@@ -1,0 +1,29 @@
+on load:
+	set {_scalar} to "a"
+	set {_i} to 1
+	loop 3 times:
+		set {_list::%loop-number%} to loop-number
+	set {_dyn::%{_i}%} to "one"
+	set {_nest::x::1} to "n1"
+	set {_nest::x::2} to "n2"
+	mark "before scalar %{_scalar}%"
+	mark "before size %size of {_list::*}%"
+	wait 1 tick
+	mark "after scalar %{_scalar}%"
+	mark "after size %size of {_list::*}%"
+	mark "after elem %{_list::2}%"
+	mark "after dyn %{_dyn::1}%"
+	mark "after nest %size of {_nest::x::*}%"
+	set {_list::4} to 4
+	set {_j} to 2
+	set {_after::%{_j}%} to "two"
+	mark "grew %size of {_list::*}%"
+	mark "newdyn %{_after::2}%"
+	wait 1 tick
+	mark "second scalar %{_scalar}%"
+	mark "second size %size of {_list::*}%"
+	mark "second dyn %{_after::2}%"
+	delete {_list::2}
+	mark "deleted %size of {_list::*}%"
+	loop {_list::*}:
+		mark "loop %loop-index% %loop-value%"
