@@ -101,10 +101,6 @@ public class Variables {
 		return object;
 	}
 
-	public static boolean hasVariableConverters() {
-		return !variableConverterMap.isEmpty();
-	}
-
 	public static <F> void registerVariableConverter(Class<F> clazz, Function<? super F, ?> intermediary) {
 		variableConverterMap.put(clazz, v -> intermediary.apply(clazz.cast(v)));
 	}
@@ -415,28 +411,6 @@ public class Variables {
 	public static @Nullable Object getLocal(PlatformEvent event, LocalSlots table, int slot, @Nullable String path) {
 		LocalFrame frame = localVariables.get(event);
 		return frame == null ? null : frame.getSlot(table, slot, path);
-	}
-
-	@ApiStatus.Internal
-	public static boolean setLocalList(PlatformEvent event, LocalSlots table, int slot,
-									   String[] keys, Object[] values, int count) {
-		if (Classes.isAnySerializeAsRegistered()) {
-			for (int i = 0; i < count; i++) {
-				Object value = values[i];
-				if (value == null)
-					continue;
-				ClassInfo<?> ci = Classes.getSuperClassInfo(value.getClass());
-				Class<?> sas = ci.getSerializeAs();
-				if (sas != null) {
-					values[i] = Converters.convert(value, sas);
-					assert values[i] != null : ci + ", " + sas;
-				}
-			}
-		}
-		LocalFrame frame = localVariables.get(event);
-		if (frame == null)
-			frame = localVariables.computeIfAbsent(event, e -> new LocalFrame(table));
-		return frame.setSlotList(table, slot, keys, values, count);
 	}
 
 	@ApiStatus.Internal

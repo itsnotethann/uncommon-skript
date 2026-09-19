@@ -1,7 +1,6 @@
 package org.skriptlang.skript.util;
 
 import com.google.common.base.Preconditions;
-import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.UnmodifiableView;
 
 import java.util.*;
@@ -21,9 +20,7 @@ public class IndexTrackingTreeMap<V> extends TreeMap<String, V> {
 
 	private final Set<String> mapIndices = new HashSet<>();
 
-	private @Nullable Set<Integer> numericalIndices;
-	private boolean dense = true;
-	private int numericCount = 0;
+	private final Set<Integer> numericalIndices = new HashSet<>();
 	private int nextIndex = 1;
 	private int maxIndex = -1;
 
@@ -33,147 +30,6 @@ public class IndexTrackingTreeMap<V> extends TreeMap<String, V> {
 
 	public IndexTrackingTreeMap(Comparator<? super String> comparator) {
 		super(comparator);
-	}
-
-	public static <V> @Nullable IndexTrackingTreeMap<V> buildSorted(Comparator<? super String> comparator,
-																   String[] keys, V[] values, int count) {
-		if (count <= 0)
-			return null;
-		int numericCount = 0;
-		int maxIndex = -1;
-		int previousIndex = -1;
-		boolean anyMap = false;
-		for (int i = 0; i < count; i++) {
-			String key = keys[i];
-			V value = values[i];
-			if (key == null || value == null)
-				return null;
-			int index = parsePositiveInt(key);
-			if (index >= 0) {
-				numericCount++;
-				if (index > maxIndex)
-					maxIndex = index;
-			}
-			if (value instanceof Map)
-				anyMap = true;
-			if (i > 0) {
-				int comparison = previousIndex >= 0 && index >= 0
-					? Integer.compare(previousIndex, index)
-					: comparator.compare(keys[i - 1], key);
-				if (comparison >= 0)
-					return null;
-			}
-			previousIndex = index;
-		}
-		IndexTrackingTreeMap<V> map = new IndexTrackingTreeMap<>(comparator);
-		map.putAll(new SortedEntries<>(comparator, keys, values, count));
-		if (map.size() != count)
-			return null;
-		map.applyTracking(keys, values, count, numericCount, maxIndex, anyMap);
-		return map;
-	}
-
-	private void applyTracking(String[] keys, Object[] values, int count,
-							   int numericCount, int maxIndex, boolean anyMap) {
-		this.numericCount = numericCount;
-		this.maxIndex = maxIndex;
-		if (anyMap) {
-			for (int i = 0; i < count; i++) {
-				if (values[i] instanceof Map)
-					mapIndices.add(keys[i]);
-			}
-		}
-		if (numericCount == maxIndex || (numericCount == 0 && maxIndex < 0)) {
-			dense = true;
-			nextIndex = maxIndex < 0 ? 1 : maxIndex + 1;
-			return;
-		}
-		dense = false;
-		Set<Integer> indices = sparseIndices();
-		nextIndex = 1;
-		while (indices.contains(nextIndex))
-			nextIndex++;
-	}
-
-	private static final class SortedEntries<V> extends AbstractMap<String, V> implements SortedMap<String, V> {
-
-		private final Comparator<? super String> comparator;
-		private final String[] keys;
-		private final V[] values;
-		private final int count;
-
-		SortedEntries(Comparator<? super String> comparator, String[] keys, V[] values, int count) {
-			this.comparator = comparator;
-			this.keys = keys;
-			this.values = values;
-			this.count = count;
-		}
-
-		@Override
-		public int size() {
-			return count;
-		}
-
-		@Override
-		public Comparator<? super String> comparator() {
-			return comparator;
-		}
-
-		@Override
-		public Set<Entry<String, V>> entrySet() {
-			return new AbstractSet<>() {
-				@Override
-				public Iterator<Entry<String, V>> iterator() {
-					return new Iterator<>() {
-						private int index;
-
-						@Override
-						public boolean hasNext() {
-							return index < count;
-						}
-
-						@Override
-						public Entry<String, V> next() {
-							if (index >= count)
-								throw new NoSuchElementException();
-							int at = index++;
-							return new SimpleImmutableEntry<>(keys[at], values[at]);
-						}
-					};
-				}
-
-				@Override
-				public int size() {
-					return count;
-				}
-			};
-		}
-
-		@Override
-		public SortedMap<String, V> subMap(String from, String to) {
-			throw new UnsupportedOperationException();
-		}
-
-		@Override
-		public SortedMap<String, V> headMap(String to) {
-			throw new UnsupportedOperationException();
-		}
-
-		@Override
-		public SortedMap<String, V> tailMap(String from) {
-			throw new UnsupportedOperationException();
-		}
-
-		@Override
-		public String firstKey() {
-			return keys[0];
-		}
-
-		@Override
-		public String lastKey() {
-			return keys[count - 1];
-		}
-
 	}
 
 	@Override
@@ -215,9 +71,7 @@ public class IndexTrackingTreeMap<V> extends TreeMap<String, V> {
 	@Override
 	public void clear() {
 		super.clear();
-		numericalIndices = null;
-		dense = true;
-		numericCount = 0;
+		numericalIndices.clear();
 		mapIndices.clear();
 		nextIndex = 1;
 		maxIndex = -1;
@@ -249,10 +103,6 @@ public class IndexTrackingTreeMap<V> extends TreeMap<String, V> {
 		return Collections.unmodifiableCollection(mapIndices);
 	}
 
-	public boolean hasMapIndices() {
-		return !mapIndices.isEmpty();
-	}
-
 	private void handleInsert(String key, int index, V value) {
 		if (value instanceof Map)
 			mapIndices.add(key);
@@ -260,20 +110,10 @@ public class IndexTrackingTreeMap<V> extends TreeMap<String, V> {
 		if (index < 0)
 			return;
 
-		numericCount++;
-		if (dense && index == (maxIndex < 0 ? 1 : maxIndex + 1)) {
-			maxIndex = index;
-			nextIndex = index + 1;
-			return;
-		}
+		numericalIndices.add(index);
 
-		dense = false;
 		maxIndex = Math.max(maxIndex, index);
-		Set<Integer> indices = sparseIndices();
-		indices.add(index);
-		while (indices.contains(nextIndex))
-			nextIndex++;
-		compact();
+		advanceNextIndex();
 	}
 
 	private void handleReplace(String key, V previous, V value) {
@@ -292,56 +132,28 @@ public class IndexTrackingTreeMap<V> extends TreeMap<String, V> {
 		if (index < 0)
 			return;
 
-		numericCount--;
-
-		if (dense && index == maxIndex) {
-			maxIndex = numericCount == 0 ? -1 : numericCount;
-			nextIndex = numericCount + 1;
-			return;
-		}
-
-		if (dense) {
-			dense = false;
-			sparseIndices();
-		} else if (numericalIndices != null) {
-			numericalIndices.remove(index);
-		}
+		numericalIndices.remove(index);
 
 		if (index == maxIndex)
 			recomputeMaxIndex();
-		nextIndex = Math.max(1, Math.min(nextIndex, index));
-		compact();
+		nextIndex = Math.min(nextIndex, index);
 	}
 
-	private void compact() {
-		if (numericCount != maxIndex)
+	private void advanceNextIndex() {
+		if (nextIndex == maxIndex) {
+			nextIndex++;
 			return;
-		dense = true;
-		numericalIndices = null;
-		nextIndex = maxIndex + 1;
+		}
+		while (numericalIndices.contains(nextIndex))
+			nextIndex++;
 	}
 
 	private void recomputeMaxIndex() {
-		Set<Integer> indices = sparseIndices();
-		while (maxIndex >= 0 && !indices.contains(maxIndex))
+		while (maxIndex >= 0 && !numericalIndices.contains(maxIndex))
 			maxIndex--;
 	}
 
-	private Set<Integer> sparseIndices() {
-		Set<Integer> indices = numericalIndices;
-		if (indices == null) {
-			indices = new HashSet<>();
-			for (String key : keySet()) {
-				int index = parsePositiveInt(key);
-				if (index >= 0)
-					indices.add(index);
-			}
-			numericalIndices = indices;
-		}
-		return indices;
-	}
-
-	private static int parsePositiveInt(String string) {
+	private int parsePositiveInt(String string) {
 		if (string == null || string.isBlank() || string.charAt(0) == '0') // Don't handle leading-zero integers
 			return -1;
 
@@ -360,7 +172,7 @@ public class IndexTrackingTreeMap<V> extends TreeMap<String, V> {
 		return value;
 	}
 
-	private static boolean isDigit(int codepoint) {
+	private boolean isDigit(int codepoint) {
 		return codepoint >= '0' && codepoint <= '9';
 	}
 

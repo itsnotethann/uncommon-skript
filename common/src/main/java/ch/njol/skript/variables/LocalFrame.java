@@ -83,17 +83,6 @@ final class LocalFrame {
 		store(table, index, path, 0, value);
 	}
 
-	boolean setSlotList(LocalSlots table, int index, String[] keys, Object[] values, int count) {
-		if (this.table != table)
-			return false;
-		IndexTrackingTreeMap<Object> node = IndexTrackingTreeMap.buildSorted(
-			VariablesMap.VARIABLE_NAME_COMPARATOR, keys, values, count);
-		if (node == null)
-			return false;
-		slots(index, table.size())[index] = node;
-		return true;
-	}
-
 	VariablesMap materialize() {
 		VariablesMap map = map();
 		LocalSlots table = this.table;
@@ -133,29 +122,23 @@ final class LocalFrame {
 		while (true) {
 			int next = path.indexOf(Variable.SEPARATOR, from);
 			String key = next < 0 ? path.substring(from) : path.substring(from, next);
+			Object child = node.get(key);
 
 			if (next < 0) {
-				if (value == null) {
-					Object existing = node.get(key);
-					if (existing instanceof TreeMap) {
-						//noinspection unchecked
-						((Map<String, Object>) existing).remove(null);
-					} else {
-						node.remove(key);
-					}
-					return;
-				}
-				Object previous = node.put(key, value);
-				if (previous instanceof TreeMap) {
+				if (child instanceof TreeMap) {
 					//noinspection unchecked
-					Map<String, Object> childNode = (Map<String, Object>) previous;
-					childNode.put(null, value);
-					node.put(key, childNode);
+					Map<String, Object> childNode = (Map<String, Object>) child;
+					if (value == null)
+						childNode.remove(null);
+					else
+						childNode.put(null, value);
+				} else if (value == null) {
+					node.remove(key);
+				} else {
+					node.put(key, value);
 				}
 				return;
 			}
-
-			Object child = node.get(key);
 
 			if (child instanceof TreeMap) {
 				//noinspection unchecked

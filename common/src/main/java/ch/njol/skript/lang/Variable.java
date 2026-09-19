@@ -461,64 +461,16 @@ public class Variable<T> implements Expression<T>, KeyReceiverExpression<T>, Key
 
 	private T[] getConvertedArray(PlatformEvent event) {
 		assert list;
-		if (listProvider.getClass() == ShallowListProvider.class && getRaw(event) instanceof Map<?, ?> rawMap)
-			return getConvertedArrayShallow(event, rawMap);
-		KeyedValue<?>[] values = listProvider.getValues(event);
-		int length = values.length;
-		String[] keys = new String[length];
 		//noinspection unchecked
-		T[] converted = (T[]) Array.newInstance(superType, length);
-		int count = 0;
-		for (KeyedValue<?> keyed : values) {
-			if (keyed == null)
-				continue;
-			T value = Converters.convert(keyed.value(), types);
-			if (value == null)
-				continue;
-			keys[count] = keyed.key();
-			converted[count] = value;
-			count++;
-		}
-		if (count != length) {
-			keys = Arrays.copyOf(keys, count);
-			converted = Arrays.copyOf(converted, count);
-		}
-		cache.put(event, keys);
-		return converted;
-	}
+		KeyedValue<Object>[] values = (KeyedValue<Object>[]) listProvider.getValues(event);
+		KeyedValue<T>[] mappedValues = KeyedValue.map(values, value -> Converters.convert(value, types));
+		mappedValues = ArrayUtils.removeAllOccurrences(mappedValues, null);
 
-	private T[] getConvertedArrayShallow(PlatformEvent event, Map<?, ?> rawMap) {
-		int capacity = rawMap.size();
-		String[] keys = new String[capacity];
+		KeyedValue.UnzippedKeyValues<T> unzipped = KeyedValue.unzip(mappedValues);
+
+		cache.put(event, unzipped.keys().toArray(new String[0]));
 		//noinspection unchecked
-		T[] converted = (T[]) Array.newInstance(superType, capacity);
-		boolean converters = Variables.hasVariableConverters();
-		String prefix = converters ? StringUtils.substring(name.toString(event), 0, -1) : null;
-		int count = 0;
-		for (Entry<?, ?> entry : rawMap.entrySet()) {
-			Object key = entry.getKey();
-			Object raw = entry.getValue();
-			if (key == null || raw == null)
-				continue;
-			if (raw instanceof Map<?, ?> sublist)
-				raw = sublist.get(null);
-			if (converters)
-				raw = Variables.findAndRunConverter(prefix + key, event, raw, local);
-			if (raw == null)
-				continue;
-			T value = Converters.convert(raw, types);
-			if (value == null)
-				continue;
-			keys[count] = (String) key;
-			converted[count] = value;
-			count++;
-		}
-		if (count != capacity) {
-			keys = Arrays.copyOf(keys, count);
-			converted = Arrays.copyOf(converted, count);
-		}
-		cache.put(event, keys);
-		return converted;
+		return unzipped.values().toArray((T[]) Array.newInstance(superType, 0));
 	}
 
 	public void set(PlatformEvent event, @Nullable Object value) {
@@ -528,28 +480,6 @@ public class Variable<T> implements Expression<T>, KeyReceiverExpression<T>, Key
 			return;
 		}
 		Variables.setVariable(name.toString(event), value, event, local, frameTable);
-	}
-
-	private boolean setListBulk(PlatformEvent event, Object @NotNull [] delta, String @Nullable [] keys) {
-		LocalSlots slotTable = this.slotTable;
-		if (slotTable == null || !"*".equals(slotPath))
-			return false;
-		int count = keys != null ? Math.min(delta.length, keys.length) : delta.length;
-		if (count == 0)
-			return false;
-		String[] names = new String[count];
-		Object[] values = new Object[count];
-		for (int index = 0; index < count; index++) {
-			Object value = delta[index];
-			if (value == null || value instanceof Object[])
-				return false;
-			String key = keys != null ? keys[index] : String.valueOf(index + 1);
-			if (Variables.caseInsensitiveVariables)
-				key = key.toLowerCase(Locale.ENGLISH);
-			names[index] = key;
-			values[index] = value;
-		}
-		return Variables.setLocalList(event, slotTable, slot, names, values, count);
 	}
 
 	private void setIndex(PlatformEvent event, String index, @Nullable Object value) {
@@ -569,7 +499,8 @@ public class Variable<T> implements Expression<T>, KeyReceiverExpression<T>, Key
 
 	public int size(PlatformEvent event) {
 		Preconditions.checkState(list, "Cannot get the size of a single variable");
-		if (!(getRaw(event) instanceof Map<?, ?> map))
+		Map<?, ?> map = (Map<?, ?>) getRaw(event);
+		if (map == null)
 			return 0;
 
 		int size = map.size();
@@ -583,9 +514,6 @@ public class Variable<T> implements Expression<T>, KeyReceiverExpression<T>, Key
 			}
 			return size;
 		}
-
-		if (!indexTrackingMap.hasMapIndices())
-			return size;
 
 		Collection<String> sublistIndices = indexTrackingMap.mapIndices();
 		for (String sublistIndex : sublistIndices) {
@@ -611,8 +539,6 @@ public class Variable<T> implements Expression<T>, KeyReceiverExpression<T>, Key
 		}
 		if (mode == ChangeMode.SET) {
 			assert delta.length == keys.length;
-			if (setListBulk(event, delta, keys))
-				return;
 			this.set(event, null);
 			int length = Math.min(delta.length, keys.length);
 			for (int index = 0; index < length; index++) {
@@ -641,8 +567,6 @@ public class Variable<T> implements Expression<T>, KeyReceiverExpression<T>, Key
 			case SET:
 				assert delta != null;
 				if (list) {
-					if (setListBulk(event, delta, null))
-						break;
 					set(event, null);
 					int i = 1;
 					for (Object value : delta) {
@@ -951,12 +875,10 @@ public class Variable<T> implements Expression<T>, KeyReceiverExpression<T>, Key
 			if (rawValue == null)
 				return new KeyedValue[0];
 
+			List<KeyedValue<?>> keyedValues = new ArrayList<>();
+			String name = StringUtils.substring(Variable.this.name.toString(event), 0, -1);
 			//noinspection unchecked
-			Map<String, ?> rawMap = (Map<String, ?>) rawValue;
-			List<KeyedValue<?>> keyedValues = new ArrayList<>(rawMap.size());
-			boolean converters = Variables.hasVariableConverters();
-			String name = converters ? StringUtils.substring(Variable.this.name.toString(event), 0, -1) : null;
-			for (Entry<String, ?> variable : rawMap.entrySet()) {
+			for (Entry<String, ?> variable : ((Map<String, ?>) rawValue).entrySet()) {
 				if (variable.getKey() == null || variable.getValue() == null)
 					continue;
 
@@ -966,8 +888,7 @@ public class Variable<T> implements Expression<T>, KeyReceiverExpression<T>, Key
 				} else {
 					value = variable.getValue();
 				}
-				if (converters)
-					value = Variables.findAndRunConverter(name + variable.getKey(), event, value, local);
+				value = Variables.findAndRunConverter(name + variable.getKey(), event, value, local);
 				if (value != null)
 					keyedValues.add(new KeyedValue<>(variable.getKey(), value));
 			}
