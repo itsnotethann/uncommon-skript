@@ -7,7 +7,7 @@ on load:
 	loop 100 times:
 		set {benchlist::%loop-number%} to loop-number
 
-on bench "overhead":
+on bench "overhead@1":
 	set {_x} to 1
 
 on bench "localset":
@@ -19,7 +19,7 @@ on bench "localget":
 	loop 1000 times:
 		set {_y} to {_x}
 
-on bench "globalset":
+on bench "globalset@200":
 	loop 200 times:
 		set {bench::value} to 1
 
@@ -56,7 +56,7 @@ on bench "funccall":
 	loop 1000 times:
 		set {_x} to benchnoop(1)
 
-on bench "listloop":
+on bench "listloop@100":
 	loop {benchlist::*}:
 		set {_x} to loop-value
 
@@ -76,7 +76,7 @@ on bench "listsize":
 	loop 1000 times:
 		set {_n} to size of {_list::*}
 
-on bench "listloopvar":
+on bench "listloopvar@300":
 	set {_items::*} to 1, 2 and 3
 	loop 100 times:
 		loop {_items::*}:

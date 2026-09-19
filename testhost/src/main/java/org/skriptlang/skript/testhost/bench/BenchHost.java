@@ -41,6 +41,7 @@ public final class BenchHost implements PlatformProvider {
 	private static final int DRAIN_TICKS = Integer.getInteger("bench.drain", 2000);
 	private static final int STORAGE_FIRES = Integer.getInteger("bench.fires.storage", 25);
 	private static final long STORAGE_TIMEOUT_MILLIS = Long.getLong("bench.storage.timeout", 30_000);
+	private static final int DEFAULT_OPS = Integer.getInteger("bench.ops", 1000);
 
 	private static TickLoop loop;
 
@@ -163,6 +164,19 @@ public final class BenchHost implements PlatformProvider {
 		return name.startsWith("global");
 	}
 
+	private static int opsPerFire(String name) {
+		int at = name.lastIndexOf('@');
+		if (at < 0 || at == name.length() - 1)
+			return DEFAULT_OPS;
+		try {
+			return Integer.parseInt(name.substring(at + 1));
+		} catch (NumberFormatException e) {
+			System.out.println("BENCH FAIL: bad op count in bench name " + name);
+			System.exit(2);
+			return DEFAULT_OPS;
+		}
+	}
+
 	private static long fire(EventBus bus, String name, BenchEvent[] events, int fires, boolean storage) {
 		for (int i = 0; i < fires; i++)
 			events[i] = new BenchEvent(name);
@@ -189,21 +203,23 @@ public final class BenchHost implements PlatformProvider {
 
 	private static void report(Map<String, Long> measured, Map<String, Long> baseline) {
 		int width = Math.max(5, measured.keySet().stream().mapToInt(String::length).max().orElse(5));
-		String header = "%-" + width + "s  %12s";
-		String row = "%-" + width + "s  %12d";
+		String header = "%-" + width + "s  %12s  %8s  %10s";
+		String row = "%-" + width + "s  %12d  %8d  %10.1f";
 		System.out.println();
 		if (baseline.isEmpty()) {
-			System.out.println(String.format(header, "bench", "ns/fire"));
+			System.out.println(String.format(header, "bench", "ns/fire", "ops", "ns/op"));
 		} else {
-			System.out.println(String.format(header + "  %12s  %8s", "bench", "ns/fire", "baseline", "delta"));
+			System.out.println(String.format(header + "  %12s  %8s", "bench", "ns/fire", "ops", "ns/op", "baseline", "delta"));
 		}
 		for (Map.Entry<String, Long> entry : measured.entrySet()) {
+			int ops = opsPerFire(entry.getKey());
+			double perOp = entry.getValue() / (double) ops;
 			Long before = baseline.get(entry.getKey());
 			if (before == null || before == 0) {
-				System.out.println(String.format(row, entry.getKey(), entry.getValue()));
+				System.out.println(String.format(row, entry.getKey(), entry.getValue(), ops, perOp));
 			} else {
 				double delta = (entry.getValue() - before) * 100.0 / before;
-				System.out.println(String.format(row + "  %12d  %+7.1f%%", entry.getKey(), entry.getValue(), before, delta));
+				System.out.println(String.format(row + "  %12d  %+7.1f%%", entry.getKey(), entry.getValue(), ops, perOp, before, delta));
 			}
 		}
 	}
@@ -219,19 +235,24 @@ public final class BenchHost implements PlatformProvider {
 			return baseline;
 		}
 		for (String line : Files.readAllLines(file, StandardCharsets.UTF_8)) {
-			int comma = line.lastIndexOf(',');
-			if (comma < 0 || line.startsWith("bench,"))
+			if (line.isBlank() || line.startsWith("bench,"))
 				continue;
-			baseline.put(line.substring(0, comma).trim(), Long.parseLong(line.substring(comma + 1).trim()));
+			String[] columns = line.split(",");
+			if (columns.length < 2)
+				continue;
+			baseline.put(columns[0].trim(), Long.parseLong(columns[1].trim()));
 		}
 		return baseline;
 	}
 
 	private static void write(Path results, Map<String, Long> measured) throws IOException {
 		Files.createDirectories(results.getParent());
-		StringBuilder text = new StringBuilder("bench,ns_per_fire\n");
-		for (Map.Entry<String, Long> entry : measured.entrySet())
-			text.append(entry.getKey()).append(',').append(entry.getValue()).append('\n');
+		StringBuilder text = new StringBuilder("bench,ns_per_fire,ops_per_fire,ns_per_op\n");
+		for (Map.Entry<String, Long> entry : measured.entrySet()) {
+			int ops = opsPerFire(entry.getKey());
+			text.append(entry.getKey()).append(',').append(entry.getValue()).append(',').append(ops)
+				.append(',').append(String.format("%.1f", entry.getValue() / (double) ops)).append('\n');
+		}
 		Files.writeString(results, text.toString(), StandardCharsets.UTF_8);
 	}
 
