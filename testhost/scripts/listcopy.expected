@@ -1,0 +1,10 @@
+dst-indices 1, alpha, both and nest
+dst-sizes 3 6
+dst-nest nx ny
+dst-both own k
+dst-scalar a one
+independent nx k
+subcopy x and y changed
+flat-indices 1, 2 and 3
+flat-values one, a and own
+shallow one, a and own

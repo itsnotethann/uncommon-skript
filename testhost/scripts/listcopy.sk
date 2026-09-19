@@ -1,0 +1,22 @@
+on load:
+	set {_src::alpha} to "a"
+	set {_src::nest::x} to "nx"
+	set {_src::nest::y} to "ny"
+	set {_src::both} to "own"
+	set {_src::both::kid} to "k"
+	set {_src::1} to "one"
+	copy {_src::*} into {_dst::*}
+	mark "dst-indices %indices of {_dst::*}%"
+	mark "dst-sizes %size of {_dst::*}% %recursive size of {_dst::*}%"
+	mark "dst-nest %{_dst::nest::x}% %{_dst::nest::y}%"
+	mark "dst-both %{_dst::both}% %{_dst::both::kid}%"
+	mark "dst-scalar %{_dst::alpha}% %{_dst::1}%"
+	set {_src::nest::x} to "changed"
+	delete {_src::both::kid}
+	mark "independent %{_dst::nest::x}% %{_dst::both::kid}%"
+	copy {_src::nest::*} into {_sub::*}
+	mark "subcopy %indices of {_sub::*}% %{_sub::x}%"
+	set {_flat::*} to {_src::*}
+	mark "flat-indices %indices of {_flat::*}%"
+	mark "flat-values %{_flat::*}%"
+	mark "shallow %{_src::*}%"

@@ -1,0 +1,9 @@
+indices branch, leaf and node
+values L and N
+sizes 2 4
+globalloop leaf L
+globalloop node N
+localvalues L and N
+localloop leaf L
+localloop node N
+cleared 0

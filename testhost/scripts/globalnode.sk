@@ -1,0 +1,20 @@
+on load:
+	delete {gn::*}
+	set {gn::leaf} to "L"
+	set {gn::node} to "N"
+	set {gn::node::kid} to "K"
+	set {gn::branch::kid} to "B"
+	mark "indices %indices of {gn::*}%"
+	mark "values %{gn::*}%"
+	mark "sizes %size of {gn::*}% %recursive size of {gn::*}%"
+	loop {gn::*}:
+		mark "globalloop %loop-index% %loop-value%"
+	set {_local::leaf} to "L"
+	set {_local::node} to "N"
+	set {_local::node::kid} to "K"
+	set {_local::branch::kid} to "B"
+	mark "localvalues %{_local::*}%"
+	loop {_local::*}:
+		mark "localloop %loop-index% %loop-value%"
+	delete {gn::*}
+	mark "cleared %recursive size of {gn::*}%"

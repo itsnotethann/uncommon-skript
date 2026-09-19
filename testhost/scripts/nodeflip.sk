@@ -1,0 +1,20 @@
+on load:
+	set {_f::a} to "leaf"
+	mark "leaf-size %size of {_f::*}%"
+	set {_f::a::kid} to "kid"
+	mark "node-size %size of {_f::*}%"
+	delete {_f::a::kid}
+	mark "collapsed-size %size of {_f::*}% %{_f::a}%"
+	set {_g::a::kid} to "kid"
+	mark "branch-size %size of {_g::*}%"
+	set {_g::a} to "own"
+	mark "valued-size %size of {_g::*}%"
+	delete {_g::a::*}
+	mark "flattened-size %size of {_g::*}% %{_g::a}%"
+	set {_h::1} to "x"
+	set {_h::2::kid} to "k"
+	add "y" to {_h::*}
+	mark "nextindex %indices of {_h::*}% %{_h::3}%"
+	delete {_h::2::kid}
+	add "z" to {_h::*}
+	mark "reuse %indices of {_h::*}%"

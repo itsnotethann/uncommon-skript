@@ -1,0 +1,8 @@
+keyed-indices alpha, beta and gamma
+keyed-copy alpha, beta and gamma 3
+plain-copy 1, 2 and 3
+mapped 30, 10 and 20
+mapped-keyed alpha, beta and gamma 10
+sorted-indices 1, 2 and 3 1, 2 and 3
+sorted-nested 1 9
+removeall 1, 3 and 5 1, 3 and 1

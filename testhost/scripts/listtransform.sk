@@ -1,0 +1,24 @@
+on load:
+	set {_s::alpha} to 3
+	set {_s::beta} to 1
+	set {_s::gamma} to 2
+	mark "keyed-indices %indices of keyed {_s::*}%"
+	set {_k::*} to keyed {_s::*}
+	mark "keyed-copy %indices of {_k::*}% %{_k::alpha}%"
+	set {_plain::*} to {_s::*}
+	mark "plain-copy %indices of {_plain::*}%"
+	set {_m::*} to {_s::*} transformed using [input * 10]
+	mark "mapped %{_m::*}%"
+	set {_mk::*} to keyed ({_s::*} transformed using [input * 10])
+	mark "mapped-keyed %indices of {_mk::*}% %{_mk::beta}%"
+	sort {_s::*}
+	mark "sorted-indices %indices of {_s::*}% %{_s::*}%"
+	set {_n::a::1} to 5
+	set {_n::a::2} to 4
+	set {_n::b} to 9
+	set {_n::b::deep} to 1
+	sort {_n::*}
+	mark "sorted-nested %indices of {_n::*}% %{_n::*}%"
+	set {_r::*} to 1, 2, 3, 2 and 1
+	remove all 2 from {_r::*}
+	mark "removeall %indices of {_r::*}% %{_r::*}%"
