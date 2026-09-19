@@ -467,7 +467,7 @@ public class Variables {
 		if (from == null)
 			return null;
 
-		return from.materialize().copy();
+		return from.snapshot();
 	}
 
 	public static @Nullable Object copyVariables(@Nullable Object variables) {

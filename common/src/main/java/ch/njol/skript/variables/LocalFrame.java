@@ -83,6 +83,25 @@ final class LocalFrame {
 		store(table, index, path, 0, value);
 	}
 
+	VariablesMap snapshot() {
+		VariablesMap source = this.map;
+		VariablesMap copy = source == null ? new VariablesMap() : source.copy();
+		LocalSlots table = this.table;
+		Object[] values = this.values;
+		if (table != null && values != null) {
+			for (int index = 0; index < values.length; index++) {
+				Object value = values[index];
+				if (value == null)
+					continue;
+				if (table.isList(index))
+					flatten(copy, table.name(index), asNode(value));
+				else
+					copy.setVariable(table.name(index), value);
+			}
+		}
+		return copy;
+	}
+
 	VariablesMap materialize() {
 		VariablesMap map = map();
 		LocalSlots table = this.table;

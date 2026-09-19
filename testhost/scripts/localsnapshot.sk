@@ -1,0 +1,13 @@
+on load:
+	set {_scalar} to "s"
+	set {_list::1} to "a"
+	set {_list::key} to "b"
+	mark "before %test locals storage%"
+	copy the test locals
+	mark "after %test locals storage%"
+	mark "values %{_scalar}% %{_list::1}% %{_list::key}%"
+	mark "indices %indices of {_list::*}%"
+	set {_list::2} to "c"
+	add "d" to {_list::*}
+	mark "grew %indices of {_list::*}% %{_list::3}%"
+	mark "still %test locals storage%"

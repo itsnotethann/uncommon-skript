@@ -13,6 +13,7 @@ import ch.njol.skript.lang.SkriptEvent;
 import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.skript.lang.util.SimpleExpression;
 import ch.njol.skript.registrations.Classes;
+import ch.njol.skript.variables.Variables;
 import ch.njol.skript.util.LiteralUtils;
 import ch.njol.util.Kleenean;
 import org.jetbrains.annotations.Nullable;
@@ -36,6 +37,8 @@ public final class TestSyntax {
 		Skript.registerExpression(ExprPhase.class, Long.class, ExpressionType.SIMPLE, "[the] test phase");
 		Skript.registerExpression(ExprTestName.class, String.class, ExpressionType.SIMPLE, "[the] test event name");
 		Skript.registerExpression(ExprTick.class, Long.class, ExpressionType.SIMPLE, "[the] test tick");
+		Skript.registerEffect(EffCopyLocals.class, "copy the test locals");
+		Skript.registerExpression(ExprLocalsStorage.class, String.class, ExpressionType.SIMPLE, "[the] test locals storage");
 	}
 
 	static String scriptName(@Nullable Script script) {
@@ -194,6 +197,50 @@ public final class TestSyntax {
 		@Override
 		protected @Nullable String value(PlatformEvent event) {
 			return event instanceof TestEvent test ? test.name() : null;
+		}
+
+		@Override
+		public Class<? extends String> getReturnType() {
+			return String.class;
+		}
+	}
+
+	public static final class EffCopyLocals extends Effect {
+
+		@Override
+		public boolean init(Expression<?>[] exprs, int matchedPattern, Kleenean isDelayed, ParseResult parseResult) {
+			return true;
+		}
+
+		@Override
+		protected void execute(PlatformEvent event) {
+			Variables.copyLocalVariables(event);
+		}
+
+		@Override
+		public String toString(@Nullable PlatformEvent event, boolean debug) {
+			return "copy the test locals";
+		}
+	}
+
+	public static final class ExprLocalsStorage extends Constant<String> {
+
+		@Override
+		protected String value(PlatformEvent event) {
+			try {
+				java.lang.reflect.Field field = Variables.class.getDeclaredField("localVariables");
+				field.setAccessible(true);
+				Object frame = ((java.util.Map<?, ?>) field.get(null)).get(event);
+				if (frame == null)
+					return "none";
+				java.lang.reflect.Field table = frame.getClass().getDeclaredField("table");
+				java.lang.reflect.Field values = frame.getClass().getDeclaredField("values");
+				table.setAccessible(true);
+				values.setAccessible(true);
+				return table.get(frame) != null && values.get(frame) != null ? "slots" : "map";
+			} catch (ReflectiveOperationException e) {
+				return "error " + e.getClass().getSimpleName();
+			}
 		}
 
 		@Override
