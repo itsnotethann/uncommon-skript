@@ -101,6 +101,10 @@ public class Variables {
 		return object;
 	}
 
+	public static boolean hasVariableConverters() {
+		return !variableConverterMap.isEmpty();
+	}
+
 	public static <F> void registerVariableConverter(Class<F> clazz, Function<? super F, ?> intermediary) {
 		variableConverterMap.put(clazz, v -> intermediary.apply(clazz.cast(v)));
 	}

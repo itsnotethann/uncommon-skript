@@ -875,10 +875,12 @@ public class Variable<T> implements Expression<T>, KeyReceiverExpression<T>, Key
 			if (rawValue == null)
 				return new KeyedValue[0];
 
-			List<KeyedValue<?>> keyedValues = new ArrayList<>();
-			String name = StringUtils.substring(Variable.this.name.toString(event), 0, -1);
 			//noinspection unchecked
-			for (Entry<String, ?> variable : ((Map<String, ?>) rawValue).entrySet()) {
+			Map<String, ?> rawMap = (Map<String, ?>) rawValue;
+			List<KeyedValue<?>> keyedValues = new ArrayList<>(rawMap.size());
+			boolean converters = Variables.hasVariableConverters();
+			String name = converters ? StringUtils.substring(Variable.this.name.toString(event), 0, -1) : null;
+			for (Entry<String, ?> variable : rawMap.entrySet()) {
 				if (variable.getKey() == null || variable.getValue() == null)
 					continue;
 
@@ -888,7 +890,8 @@ public class Variable<T> implements Expression<T>, KeyReceiverExpression<T>, Key
 				} else {
 					value = variable.getValue();
 				}
-				value = Variables.findAndRunConverter(name + variable.getKey(), event, value, local);
+				if (converters)
+					value = Variables.findAndRunConverter(name + variable.getKey(), event, value, local);
 				if (value != null)
 					keyedValues.add(new KeyedValue<>(variable.getKey(), value));
 			}
