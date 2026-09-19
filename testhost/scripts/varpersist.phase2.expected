@@ -1,0 +1,23 @@
+top-indices 1, 3, 10, alpha, beta, both, delta, gamma, nest, ord, quote and rev
+top-size 10
+top-recursive 20
+num one three ten
+types 1.5 7 true 3 minutes
+quote a "b", c::d
+nest-indices x and y
+nest-x nx
+nest-y ny1 and ny2
+nest-y-indices 1 and 2
+nest-loop 1 ny1
+nest-loop 2 ny2
+both-own ownvalue
+both-indices child and other
+both-child childvalue
+both-deep deepvalue
+both-sizes 1 3
+rev-own rownvalue
+rev-child rc
+ord 2 b
+ord 10 a
+ord alpha d
+ord zulu c

@@ -1,0 +1,46 @@
+on load:
+	if test phase is 1:
+		delete {vp::*}
+		set {vp::1} to "one"
+		set {vp::3} to "three"
+		set {vp::10} to "ten"
+		set {vp::alpha} to 1.5
+		set {vp::beta} to 7
+		set {vp::gamma} to true
+		set {vp::delta} to 3 minutes
+		set {vp::quote} to "a ""b"", c::d"
+		set {vp::nest::x} to "nx"
+		set {vp::nest::y::1} to "ny1"
+		set {vp::nest::y::2} to "ny2"
+		set {vp::both} to "ownvalue"
+		set {vp::both::child} to "childvalue"
+		set {vp::both::other::deep} to "deepvalue"
+		set {vp::rev::child} to "rc"
+		set {vp::rev} to "rownvalue"
+		set {vp::ord::10} to "a"
+		set {vp::ord::2} to "b"
+		set {vp::ord::zulu} to "c"
+		set {vp::ord::alpha} to "d"
+		mark "saved"
+	else:
+		mark "top-indices %indices of {vp::*}%"
+		mark "top-size %size of {vp::*}%"
+		mark "top-recursive %recursive size of {vp::*}%"
+		mark "num %{vp::1}% %{vp::3}% %{vp::10}%"
+		mark "types %{vp::alpha}% %{vp::beta}% %{vp::gamma}% %{vp::delta}%"
+		mark "quote %{vp::quote}%"
+		mark "nest-indices %indices of {vp::nest::*}%"
+		mark "nest-x %{vp::nest::x}%"
+		mark "nest-y %{vp::nest::y::*}%"
+		mark "nest-y-indices %indices of {vp::nest::y::*}%"
+		loop {vp::nest::y::*}:
+			mark "nest-loop %loop-index% %loop-value%"
+		mark "both-own %{vp::both}%"
+		mark "both-indices %indices of {vp::both::*}%"
+		mark "both-child %{vp::both::child}%"
+		mark "both-deep %{vp::both::other::deep}%"
+		mark "both-sizes %size of {vp::both::*}% %recursive size of {vp::both::*}%"
+		mark "rev-own %{vp::rev}%"
+		mark "rev-child %{vp::rev::child}%"
+		loop {vp::ord::*}:
+			mark "ord %loop-index% %loop-value%"
