@@ -1,0 +1,13 @@
+expression parse changer:
+	parse:
+		set {_captured} to "fromparse"
+		continue
+	get:
+		return {_captured}
+	set:
+		mark "L06 setter-ran %expr-1%"
+
+on script load:
+	mark "L05 parse-locals-visible %parse changer%"
+	set parse changer to "newvalue"
+	mark "L07 after-set"
