@@ -511,8 +511,7 @@ public class Variable<T> implements Expression<T>, KeyReceiverExpression<T>, Key
 
 	public int size(PlatformEvent event) {
 		Preconditions.checkState(list, "Cannot get the size of a single variable");
-		Map<?, ?> map = (Map<?, ?>) getRaw(event);
-		if (map == null)
+		if (!(getRaw(event) instanceof Map<?, ?> map))
 			return 0;
 
 		int size = map.size();
@@ -526,6 +525,9 @@ public class Variable<T> implements Expression<T>, KeyReceiverExpression<T>, Key
 			}
 			return size;
 		}
+
+		if (!indexTrackingMap.hasMapIndices())
+			return size;
 
 		Collection<String> sublistIndices = indexTrackingMap.mapIndices();
 		for (String sublistIndex : sublistIndices) {

@@ -108,6 +108,10 @@ public class IndexTrackingTreeMap<V> extends TreeMap<String, V> {
 		return Collections.unmodifiableCollection(mapIndices);
 	}
 
+	public boolean hasMapIndices() {
+		return !mapIndices.isEmpty();
+	}
+
 	private void handleInsert(String key, int index, V value) {
 		if (value instanceof Map)
 			mapIndices.add(key);

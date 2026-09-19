@@ -92,24 +92,8 @@ public class ExprAmount extends SimpleExpression<Long> {
 			return new Long[]{(long) currentSize};
 		}
 		Variable<?> sizeVariable = this.sizeVariable;
-		if (sizeVariable != null) {
-			Object raw = sizeVariable.getRaw(e);
-			if (!(raw instanceof Map<?, ?> map))
-				return new Long[]{0L};
-			int count = 0;
-			for (Map.Entry<?, ?> entry : map.entrySet()) {
-				if (entry.getKey() == null)
-					continue;
-				Object value = entry.getValue();
-				if (value instanceof Map<?, ?> sub) {
-					if (sub.get(null) != null)
-						count++;
-				} else if (value != null) {
-					count++;
-				}
-			}
-			return new Long[]{(long) count};
-		}
+		if (sizeVariable != null)
+			return new Long[]{(long) sizeVariable.size(e)};
 		return new Long[]{(long) exprs.getArray(e).length};
 	}
 
