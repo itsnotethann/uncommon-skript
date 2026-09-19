@@ -72,8 +72,16 @@ public class ExprFunctionCall<T> extends SimpleExpression<T> implements KeyProvi
 			return convertedValues;
 		}
 
+		boolean maybeNull = true;
 		if (directReturn) {
-			System.arraycopy(values, 0, convertedValues, 0, values.length);
+			maybeNull = false;
+			for (int i = 0; i < values.length; i++) {
+				Object value = values[i];
+				if (value == null)
+					maybeNull = true;
+				//noinspection unchecked
+				convertedValues[i] = (T) value;
+			}
 		} else {
 			Converters.convert(values, convertedValues, returnTypes);
 		}
@@ -85,7 +93,7 @@ public class ExprFunctionCall<T> extends SimpleExpression<T> implements KeyProvi
 			convertedValues = ArrayUtils.removeAllOccurrences(convertedValues, null);
 			cache.put(event, ArrayUtils.removeAllOccurrences(keys, null));
 		} else {
-			if (ArrayUtils.contains(convertedValues, null))
+			if (maybeNull)
 				convertedValues = ArrayUtils.removeAllOccurrences(convertedValues, null);
 			cache.put(event, generateNumericalKeys(convertedValues.length));
 		}
