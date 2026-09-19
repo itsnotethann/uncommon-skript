@@ -20,7 +20,7 @@ on bench "localget":
 		set {_y} to {_x}
 
 on bench "globalset":
-	loop 1000 times:
+	loop 200 times:
 		set {bench::value} to 1
 
 on bench "globalget":

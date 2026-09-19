@@ -117,6 +117,32 @@ public class Variables {
 		return Collections.unmodifiableList(STORAGES);
 	}
 
+	@ApiStatus.Internal
+	public static boolean awaitStorageDrain(long timeoutMillis) {
+		long deadline = System.nanoTime() + timeoutMillis * 1_000_000L;
+		while (true) {
+			boolean pending = !changeQueue.isEmpty();
+			if (!pending) {
+				for (VariablesStorage storage : STORAGES) {
+					if (!storage.changesQueue.isEmpty()) {
+						pending = true;
+						break;
+					}
+				}
+			}
+			if (!pending)
+				return true;
+			if (System.nanoTime() - deadline >= 0)
+				return false;
+			try {
+				Thread.sleep(1);
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				return false;
+			}
+		}
+	}
+
 	/**
 	 * Register a VariableStorage class for Skript to create if the user config value matches.
 	 *

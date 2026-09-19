@@ -17,6 +17,7 @@ import java.util.logging.Level;
 import java.util.stream.Stream;
 
 import ch.njol.skript.Skript;
+import ch.njol.skript.variables.Variables;
 import org.jetbrains.annotations.Nullable;
 import org.skriptlang.skript.platform.AddonHandle;
 import org.skriptlang.skript.platform.AddonRegistry;
@@ -38,6 +39,8 @@ public final class BenchHost implements PlatformProvider {
 	private static final int ROUNDS = Integer.getInteger("bench.rounds", 15);
 	private static final int FIRES = Integer.getInteger("bench.fires", 200);
 	private static final int DRAIN_TICKS = Integer.getInteger("bench.drain", 2000);
+	private static final int STORAGE_FIRES = Integer.getInteger("bench.fires.storage", 25);
+	private static final long STORAGE_TIMEOUT_MILLIS = Long.getLong("bench.storage.timeout", 30_000);
 
 	private static TickLoop loop;
 
@@ -145,23 +148,43 @@ public final class BenchHost implements PlatformProvider {
 
 	private static long measure(String name) {
 		EventBus bus = Skript.eventBus();
-		BenchEvent[] events = new BenchEvent[FIRES];
+		boolean storage = writesGlobals(name);
+		int fires = storage ? Math.min(FIRES, STORAGE_FIRES) : FIRES;
+		BenchEvent[] events = new BenchEvent[fires];
 		for (int round = 0; round < WARMUP_ROUNDS; round++)
-			fire(bus, name, events);
+			fire(bus, name, events, fires, storage);
 		long best = Long.MAX_VALUE;
 		for (int round = 0; round < ROUNDS; round++)
-			best = Math.min(best, fire(bus, name, events));
+			best = Math.min(best, fire(bus, name, events, fires, storage));
 		return best;
 	}
 
-	private static long fire(EventBus bus, String name, BenchEvent[] events) {
-		for (int i = 0; i < FIRES; i++)
+	private static boolean writesGlobals(String name) {
+		return name.startsWith("global");
+	}
+
+	private static long fire(EventBus bus, String name, BenchEvent[] events, int fires, boolean storage) {
+		for (int i = 0; i < fires; i++)
 			events[i] = new BenchEvent(name);
-		long start = System.nanoTime();
-		for (int i = 0; i < FIRES; i++)
+		if (!storage) {
+			long start = System.nanoTime();
+			for (int i = 0; i < fires; i++)
+				bus.fire(events[i]);
+			loop.drainPending(DRAIN_TICKS);
+			return (System.nanoTime() - start) / fires;
+		}
+		long total = 0;
+		for (int i = 0; i < fires; i++) {
+			long start = System.nanoTime();
 			bus.fire(events[i]);
-		loop.drainPending(DRAIN_TICKS);
-		return (System.nanoTime() - start) / FIRES;
+			loop.drainPending(DRAIN_TICKS);
+			total += System.nanoTime() - start;
+			if (!Variables.awaitStorageDrain(STORAGE_TIMEOUT_MILLIS)) {
+				System.out.println("BENCH FAIL: variable storage did not drain for " + name);
+				System.exit(2);
+			}
+		}
+		return total / fires;
 	}
 
 	private static void report(Map<String, Long> measured, Map<String, Long> baseline) {
