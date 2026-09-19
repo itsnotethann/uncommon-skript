@@ -122,23 +122,29 @@ final class LocalFrame {
 		while (true) {
 			int next = path.indexOf(Variable.SEPARATOR, from);
 			String key = next < 0 ? path.substring(from) : path.substring(from, next);
-			Object child = node.get(key);
 
 			if (next < 0) {
-				if (child instanceof TreeMap) {
+				if (value == null) {
+					Object existing = node.get(key);
+					if (existing instanceof TreeMap) {
+						//noinspection unchecked
+						((Map<String, Object>) existing).remove(null);
+					} else {
+						node.remove(key);
+					}
+					return;
+				}
+				Object previous = node.put(key, value);
+				if (previous instanceof TreeMap) {
 					//noinspection unchecked
-					Map<String, Object> childNode = (Map<String, Object>) child;
-					if (value == null)
-						childNode.remove(null);
-					else
-						childNode.put(null, value);
-				} else if (value == null) {
-					node.remove(key);
-				} else {
-					node.put(key, value);
+					Map<String, Object> childNode = (Map<String, Object>) previous;
+					childNode.put(null, value);
+					node.put(key, childNode);
 				}
 				return;
 			}
+
+			Object child = node.get(key);
 
 			if (child instanceof TreeMap) {
 				//noinspection unchecked
