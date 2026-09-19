@@ -116,3 +116,9 @@ on bench "funccallwork":
 on bench "funccallvoid":
 	loop 1000 times:
 		benchnoop(1)
+
+on bench "listcopy":
+	loop 20 times:
+		set {_src::%loop-number%} to loop-number
+	loop 1000 times:
+		set {_dst::*} to {_src::*}
