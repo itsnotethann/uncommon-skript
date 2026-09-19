@@ -123,6 +123,7 @@ These conflict on most merges, so they are listed rather than rediscovered:
 | `common/.../EvtScriptLoad.java` | `on load` on a loader thread is handed to the main thread without blocking, and skipped if its script was unloaded first |
 | `common/.../Skript.java` | no `<skript_minestom_tag>` on log lines, no Paper/Spigot advice in the crash report, issue tracker from `PlatformEnvironment.issueTracker()`, clear error when `onRegistration` was never called |
 | `common/.../SkriptLogger.java` | no `<skript_minestom_tag>` on log lines. A host that wants a prefix adds it in its `LogSink` |
+| `common/.../VariablesMap.java`, `Variables.java`, `Variable.java` | local variables live in slots — an index reserved at parse time into a per-event array — instead of being looked up by name. `VariablesMap` carries the slot fields itself, so `Variables.localVariables` still holds `VariablesMap` values; addons reflect that field and the type they see is part of the contract. Holding slots in a separate class broke skript-reflect, which `testhost/addon-scripts/reflectlocals.sk` now guards |
 | `.github/workflows/publish.yml` | deleted. Publishing is JitPack, through `jitpack.yml` |
 
 ## Branches

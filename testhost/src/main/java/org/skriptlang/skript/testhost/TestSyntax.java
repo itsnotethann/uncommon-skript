@@ -233,8 +233,8 @@ public final class TestSyntax {
 				Object frame = ((java.util.Map<?, ?>) field.get(null)).get(event);
 				if (frame == null)
 					return "none";
-				java.lang.reflect.Field table = frame.getClass().getDeclaredField("table");
-				java.lang.reflect.Field values = frame.getClass().getDeclaredField("values");
+				java.lang.reflect.Field table = frame.getClass().getDeclaredField("slotTable");
+				java.lang.reflect.Field values = frame.getClass().getDeclaredField("slotValues");
 				table.setAccessible(true);
 				values.setAccessible(true);
 				return table.get(frame) != null && values.get(frame) != null ? "slots" : "map";

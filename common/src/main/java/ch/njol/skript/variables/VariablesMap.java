@@ -165,6 +165,16 @@ final class VariablesMap {
 	 */
 	final TreeMap<String, Object> treeMap = new TreeMap<>();
 
+	private @Nullable LocalSlots slotTable;
+	private Object @Nullable [] slotValues;
+
+	VariablesMap() {
+	}
+
+	VariablesMap(@Nullable LocalSlots slotTable) {
+		this.slotTable = slotTable;
+	}
+
 	/**
 	 * Returns the internal value of the requested variable.
 	 * <p>
@@ -178,6 +188,21 @@ final class VariablesMap {
 	@SuppressWarnings("unchecked")
 	@Nullable
 	Object getVariable(String name) {
+		LocalSlots slotTable = this.slotTable;
+		if (slotTable != null) {
+			int separator = name.indexOf(Variable.SEPARATOR);
+			if (separator < 0) {
+				int index = slotTable.indexOf(name);
+				if (index >= 0)
+					return slotAt(index);
+			} else {
+				int index = slotTable.indexOfList(name.substring(0, separator));
+				if (index >= 0) {
+					Object node = slotAt(index);
+					return node == null ? null : descend(asNode(node), name, separator + Variable.SEPARATOR.length());
+				}
+			}
+		}
 		if (!name.endsWith("*")) {
 			// Not a list variable, quick access from the hash map
 			return hashMap.get(name);
@@ -225,6 +250,23 @@ final class VariablesMap {
 	 */
 	@SuppressWarnings("unchecked")
 	void setVariable(String name, @Nullable Object value) {
+		LocalSlots slotTable = this.slotTable;
+		if (slotTable != null) {
+			int separator = name.indexOf(Variable.SEPARATOR);
+			if (separator < 0) {
+				int index = slotTable.indexOf(name);
+				if (index >= 0) {
+					slots(index, slotTable.size())[index] = value;
+					return;
+				}
+			} else {
+				int index = slotTable.indexOfList(name.substring(0, separator));
+				if (index >= 0) {
+					store(slotTable, index, name, separator + Variable.SEPARATOR.length(), value);
+					return;
+				}
+			}
+		}
 		// First update the hash map easily
 		if (!name.endsWith("*")) {
 			if (value == null)
@@ -356,7 +398,181 @@ final class VariablesMap {
 		TreeMap<String, Object> treeMapCopy = copyTreeMap(treeMap);
 		copy.treeMap.putAll(treeMapCopy);
 
+		LocalSlots table = this.slotTable;
+		Object[] values = this.slotValues;
+		if (table != null && values != null)
+			drain(copy, table, values);
+
 		return copy;
+	}
+
+	VariablesMap materialize() {
+		LocalSlots table = this.slotTable;
+		Object[] values = this.slotValues;
+		this.slotTable = null;
+		this.slotValues = null;
+		if (table != null && values != null)
+			drain(this, table, values);
+		return this;
+	}
+
+	@Nullable Object getSlot(LocalSlots table, int index, @Nullable String path) {
+		if (this.slotTable != table)
+			return getVariable(slotName(table, index, path));
+		Object stored = slotAt(index);
+		if (path == null || stored == null)
+			return path == null ? stored : null;
+		return descend(asNode(stored), path, 0);
+	}
+
+	void setSlot(LocalSlots table, int index, @Nullable String path, @Nullable Object value) {
+		if (this.slotTable != table) {
+			setVariable(slotName(table, index, path), value);
+			return;
+		}
+		if (path == null) {
+			slots(index, table.size())[index] = value;
+			return;
+		}
+		store(table, index, path, 0, value);
+	}
+
+	private static void drain(VariablesMap target, LocalSlots table, Object[] values) {
+		for (int index = 0; index < values.length; index++) {
+			Object value = values[index];
+			if (value == null)
+				continue;
+			if (table.isList(index))
+				flattenSlots(target, table.name(index), asNode(value));
+			else
+				target.setVariable(table.name(index), value);
+		}
+	}
+
+	private static void flattenSlots(VariablesMap target, String prefix, Map<String, Object> node) {
+		for (Entry<String, Object> entry : node.entrySet()) {
+			String key = entry.getKey();
+			String name = key == null ? prefix : prefix + Variable.SEPARATOR + key;
+			Object value = entry.getValue();
+			if (value instanceof TreeMap) {
+				flattenSlots(target, name, asNode(value));
+			} else {
+				target.setVariable(name, value);
+			}
+		}
+	}
+
+	private void store(LocalSlots table, int index, String path, int from, @Nullable Object value) {
+		if (value == null && isStar(path, from)) {
+			slots(index, table.size())[index] = null;
+			return;
+		}
+		Object stored = slotAt(index);
+		if (stored == null) {
+			if (value == null)
+				return;
+			stored = newNode();
+			slots(index, table.size())[index] = stored;
+		}
+		insert(asNode(stored), path, from, value);
+	}
+
+	private static void insert(Map<String, Object> node, String path, int from, @Nullable Object value) {
+		while (true) {
+			int next = path.indexOf(Variable.SEPARATOR, from);
+			String key = next < 0 ? path.substring(from) : path.substring(from, next);
+			Object child = node.get(key);
+
+			if (next < 0) {
+				if (child instanceof TreeMap) {
+					Map<String, Object> childNode = asNode(child);
+					if (value == null)
+						childNode.remove(null);
+					else
+						childNode.put(null, value);
+				} else if (value == null) {
+					node.remove(key);
+				} else {
+					node.put(key, value);
+				}
+				return;
+			}
+
+			if (child instanceof TreeMap) {
+				Map<String, Object> childNode = asNode(child);
+				if (isStar(path, next + Variable.SEPARATOR.length())) {
+					Object own = childNode.get(null);
+					if (own == null)
+						node.remove(key);
+					else
+						node.put(key, own);
+					return;
+				}
+				node = childNode;
+			} else if (value == null) {
+				return;
+			} else {
+				Map<String, Object> childNode = newNode();
+				if (child != null)
+					childNode.put(null, child);
+				node.put(key, childNode);
+				node = childNode;
+			}
+			from = next + Variable.SEPARATOR.length();
+		}
+	}
+
+	private static @Nullable Object descend(Map<String, Object> node, String path, int from) {
+		while (true) {
+			int next = path.indexOf(Variable.SEPARATOR, from);
+			if (next < 0 && isStar(path, from))
+				return node;
+			String key = next < 0 ? path.substring(from) : path.substring(from, next);
+			Object child = node.get(key);
+			if (child == null)
+				return null;
+			if (next < 0)
+				return child instanceof TreeMap ? ((TreeMap<?, ?>) child).get(null) : child;
+			if (!(child instanceof TreeMap))
+				return null;
+			node = asNode(child);
+			from = next + Variable.SEPARATOR.length();
+		}
+	}
+
+	private static boolean isStar(String path, int from) {
+		return path.length() == from + 1 && path.charAt(from) == '*';
+	}
+
+	private static String slotName(LocalSlots table, int index, @Nullable String path) {
+		String root = table.name(index);
+		return path == null ? root : root + Variable.SEPARATOR + path;
+	}
+
+	private static Map<String, Object> newNode() {
+		return new IndexTrackingTreeMap<>(VARIABLE_NAME_COMPARATOR);
+	}
+
+	@SuppressWarnings("unchecked")
+	private static Map<String, Object> asNode(Object value) {
+		return (Map<String, Object>) value;
+	}
+
+	private @Nullable Object slotAt(int index) {
+		Object[] values = this.slotValues;
+		return values == null || index >= values.length ? null : values[index];
+	}
+
+	private Object[] slots(int index, int size) {
+		Object[] values = this.slotValues;
+		if (values == null) {
+			this.slotValues = values = new Object[Math.max(index + 1, size)];
+		} else if (index >= values.length) {
+			Object[] grown = new Object[Math.max(index + 1, size)];
+			System.arraycopy(values, 0, grown, 0, values.length);
+			this.slotValues = values = grown;
+		}
+		return values;
 	}
 
 	/**

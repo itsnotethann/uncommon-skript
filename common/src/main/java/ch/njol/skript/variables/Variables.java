@@ -357,7 +357,7 @@ public class Variables {
 	 * A map storing all local variables,
 	 * indexed by their {@link PlatformEvent}.
 	 */
-	private static final Map<PlatformEvent, LocalFrame> localVariables = new ConcurrentHashMap<>();
+	private static final Map<PlatformEvent, VariablesMap> localVariables = new ConcurrentHashMap<>();
 
 	/**
 	 * Gets the {@link TreeMap} of all global variables.
@@ -399,7 +399,7 @@ public class Variables {
 	 */
 	@Nullable
 	public static VariablesMap removeLocals(PlatformEvent event) {
-		LocalFrame frame = localVariables.remove(event);
+		VariablesMap frame = localVariables.remove(event);
 		return frame == null ? null : frame.materialize();
 	}
 
@@ -409,7 +409,7 @@ public class Variables {
 
 	@ApiStatus.Internal
 	public static @Nullable Object getLocal(PlatformEvent event, LocalSlots table, int slot, @Nullable String path) {
-		LocalFrame frame = localVariables.get(event);
+		VariablesMap frame = localVariables.get(event);
 		return frame == null ? null : frame.getSlot(table, slot, path);
 	}
 
@@ -423,9 +423,9 @@ public class Variables {
 				assert value != null : ci + ", " + sas;
 			}
 		}
-		LocalFrame frame = localVariables.get(event);
+		VariablesMap frame = localVariables.get(event);
 		if (frame == null)
-			frame = localVariables.computeIfAbsent(event, e -> new LocalFrame(table));
+			frame = localVariables.computeIfAbsent(event, e -> new VariablesMap(table));
 		frame.setSlot(table, slot, path, value);
 	}
 
@@ -441,10 +441,10 @@ public class Variables {
 	 * @param map the new local variables.
 	 */
 	public static void setLocalVariables(PlatformEvent event, @Nullable Object map) {
-		if (map instanceof LocalFrame frame) {
+		if (map instanceof VariablesMap frame) {
 			localVariables.put(event, frame);
 		} else if (map != null) {
-			localVariables.put(event, new LocalFrame((VariablesMap) map));
+			localVariables.put(event, (VariablesMap) map);
 		} else {
 			removeLocals(event);
 		}
@@ -463,11 +463,11 @@ public class Variables {
 	 * @return the copy.
 	 */
 	public static @Nullable Object copyLocalVariables(PlatformEvent event) {
-		LocalFrame from = localVariables.get(event);
+		VariablesMap from = localVariables.get(event);
 		if (from == null)
 			return null;
 
-		return from.snapshot();
+		return from.copy();
 	}
 
 	public static @Nullable Object copyVariables(@Nullable Object variables) {
@@ -515,11 +515,11 @@ public class Variables {
 		}
 
 		if (local) {
-			LocalFrame frame = localVariables.get(event);
+			VariablesMap frame = localVariables.get(event);
 			if (frame == null)
 				return null;
 
-			return frame.getByName(n);
+			return frame.getVariable(n);
 		} else {
 			try {
 				variablesLock.readLock().lock();
@@ -669,10 +669,10 @@ public class Variables {
 			assert event != null : name;
 
 			// Get the variables map and set the variable in it
-			LocalFrame frame = localVariables.get(event);
+			VariablesMap frame = localVariables.get(event);
 			if (frame == null)
-				frame = localVariables.computeIfAbsent(event, e -> new LocalFrame(frameTable));
-			frame.setByName(name, value);
+				frame = localVariables.computeIfAbsent(event, e -> new VariablesMap(frameTable));
+			frame.setVariable(name, value);
 		} else {
 			setVariable(name, value);
 		}
