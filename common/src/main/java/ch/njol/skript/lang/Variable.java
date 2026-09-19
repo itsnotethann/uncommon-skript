@@ -461,16 +461,28 @@ public class Variable<T> implements Expression<T>, KeyReceiverExpression<T>, Key
 
 	private T[] getConvertedArray(PlatformEvent event) {
 		assert list;
+		KeyedValue<?>[] values = listProvider.getValues(event);
+		int length = values.length;
+		String[] keys = new String[length];
 		//noinspection unchecked
-		KeyedValue<Object>[] values = (KeyedValue<Object>[]) listProvider.getValues(event);
-		KeyedValue<T>[] mappedValues = KeyedValue.map(values, value -> Converters.convert(value, types));
-		mappedValues = ArrayUtils.removeAllOccurrences(mappedValues, null);
-
-		KeyedValue.UnzippedKeyValues<T> unzipped = KeyedValue.unzip(mappedValues);
-
-		cache.put(event, unzipped.keys().toArray(new String[0]));
-		//noinspection unchecked
-		return unzipped.values().toArray((T[]) Array.newInstance(superType, 0));
+		T[] converted = (T[]) Array.newInstance(superType, length);
+		int count = 0;
+		for (KeyedValue<?> keyed : values) {
+			if (keyed == null)
+				continue;
+			T value = Converters.convert(keyed.value(), types);
+			if (value == null)
+				continue;
+			keys[count] = keyed.key();
+			converted[count] = value;
+			count++;
+		}
+		if (count != length) {
+			keys = Arrays.copyOf(keys, count);
+			converted = Arrays.copyOf(converted, count);
+		}
+		cache.put(event, keys);
+		return converted;
 	}
 
 	public void set(PlatformEvent event, @Nullable Object value) {
