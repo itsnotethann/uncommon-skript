@@ -3,7 +3,10 @@ on load:
 	set {-conc::count} to 0
 	loop 50 times:
 		fire test event "conc" off the main thread
-	wait 20 ticks
+	loop 100 times:
+		wait 1 tick
+		if {-conc::count} is 50:
+			exit loop
 	mark "count %{-conc::count}%"
 	mark "all main %whether {-conc::offmain} is not set%"
 
