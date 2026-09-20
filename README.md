@@ -16,11 +16,13 @@ for scheduling, addon lifecycle, logging and server state. That is replaced here
 
 There is no Bukkit in `common`. The `org.bukkit.*` compatibility shim is its own optional module.
 
-Two upstream defects were fixed along the way, both independent of the SPI:
+Two upstream defects were found along the way, both independent of the SPI. Both are fixed
+upstream now:
 
 - event handlers dispatched in reverse priority order, so `MONITOR` ran first and observed state
-  before the handlers it exists to observe
-- parse warnings logged at `INFO`, making them invisible to anyone filtering at `WARN`
+  before the handlers it exists to observe — skript-minestom#31
+- parse warnings logged at `INFO`, making them invisible to anyone filtering at `WARN` —
+  skript-minestom#32
 
 ## Layout
 
