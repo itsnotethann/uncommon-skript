@@ -12,7 +12,15 @@ final class Recorder {
 	private final Map<String, List<String>> marks = new java.util.concurrent.ConcurrentHashMap<>();
 	private final List<String> problems = new ArrayList<>();
 
+	static String normalise(String line) {
+		int end = line.length();
+		while (end > 0 && (line.charAt(end - 1) == '\r' || line.charAt(end - 1) == '\n'))
+			end--;
+		return end == line.length() ? line : line.substring(0, end);
+	}
+
 	void mark(String script, String text) {
+		text = normalise(text);
 		System.out.println("MARK " + script + ": " + text);
 		List<String> list = marks.computeIfAbsent(script, key -> new ArrayList<>());
 		synchronized (list) {

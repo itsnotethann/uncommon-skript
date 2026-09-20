@@ -256,7 +256,8 @@ public final class TestHost implements PlatformProvider {
 			Path expectation = expectation(path);
 			Expected entry = new Expected();
 			if (Files.exists(expectation)) {
-				for (String line : Files.readAllLines(expectation, StandardCharsets.UTF_8)) {
+				for (String raw : Files.readAllLines(expectation, StandardCharsets.UTF_8)) {
+					String line = Recorder.normalise(raw);
 					if (line.isBlank())
 						continue;
 					if (line.startsWith("!"))
