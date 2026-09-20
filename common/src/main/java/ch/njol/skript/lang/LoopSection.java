@@ -49,14 +49,17 @@ public abstract class LoopSection extends Section implements SyntaxElement, Debu
 	 * read far more expensive than a plain hash lookup. The event is held weakly so that a loop
 	 * abandoned by an exception cannot pin it.
 	 */
-	private final transient ThreadLocal<Memo> memo = ThreadLocal.withInitial(Memo::new);
+	private static final ThreadLocal<Memo> MEMO = ThreadLocal.withInitial(Memo::new);
 
 	private static final class Memo {
 
+		private @Nullable LoopSection section;
 		private @Nullable WeakReference<PlatformEvent> event;
 		private @Nullable LoopState state;
 
-		private @Nullable LoopState get(PlatformEvent event) {
+		private @Nullable LoopState get(LoopSection section, PlatformEvent event) {
+			if (this.section != section)
+				return null;
 			WeakReference<PlatformEvent> reference = this.event;
 			if (reference == null || reference.get() != event)
 				return null;
@@ -64,12 +67,19 @@ public abstract class LoopSection extends Section implements SyntaxElement, Debu
 			return state != null && !state.exited ? state : null;
 		}
 
-		private void set(PlatformEvent event, LoopState state) {
+		private void set(LoopSection section, PlatformEvent event, LoopState state) {
+			this.section = section;
 			this.event = new WeakReference<>(event);
 			this.state = state;
 		}
 
-		private void clear() {
+		private void clear(LoopSection section, PlatformEvent event) {
+			if (this.section != section)
+				return;
+			WeakReference<PlatformEvent> reference = this.event;
+			if (reference != null && reference.get() != event)
+				return;
+			this.section = null;
 			event = null;
 			state = null;
 		}
@@ -81,8 +91,8 @@ public abstract class LoopSection extends Section implements SyntaxElement, Debu
 	 * @return The loop's state for that event, creating it if the loop has not started yet
 	 */
 	protected LoopState loopState(PlatformEvent event) {
-		Memo memo = this.memo.get();
-		LoopState state = memo.get(event);
+		Memo memo = MEMO.get();
+		LoopState state = memo.get(this, event);
 		if (state != null)
 			return state;
 		state = loopStates.get(event);
@@ -90,7 +100,7 @@ public abstract class LoopSection extends Section implements SyntaxElement, Debu
 			state = new LoopState();
 			loopStates.put(event, state);
 		}
-		memo.set(event, state);
+		memo.set(this, event, state);
 		return state;
 	}
 
@@ -99,7 +109,7 @@ public abstract class LoopSection extends Section implements SyntaxElement, Debu
 	 * @return The loop's state for that event, or null if the loop is not running
 	 */
 	protected @Nullable LoopState currentLoopState(PlatformEvent event) {
-		LoopState state = memo.get().get(event);
+		LoopState state = MEMO.get().get(this, event);
 		return state != null ? state : loopStates.get(event);
 	}
 
@@ -126,7 +136,7 @@ public abstract class LoopSection extends Section implements SyntaxElement, Debu
 		LoopState state = loopStates.remove(event);
 		if (state != null)
 			state.exited = true;
-		memo.get().clear();
+		MEMO.get().clear(this, event);
 	}
 
 }
