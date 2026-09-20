@@ -231,3 +231,6 @@ run/
 # Ignore Gradle build output directory
 build
 /minestom/src/main/resources/test/*
+
+*_STARTER_PROMPT.md
+SYNC.md
