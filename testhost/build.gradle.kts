@@ -38,6 +38,14 @@ fun bootPhase(phase: Int, scriptsToRun: String, loaderThreads: Int, bootBeforeTi
 	outputs.upToDateWhen { false }
 }
 
+val versionTest by tasks.registering(JavaExec::class) {
+	group = "verification"
+	dependsOn(tasks.classes)
+	classpath = sourceSets.main.get().runtimeClasspath
+	mainClass.set("org.skriptlang.skript.testhost.VersionOrderTest")
+	outputs.upToDateWhen { false }
+}
+
 val bootTestPhase1 by bootPhase(1, "all", 0)
 val bootTestPhase2 by bootPhase(2, "only", 0)
 val bootTestPhase3 by bootPhase(3, "all", 2)
